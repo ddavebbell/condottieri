@@ -1,15 +1,18 @@
-[gd_scene load_steps=6 format=3 uid="uid://86x4xt5k0bsu"]
+[gd_scene load_steps=9 format=3 uid="uid://86x4xt5k0bsu"]
 
+[ext_resource type="Script" path="res://grid_container.gd" id="1_xn5eh"]
+[ext_resource type="Script" path="res://divider_script.gd" id="3_0h8s7"]
 [ext_resource type="Texture2D" uid="uid://bxurxurdtxxo4" path="res://Condoterri - ATLAS TEXTURE - map tiles.png" id="3_3pk25"]
+[ext_resource type="Script" path="res://tile.gd" id="4_7ofix"]
 [ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="4_o7t1k"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5pobu"]
-atlas = ExtResource("3_3pk25")
-region = Rect2(250, 221, 100, 100)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vtgug"]
 atlas = ExtResource("3_3pk25")
 region = Rect2(3, 3, 94, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5pobu"]
+atlas = ExtResource("3_3pk25")
+region = Rect2(250, 221, 100, 100)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w23fb"]
 atlas = ExtResource("3_3pk25")
@@ -32,22 +35,28 @@ grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="MainMapDisplay" type="Panel" parent="HSplitContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.25
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="MainMapDisplay" type="Panel" parent="HSplitContainer/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.86
 
-[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/MainMapDisplay"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="GridContainer" type="GridContainer" parent="HSplitContainer/MainMapDisplay/MarginContainer"]
-layout_mode = 2
+[node name="GridContainer" type="Panel" parent="HSplitContainer/MarginContainer/MainMapDisplay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_xn5eh")
 
 [node name="SideMenu" type="VSplitContainer" parent="HSplitContainer"]
 clip_contents = true
@@ -79,7 +88,10 @@ horizontal_alignment = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu"]
 layout_mode = 2
+theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu/MarginContainer"]
 custom_minimum_size = Vector2(24, 24)
@@ -91,16 +103,6 @@ size_flags_horizontal = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 
-[node name="MarbleTile_blck" type="TextureRect" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu/MarginContainer/ScrollContainer/PanelContainer"]
-custom_minimum_size = Vector2(48, 48)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-mouse_filter = 0
-texture = SubResource("AtlasTexture_5pobu")
-expand_mode = 1
-stretch_mode = 5
-
 [node name="MarbleTile_white" type="TextureRect" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu/MarginContainer/ScrollContainer/PanelContainer"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
@@ -110,6 +112,18 @@ mouse_filter = 0
 texture = SubResource("AtlasTexture_vtgug")
 expand_mode = 1
 stretch_mode = 5
+script = ExtResource("4_7ofix")
+
+[node name="MarbleTile_blck" type="TextureRect" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu/MarginContainer/ScrollContainer/PanelContainer"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 0
+texture = SubResource("AtlasTexture_5pobu")
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("4_7ofix")
 
 [node name="GrassTile" type="TextureRect" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu/MarginContainer/ScrollContainer/PanelContainer"]
 custom_minimum_size = Vector2(48, 48)
@@ -120,10 +134,12 @@ mouse_filter = 0
 texture = SubResource("AtlasTexture_w23fb")
 expand_mode = 1
 stretch_mode = 5
+script = ExtResource("4_7ofix")
 
 [node name="Divider1" type="Panel" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
+script = ExtResource("3_0h8s7")
 
 [node name="TriggerMenu" type="PanelContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 layout_mode = 2
@@ -149,6 +165,7 @@ size_flags_vertical = 3
 [node name="Divider2" type="Panel" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
+script = ExtResource("3_0h8s7")
 
 [node name="EventsMenu" type="PanelContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 custom_minimum_size = Vector2(0, 200)
