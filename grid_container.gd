@@ -6,7 +6,7 @@ const GRID_HEIGHT = 14
 
 var placed_tiles = {}
 var grid_offset = Vector2.ZERO # store the centered position
-@onready var margin_container = get_parent().get_parent()  # Adjust based on hierarchy
+var hovered_tile = null  # Store currently hovered tile reference
 
 
 func _ready():
@@ -17,13 +17,113 @@ func _ready():
 	
 	
 
-func _process(_delta):
-	print("GridContainer position:", position, "Parent(MainMapDisplay) global position:", get_parent().global_position, 
-	"Grid offset:", grid_offset, 
-	"Parent size:", get_parent().size)
+#func _input(event):
+	#if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		#var local_pos = event.position - global_position  # Convert to local space
+		#var adjusted_pos = local_pos - grid_offset
+		#var grid_pos = snap_to_grid(adjusted_pos)
+	#
+	#
+		#if is_within_grid(grid_pos):
+			#if is_tile_occupied(grid_pos):
+				#if hovered_tile != placed_tiles[grid_pos]:
+					#clear_highlight()  # Remove previous highlight
+					#hovered_tile = placed_tiles[grid_pos]
+					#highlight_tile(hovered_tile)
+					#print("tile being highlighted:", hovered_tile)
+			#else:
+				#if hovered_tile != null:
+					#clear_highlight()  # Only clear if there's an active highlight
+					#print("Tile highlight cleared")
+				#
+		#else:
+			#if hovered_tile != null:
+					#clear_highlight()  # Only clear if there's an active highlight
+					#print("Tile highlight cleared")
+			#
+		#if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
+			#remove_tile(grid_pos)
+			#
+			#
+	#if event is InputEventMouseMotion:
+		#var local_pos = event.position - global_position  # Convert to local space
+		#var adjusted_pos = local_pos - grid_offset
+		#var grid_pos = snap_to_grid(adjusted_pos)
+		#
+			#
+	#if event is InputEventMouseButton and event.pressed:
+		#var local_pos = event.position - global_position
+		#var adjusted_pos = local_pos - grid_offset
+		#var grid_pos = snap_to_grid(adjusted_pos)
+		#
+		#if event.button_index == MOUSE_BUTTON_RIGHT and is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
+			#remove_tile(grid_pos)
+			#
+func _input(event):
+	# Handle mouse motion (hovering over tiles)
+	if event is InputEventMouseMotion:
+		var local_pos = event.position - global_position  # Convert to local space
+		var adjusted_pos = local_pos - grid_offset
+		var grid_pos = snap_to_grid(adjusted_pos)
+		
+		if is_within_grid(grid_pos):
+			if is_tile_occupied(grid_pos):
+				if hovered_tile != placed_tiles[grid_pos]:
+					clear_highlight()  # Remove previous highlight
+					hovered_tile = placed_tiles[grid_pos]
+					highlight_tile(hovered_tile)
+					print("Tile being highlighted:", hovered_tile)
+			else:
+				if hovered_tile != null:
+					clear_highlight()  # Only clear if there's an active highlight
+					print("Tile highlight cleared")
+		else:
+			if hovered_tile != null:
+				clear_highlight()  # Only clear if there's an active highlight
+				print("Tile highlight cleared")
+				
+	# Handle left mouse button click (selection)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var local_pos = event.position - global_position
+		var adjusted_pos = local_pos - grid_offset
+		var grid_pos = snap_to_grid(adjusted_pos)
+	
+		if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
+			print("Tile selected at:", grid_pos)
+		
+	# Handle right mouse button click (tile removal)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		var local_pos = event.position - global_position
+		var adjusted_pos = local_pos - grid_offset
+		var grid_pos = snap_to_grid(adjusted_pos)
+		
+		if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
+			remove_tile(grid_pos)
+			clear_highlight()  # Clear highlight when a tile is deleted
+			hovered_tile = null  # Reset hovered tile reference
+			print("Tile removed at:", grid_pos)
 
-#func calculate_grid_offset():
-	#grid_offset = grid_container.rect_global_position grid_container.rect_size / 2
+
+func highlight_tile(tile):
+	tile.modulate = Color(1.5, 1.5, 1.5, 1.0)  # Brighten the tile slightly
+	print("Tile highlighted at:", tile.position)
+
+func clear_highlight():
+	if hovered_tile:
+		hovered_tile.modulate = Color(1, 1, 1, 1)  # Reset to normal color
+		print("Tile highlight cleared at:", hovered_tile.position)
+		hovered_tile = null
+
+
+func remove_tile(grid_pos: Vector2):
+	if grid_pos in placed_tiles:
+		var tile = placed_tiles[grid_pos]
+		remove_child(tile)  # Remove the tile from the scene tree
+		placed_tiles.erase(grid_pos)  # Remove from tracking dictionary
+		
+		print("Tile removed at grid position:", grid_pos)
+	else:
+		print("No tile to remove at:", grid_pos)
 
 
 func _draw():
@@ -41,7 +141,9 @@ func _draw():
 			grid_offset + Vector2(GRID_WIDTH * GRID_SIZE, y * GRID_SIZE), 
 			grid_color
 			)
-
+	if hovered_tile:
+		draw_rect(Rect2(hovered_tile.position, Vector2(GRID_SIZE, GRID_SIZE)), Color(0, 1, 0, 0.3), true)
+		
 
 func calculate_grid_offset():
 	var parent = get_parent() # Get the parent MainMapDisplay
@@ -52,15 +154,12 @@ func calculate_grid_offset():
 		# Get MainMapDisplay's actual size
 		var grid_total_size = Vector2(GRID_WIDTH * GRID_SIZE, GRID_HEIGHT * GRID_SIZE)
 		
-		print("Calculating Grid Offset...")
-		print("Parent size:", parent_size)
-		print("Grid total size:", grid_total_size)
-		print("Computed Grid Offset:", grid_offset)
+		
 		
 		# Calculate the centered position within the parent container
 		position = grid_offset 
 		
-		print("Parent size:", parent_size, "Grid centered at offset:", grid_offset, "GridContainer position:", position)
+		
 		update_tile_positions()
 		queue_redraw()
 
@@ -75,13 +174,6 @@ func _drop_data(pos: Vector2, data: Variant):
 	var adjusted_pos = local_pos - grid_offset # Correct for grid offset
 	var grid_pos = snap_to_grid(adjusted_pos)
 	
-	print("Dropping tile...")
-	print("Mouse Drop Position (Global):", pos)
-	print("Converted Local Position:", local_pos)
-	print("Adjusted Position (Grid Offset Removed):", adjusted_pos)
-	print("Final Grid Position:", grid_pos)
-	print("Expected Pixel Position:", grid_to_pixel(grid_pos))
-	
 	
 	
 	if is_within_grid(grid_pos) and not is_tile_occupied(grid_pos):
@@ -95,9 +187,6 @@ func _drop_data(pos: Vector2, data: Variant):
 func snap_to_grid(pos: Vector2) -> Vector2:
 	var adjusted_pos = pos - grid_offset
 	
-	print("Snapping to grid...")
-	print("Raw Position Input:", pos)
-	print("Adjusted Position After Offset:", adjusted_pos)
 	
 	return Vector2(
 		floor(adjusted_pos.x / GRID_SIZE),
@@ -109,11 +198,9 @@ func grid_to_pixel(grid_pos: Vector2) -> Vector2:
 	var pixel_pos = Vector2(
 		grid_pos.x * GRID_SIZE + grid_offset.x, 
 		grid_pos.y * GRID_SIZE + grid_offset.y
-	)
+	) + position
 	
-	print("Converting grid to pixel...")
-	print("Grid Position:", grid_pos)
-	print("Converted Pixel Position:", pixel_pos)
+	
 	return pixel_pos
 
 func is_within_grid(grid_pos: Vector2) -> bool:
@@ -131,11 +218,13 @@ func place_tile(grid_pos: Vector2, texture: Texture):
 	tile.expand = true
 	tile.size = Vector2(GRID_SIZE, GRID_SIZE) # Ensure tile fits exactly into one grid cell
 	tile.position = grid_to_pixel(grid_pos)
-	tile.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED  # Keep correct scaling
+	tile.modulate = Color(1, 1, 1, 1)  # Ensure new tile starts with default color
 	
 	add_child(tile)
 	placed_tiles[grid_pos] = tile
-	print("Tile placed at grid pos:", grid_pos, "Positioned at:", tile.position)
+	
+	clear_highlight()  # Ensure any previous highlight is removed
+	print("clear_highlight after, highlight cleared from placed tile")
 	
 	
 
@@ -143,10 +232,10 @@ func _on_resized():
 	calculate_grid_offset() # Recalculate center position
 	update_tile_positions() # Adjust tiles
 	queue_redraw()
-	print("Grid and tiles updated after resize")
+	
 
 func update_tile_positions():
 	for grid_pos in placed_tiles.keys():
 		var tile = placed_tiles[grid_pos]
 		tile.position = grid_to_pixel(grid_pos)
-		print("Updated tile at:", grid_pos, "New position:", tile.position)
+		
