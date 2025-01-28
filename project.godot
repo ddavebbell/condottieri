@@ -11,13 +11,13 @@ config_version=5
 [application]
 
 config/name="Condottieri"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://first_selection_screen.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
-GlobalSignals="*res://GlobalSignals.gd"
+GlobalData="*res://global_data.gd"
 
 [display]
 

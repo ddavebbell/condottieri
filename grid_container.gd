@@ -15,7 +15,6 @@ func _ready():
 	call_deferred("calculate_grid_offset")
 	connect("resized", Callable(self, "on_resized"))
 	
-	
 
 #func _input(event):
 	#if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -225,17 +224,72 @@ func place_tile(grid_pos: Vector2, texture: Texture):
 	
 	clear_highlight()  # Ensure any previous highlight is removed
 	print("clear_highlight after, highlight cleared from placed tile")
-	
-	
+
+
 
 func _on_resized():
 	calculate_grid_offset() # Recalculate center position
 	update_tile_positions() # Adjust tiles
 	queue_redraw()
-	
+
 
 func update_tile_positions():
 	for grid_pos in placed_tiles.keys():
 		var tile = placed_tiles[grid_pos]
 		tile.position = grid_to_pixel(grid_pos)
-		
+
+
+
+
+
+# # # AFTER YOU HAVE CREATED THE CUSTOM CHESS BOARD / LOGIC GOES UNDER HERE # # #
+# DON'T KNOW IF THESE WORK YET # 
+
+
+# REVERT 2D ARRAY WORKING CHESS BOARD BACK TO DICTIONARY TO EDIT #
+func convert_to_dictionary(grid_array):
+	var new_dict = {}
+	
+	for x in range(len(grid_array)):
+		for y in range(len(grid_array[x])):
+			if grid_array[x][y] != null:
+				new_dict[Vector2(x, y)] = grid_array[x][y]
+				
+	print("Dictionary Restored:", new_dict)
+	return new_dict
+
+
+# USE THIS TO TURN THE DICTIONARY CHESS BOARD INTO 2D ARRAY WORKABLE CHESS BOARD #
+# Define the default unusable tile texture in the script
+#var default_tile_texture = preload("res://textures/unusable_tile.png")
+
+#func convert_to_2d_array_with_gaps():
+	#var grid_size_x = 8  # Maximum chessboard width
+	#var grid_size_y = 8  # Maximum chessboard height
+	## Initialize empty 2D array with default values
+	#var grid_array = []
+	#for x in range(grid_size_x):
+		#grid_array.append([])
+		#for y in range(grid_size_y):
+			#grid_array[x].append(null)  # Start with empty
+			#
+	## Populate the array with placed tiles and fill gaps
+	#for pos in placed_tiles.keys():
+		#var tile = placed_tiles[pos]
+		#var x = int(pos.x)
+		#var y = int(pos.y)
+		#
+		#if x >= 0 and x < grid_size_x and y >= 0 and y < grid_size_y:
+			#grid_array[x][y] = tile  # Place existing tile
+			#
+	## Fill empty spaces with default unusable tiles
+	#for x in range(grid_size_x):
+		#for y in range(grid_size_y):
+			#if grid_array[x][y] == null:
+				#var default_tile = TextureRect.new()
+				#default_tile.texture = default_tile_texture
+				#default_tile.self_modulate = Color(0.5, 0.5, 0.5, 0.7)  # Grey out unusable tiles
+				#grid_array[x][y] = default_tile
+				#
+	#print("2D Array with gaps filled:", grid_array)
+	#return grid_array
