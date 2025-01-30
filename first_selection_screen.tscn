@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://c2mtw6kv1v7w6"]
+[gd_scene load_steps=4 format=3 uid="uid://c2mtw6kv1v7w6"]
 
 [ext_resource type="Script" path="res://first_selection_screen.gd" id="1_5n8sq"]
 [ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="2_ixodd"]
+[ext_resource type="Texture2D" uid="uid://b8gmlbt12iott" path="res://Images/Italian_landscape_AI.jpg" id="3_ac1ck"]
 
 [node name="FirstSelectionScreen" type="Control"]
 layout_mode = 3
@@ -16,10 +17,13 @@ script = ExtResource("1_5n8sq")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 73.0
+offset_top = 40.0
+offset_bottom = 113.0
 grow_horizontal = 2
+theme_override_colors/font_outline_color = Color(0.219608, 0.168627, 0.101961, 1)
+theme_override_constants/outline_size = 15
 theme_override_fonts/font = ExtResource("2_ixodd")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 64
 text = "Condottieri Map Editor"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -28,7 +32,7 @@ vertical_alignment = 1
 layout_mode = 1
 anchors_preset = -1
 anchor_left = -0.1125
-anchor_top = 0.0583333
+anchor_top = 0.155556
 anchor_right = 0.925
 anchor_bottom = 1.09167
 offset_left = 704.0
@@ -51,6 +55,7 @@ offset_left = 256.0
 offset_top = 384.0
 offset_right = 456.0
 offset_bottom = 434.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_ixodd")
 theme_override_font_sizes/font_size = 24
 text = "Create Map"
@@ -79,9 +84,20 @@ text = "Open Map"
 
 [node name="MapThumbnail" type="TextureRect" parent="."]
 layout_mode = 0
-offset_left = 568.0
-offset_top = 134.0
+offset_left = 561.0
+offset_top = 239.0
 offset_right = 1142.0
-offset_bottom = 334.0
+offset_bottom = 439.0
+
+[node name="Background" type="TextureRect" parent="."]
+z_index = -1
+layout_mode = 0
+offset_left = 2.0
+offset_top = -425.0
+offset_right = 1298.0
+offset_bottom = 871.0
+mouse_filter = 2
+texture = ExtResource("3_ac1ck")
+expand_mode = 1
 
 [connection signal="pressed" from="CreateMapButton" to="." method="_on_create_map_button_pressed"]

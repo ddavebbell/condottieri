@@ -1,5 +1,32 @@
 extends Control
 
+var map_data = {}  # Store loaded map data
+
+
+func _ready():
+	print("Loading maps into selection screen...")
+	load_maps_from_files()  # Ensure it runs when the screen opens
+
+
+func set_map_data(data):
+	map_data = data
+	print("Loaded map data:", map_data)
+	
+	if grid_container:
+		grid_container.load_map_data(map_data)
+
+
+func rebuild_grid():
+	if map_data.is_empty():
+		print("No map data to load!")
+		return
+		
+	for grid_pos in map_data.keys():
+		var tile_texture = load(map_data[grid_pos])  # Load tile texture path
+		place_tile(grid_pos, tile_texture)
+
+
+
 # Generate a thumbnail of the current map editor view
 func generate_thumbnail() -> ImageTexture:
 	# Assuming the editor is rendered in a Viewport node
@@ -13,7 +40,6 @@ func generate_thumbnail() -> ImageTexture:
 	thumbnail.create_from_image(image)
 	
 	return thumbnail
-
 
 # Save the current map
 func save_map(name: String, map_data: Dictionary):
