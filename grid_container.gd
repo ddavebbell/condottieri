@@ -244,57 +244,93 @@ func str_to_vector(pos_str: String) -> Vector2:
 func save_map(map_name: String):
 	var map_data = { "name": map_name, "tiles": {} }
 	
-	for grid_pos in placed_tiles.keys():
-		var tile_texture = placed_tiles[grid_pos]
+	# 🔹 Hide Save Menu Before Capturing
+	var save_menu = get_tree().get_root().find_child("SaveMenuPanel", true, false)
+	var was_visible = save_menu.visible if save_menu else false
+	
+	
+	if save_menu:
+		save_menu.visible = false
+		await get_tree().process_frame  # ✅ Wait for one frame
+		await RenderingServer.frame_post_draw  # ✅ Ensure UI fully updates before capture
 		
-	# Store tile data (supports both atlas and separate textures)
+	# 🔹 NEW: Delay the screenshot by 0.1 seconds to fully hide the menu
+	await get_tree().create_timer(0.1).timeout  
+	
+	# ✅ Capture the Grid Only (Avoid Side Menu)
+	var viewport_texture = get_viewport().get_texture()
+	var full_image = viewport_texture.get_image()
+	
+	var grid_position = Vector2(100, 100)  # Adjust this based on the grid's actual position
+	var grid_size = Vector2(512, 512)  # Make this a square region (adjustable)
+	var cropped_image = full_image.get_region(Rect2(grid_position, grid_size)) # ✅ Define the Crop Region (Centered on the Grid)
+	cropped_image.resize(256, 256)
+	
+	# ✅ Restore Save Menu Visibility (After Screenshot)
+	if save_menu:
+		save_menu.visible = was_visible
+	
+	
+	# ✅ Store tile data (supports both atlas and separate textures)
+	for grid_pos in placed_tiles.keys():
+		var tile_node = placed_tiles[grid_pos] 
+		var tile_texture = tile_node.texture 
+		
 		if tile_texture is AtlasTexture:
 			map_data["tiles"][str(grid_pos)] = {
-				"atlas": tile_texture.atlas.resource_path,
-				"region": [tile_texture.region.position.x, tile_texture.region.position.y, tile_texture.region.size.x, tile_texture.region.size.y]
+				"atlas": tile_texture.atlas.resource_path, 
+				"region": [
+					tile_texture.region.position.x, 
+					tile_texture.region.position.y, 
+					tile_texture.region.size.x, 
+					tile_texture.region.size.y
+				]
 			}
+		elif tile_texture is Texture2D:
+			map_data["tiles"][str(grid_pos)] = { "texture": tile_texture.resource_path } 
 		else:
-			map_data["tiles"][str(grid_pos)] = { "texture": tile_texture.resource_path }
-			
-	# Ensure the directory exists BEFORE saving thumbnail
-	var dir = DirAccess.open("user://thumbnails")
-	if dir == null:
-		dir = DirAccess.open("user://")
-		dir.make_dir_recursive("user://thumbnails")  # Create thumbnails folder if missing
-			
-	# Save Thumbnail
-	var thumbnail_path = "user://thumbnails/" + map_name + ".png"
-	var thumbnail_image = get_viewport().get_texture().get_image()
-	thumbnail_image.resize(256, 256)  # Resize to small preview size
+			print("⚠️ Warning: Unrecognized tile texture at", grid_pos)
 	
-	var err = thumbnail_image.save_png(thumbnail_path)
+	# ✅ Ensure the "thumbnails" directory exists
+	var thumb_dir = DirAccess.open("user://thumbnails")
+	if thumb_dir == null:
+		var root_dir = DirAccess.open("user://")  # Open root directory
+		root_dir.make_dir_recursive("user://thumbnails") if root_dir else null
+				
+	
+	# ✅ Save Thumbnail
+	var thumbnail_path = "user://thumbnails/" + map_name + ".png"
+	var err = cropped_image.save_png(thumbnail_path)
 	if err == OK:
 		map_data["thumbnail"] = thumbnail_path
-		print("Thumbnail saved successfully:", thumbnail_path)
+		print("✅ Thumbnail saved successfully:", thumbnail_path)
 	else:
-		print("Error saving thumbnail:", err)
+		print("❌ Error saving thumbnail:", err)
 		
-	
-	# Save map JSON
+		
+	# ✅ Ensure the "maps" directory exists
 	var map_dir = DirAccess.open("user://maps")
 	if map_dir == null:
-		map_dir = DirAccess.open("user://")  # Open root directory
-		if map_dir:
-			map_dir.make_dir_recursive("user://maps")
-		
-		
+		var root_map_dir = DirAccess.open("user://")
+		if root_map_dir:
+			root_map_dir.make_dir_recursive("user://maps")
+				
+				
+	# ✅ Save map JSON
 	var file_path = "user://maps/" + map_name + ".json"
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(map_data, "\t"))
+	file.close()  # ✅ Close file before checking existence
+	
+	# ✅ Verify if the file was actually saved
 	if FileAccess.file_exists(file_path):
-		print("save_map Map saved successfully:", file_path)
+		print("✅ save_map Map saved successfully:", file_path)
 	else:
-		print("save_map Error: File not found after saving!", file_path)
-	file.close()
-
-	print("save_map Map saved:", map_name, "with thumbnail:", thumbnail_path)
-
-
+		print("❌ save_map Error: File not found after saving!", file_path)
+		
+	print("✅ save_map Map saved:", map_name, "with thumbnail:", thumbnail_path)
+		
+	
 
 
 

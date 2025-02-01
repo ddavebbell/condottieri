@@ -1,4 +1,4 @@
-extends Control  # Attach this to the root node of Main.tscn
+extends Control  # Attach this to the root node of map_editor_screen.tscn
 
 var map_data = {}  # Store loaded map data
 

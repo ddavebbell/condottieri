@@ -1,22 +1,22 @@
 [gd_scene load_steps=10 format=3 uid="uid://86x4xt5k0bsu"]
 
-[ext_resource type="Script" path="res://main.gd" id="1_aaiea"]
-[ext_resource type="Script" path="res://grid_container.gd" id="1_xn5eh"]
-[ext_resource type="Script" path="res://divider_script.gd" id="3_0h8s7"]
-[ext_resource type="Texture2D" uid="uid://bxurxurdtxxo4" path="res://Condoterri - ATLAS TEXTURE - map tiles.png" id="3_3pk25"]
-[ext_resource type="Script" path="res://tile.gd" id="4_7ofix"]
-[ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="4_o7t1k"]
+[ext_resource type="Script" path="res://map_editor_screen.gd" id="1_88hck"]
+[ext_resource type="Script" path="res://grid_container.gd" id="2_ktsdv"]
+[ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="3_f76qc"]
+[ext_resource type="Texture2D" uid="uid://bxurxurdtxxo4" path="res://Condoterri - ATLAS TEXTURE - map tiles.png" id="4_nmiis"]
+[ext_resource type="Script" path="res://tile.gd" id="5_m2pae"]
+[ext_resource type="Script" path="res://divider_script.gd" id="6_ua3h0"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vtgug"]
-atlas = ExtResource("3_3pk25")
+atlas = ExtResource("4_nmiis")
 region = Rect2(3, 3, 94, 94)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5pobu"]
-atlas = ExtResource("3_3pk25")
+atlas = ExtResource("4_nmiis")
 region = Rect2(250, 221, 100, 100)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w23fb"]
-atlas = ExtResource("3_3pk25")
+atlas = ExtResource("4_nmiis")
 region = Rect2(0, 336, 94, 94)
 
 [node name="Control" type="Control"]
@@ -26,7 +26,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_aaiea")
+script = ExtResource("1_88hck")
 
 [node name="SaveMapPopup" type="Window" parent="."]
 title = "Save Map"
@@ -85,7 +85,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_xn5eh")
+script = ExtResource("2_ktsdv")
 
 [node name="SideMenu" type="VSplitContainer" parent="HSplitContainer"]
 clip_contents = true
@@ -111,7 +111,7 @@ z_index = 1
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
-theme_override_fonts/font = ExtResource("4_o7t1k")
+theme_override_fonts/font = ExtResource("3_f76qc")
 text = "Terrain"
 horizontal_alignment = 1
 
@@ -141,7 +141,7 @@ mouse_filter = 0
 texture = SubResource("AtlasTexture_vtgug")
 expand_mode = 1
 stretch_mode = 5
-script = ExtResource("4_7ofix")
+script = ExtResource("5_m2pae")
 
 [node name="MarbleTile_blck" type="TextureRect" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu/MarginContainer/ScrollContainer/PanelContainer"]
 custom_minimum_size = Vector2(48, 48)
@@ -152,7 +152,7 @@ mouse_filter = 0
 texture = SubResource("AtlasTexture_5pobu")
 expand_mode = 1
 stretch_mode = 5
-script = ExtResource("4_7ofix")
+script = ExtResource("5_m2pae")
 
 [node name="GrassTile" type="TextureRect" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TerrainMenu/MarginContainer/ScrollContainer/PanelContainer"]
 custom_minimum_size = Vector2(48, 48)
@@ -163,12 +163,12 @@ mouse_filter = 0
 texture = SubResource("AtlasTexture_w23fb")
 expand_mode = 1
 stretch_mode = 5
-script = ExtResource("4_7ofix")
+script = ExtResource("5_m2pae")
 
 [node name="Divider1" type="Panel" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
-script = ExtResource("3_0h8s7")
+script = ExtResource("6_ua3h0")
 
 [node name="TriggerMenu" type="PanelContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 layout_mode = 2
@@ -179,7 +179,7 @@ size_flags_stretch_ratio = 1.25
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
-theme_override_fonts/font = ExtResource("4_o7t1k")
+theme_override_fonts/font = ExtResource("3_f76qc")
 text = "Triggers"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu"]
@@ -194,7 +194,7 @@ size_flags_vertical = 3
 [node name="Divider2" type="Panel" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
-script = ExtResource("3_0h8s7")
+script = ExtResource("6_ua3h0")
 
 [node name="EventsMenu" type="PanelContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper"]
 custom_minimum_size = Vector2(0, 200)
@@ -205,7 +205,7 @@ size_flags_stretch_ratio = 1.25
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
-theme_override_fonts/font = ExtResource("4_o7t1k")
+theme_override_fonts/font = ExtResource("3_f76qc")
 text = "Events"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/EventsMenu"]
@@ -225,7 +225,7 @@ size_flags_stretch_ratio = 0.35
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
-theme_override_fonts/font = ExtResource("4_o7t1k")
+theme_override_fonts/font = ExtResource("3_f76qc")
 text = "Pop Up Menu"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/PopUpMenu"]

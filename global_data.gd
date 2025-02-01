@@ -6,7 +6,7 @@ var map_list = []
 # Load saved maps from files on startup
 func _ready():
 	print("Cleaning up old maps...")
-	var file_path = "user://maps/MyOldMap.json"
+	var file_path = "user://maps"
 	
 	var dir = DirAccess.open("user://maps")
 	if dir:
