@@ -3,7 +3,7 @@ extends Control
 # Placeholder for the list of maps (Now loaded from GlobalData)
 var map_list = []
 var selected_map = null  # Store selected map globally
-
+var selected_button = null  # Store selected button reference
 
 # UI Nodes
 @onready var map_list_container = $MapListContainer  # Scrollable container for map list
@@ -15,14 +15,13 @@ var selected_map = null  # Store selected map globally
 @onready var map_thumbnail_panel = $MapThumbnailPanel
 
 
+
 func _ready():
-	
-	map_thumbnail_panel.visible = false  # ✅ Hide panel until selection
-	# Set title
-	title_label.text = "Condottieri: Map Creator"
-	
 	load_maps_from_files()  # Load saved maps on startup
-	
+	var map_list_panel = $MapListContainer/MapListPanel
+	if map_list_panel:
+		map_list_panel.visible = true  # ✅ Ensure the panel is visible at startup
+		
 	# Connect button signals
 	create_map_button.connect("pressed", Callable(self, "_on_create_map"))
 	delete_map_button.connect("pressed", Callable(self, "_on_delete_map"))
@@ -32,24 +31,68 @@ func _ready():
 	_populate_map_list()
 
 func _populate_map_list():
-	var custom_font = load("res://BLACKCASTLEMF.TTF")  # ✅ Load custom font
-	var theme = Theme.new()  # ✅ Create a new theme
-	theme.set_font("font", "Button", custom_font)  # ✅ Assign font
-	theme.set_constant("font_size", "Button", 24)  # ✅ Force font size
+	var map_list_panel = $MapListContainer/MapListPanel  # ✅ Get VBoxContainer
+	map_list_panel.visible = true  # ✅ Keep it visible even when empty
+	
+	for child in map_list_panel.get_children():
+		child.queue_free()
+	
+	if map_list.size() == 0:
+		print("❌ No saved maps found.")
+		return
+		
+	var first_button = null  # Store first button reference
+		
+	# Setting Button Style/Theme
+	var custom_font = load("res://BLACKCASTLEMF.TTF")  # Load custom font
+	var map_list_theme = Theme.new()  # Create a new theme
+	map_list_theme.set_font("font", "Button", custom_font)  # Assign font
+	map_list_theme.set_constant("font_size", "Button", 24)  # Force font size
+	
+	# ✅ Use MarginContainer for precise control over padding
+	var top_margin_container = MarginContainer.new()
+	top_margin_container.add_theme_constant_override("margin_top", 10)
+	map_list_panel.add_child(top_margin_container)
 	
 	for map_data in map_list:
+		var hbox = HBoxContainer.new()
+		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
+		# ✅ Create a Spacer for Top Margin
+		var top_spacer = Control.new()
+		top_spacer.size_flags_vertical = Control.SIZE_SHRINK_BEGIN 
+		map_list_panel.add_child(top_spacer)  # ✅ Add spacer to VBoxContainer
+		
+		var left_spacer = Control.new() # ✅ Create a spacer to add left margin
+		left_spacer.custom_minimum_size = Vector2(15, 0)
+		
 		var button = Button.new()
+		button.theme = map_list_theme
 		button.text = map_data["name"]
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL # ✅ Stretch Button to Fill the Container
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL 
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER  
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.custom_minimum_size = Vector2(0, 35)  # Prevents overlap by setting height
 		
-		button.theme = theme
+		button.connect("pressed", Callable(self, "_on_map_selected").bind(map_data, button))
 		
 		
-		button.connect("pressed", Callable(self, "_on_map_selected").bind(map_data))
-		map_list_container.add_child(button)
+		var right_spacer = Control.new() # ✅ Create a spacer to add right margin
+		right_spacer.custom_minimum_size = Vector2(15, 0)  # ✅ Set right margin
 		
+		# ✅ Add everything to HBoxContainer
+		hbox.add_child(left_spacer)  # Left margin
+		hbox.add_child(button)  # Button in the center
+		hbox.add_child(right_spacer)  # Right margin
 		
-
+		map_list_panel.add_child(hbox) # Add to VBoxContainer
+		
+		if first_button == null:
+			first_button = button  # Store first button for auto-selection
+		
+		# Select the first map by default
+	if first_button:
+		_on_map_selected(map_list[0], first_button)
 
 func generate_error_thumbnail(map_name: String) -> Texture2D:
 	var error_image = Image.create(256, 256, false, Image.FORMAT_RGBA8)
@@ -70,9 +113,21 @@ func generate_error_thumbnail(map_name: String) -> Texture2D:
 
 
 
-func _on_map_selected(map_data):
-	# Display the selected map's thumbnail
-	selected_map = map_data  # ✅ Store selected map
+func _on_map_selected(map_data, clicked_button):
+	selected_map = map_data  # Update selected map
+	print("🟢 Selected Map:", selected_map["name"])
+	
+	if selected_button:
+		selected_button.modulate = Color(1, 1, 1, 1)  # Reset to normal color
+		selected_button.add_theme_color_override("font_color", Color(0.85, 0.65, 0.45))  # ✅ Light Brown text
+		selected_button.release_focus()  # ✅ Remove focus from the old button
+		
+	# ✅ Apply Highlight to New Selected Button
+	clicked_button.modulate = Color(0.8, 0.5, 0.3, 1)  # Brown color (RGB: 153, 76, 25)
+	clicked_button.grab_focus()  # ✅ Ensures the button has focus (shows border)
+	selected_button = clicked_button
+	
+	
 	
 	if map_data.has("thumbnail") and map_data["thumbnail"] is Texture2D:
 		map_thumbnail.texture = map_data["thumbnail"]  # ✅ Update the separate panel
@@ -82,11 +137,6 @@ func _on_map_selected(map_data):
 	map_thumbnail_panel.visible = true  # ✅ Make sure it's visible
 	print("✅ Updated thumbnail for:", map_data["name"])
 	
-
-func _on_create_map():
-	# Placeholder for creating a new map
-	print("Create Map button pressed")
-	# Logic to create a new map goes here
 
 func _on_delete_map():
 	if selected_map == null:
@@ -99,37 +149,54 @@ func _on_delete_map():
 	var dir = DirAccess.open("user://maps")
 	if dir and dir.file_exists(file_path):
 		dir.remove(file_path)
-		print("Deleted map:", selected_map["name"])
+		print("🗑️ Deleted map:", selected_map["name"])
 	else:
-		print("Map file not found:", selected_map["name"])
+		print("❌ Map file not found:", selected_map["name"])
+	
 	
 	# Also delete the thumbnail if it exists
-	dir = DirAccess.open("user://thumbnails")
-	if dir and dir.file_exists(thumbnail_path):
-		dir.remove(thumbnail_path)
-		print("Deleted thumbnail:", selected_map["name"])
+	var thumb_dir = DirAccess.open("user://thumbnails")
+	if thumb_dir and thumb_dir.file_exists(thumbnail_path):
+		thumb_dir.remove(thumbnail_path)
+		print("🗑️ Deleted Thumbnail:", thumbnail_path)
+	else:
+		print("❌ Thumbnail not found:", thumbnail_path)
+		
+		
+	# ✅ Reset Thumbnail Container (Hides Previous Map Thumbnail)
+	map_thumbnail.visible = false  # Hide the thumbnail preview
 	
 	# Refresh the map list after deletion
+	selected_map = null
+	delete_map_button.disabled = true
+	open_map_button.disabled = true
+	
 	load_maps_from_files()
+	_populate_map_list()
 
 
 func _on_open_map():
 	if selected_map == null:
-		print("No map selected!")
+		print("❌ No map selected!")
 		return
 		
-	print("Opening map:", selected_map["name"])
+	print("🟢 Opening map:", selected_map["name"])
 	
 	# Load the Map Editor scene
-	var main_scene = load("res://map_editor_screen.tscn").instantiate()
-	
-	# Pass the selected map data
-	main_scene.set_map_data(selected_map["data"])
-	
-	# Switch to the Map Editor
-	get_tree().root.add_child(main_scene)
+	var map_editor_scene = load("res://map_editor_screen.tscn").instantiate()
+	get_tree().root.add_child(map_editor_scene)
 	get_tree().current_scene.queue_free()
-	get_tree().current_scene = main_scene
+	get_tree().current_scene = map_editor_scene
+	
+	var grid_container = map_editor_scene.get_node_or_null("HSplitContainer/MarginContainer/MainMapDisplay/GridContainer")
+	if grid_container == null:
+		print("❌ ERROR: GridContainer not found inside map_editor_scene!")
+		return
+		
+	print("✅ GridContainer found. Calling load_map()...")
+	
+	grid_container.call_deferred("load_map", selected_map["name"])
+	
 	
 func _on_create_map_pressed():
 	# Load the Map Editor scene
@@ -156,11 +223,57 @@ func _on_create_map_button_pressed():
 	print("Switched to Map Editor with a new blank map.")
 
 
+func load_map(map_name: String):
+	print("🟢 Loading Map:", map_name)
+
+	var file_path = "user://maps/" + map_name + ".json"
+	if not FileAccess.file_exists(file_path):
+		print("❌ Map file does not exist:", file_path)
+		return
+		
+	# ✅ Load JSON Data
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	var map_data = JSON.parse_string(file.get_as_text())
+	file.close()
+
+	if map_data == null:
+		print("❌ Error loading map data!")
+		return
+		
+	# ✅ Find `GridContainer` in the current scene
+	var grid_container = $HSplitContainer/MarginContainer/MainMapDisplay/GridContainer  # Adjust path if necessary
+	if grid_container == null:
+		print("❌ Error: GridContainer not found in Map Editor!")
+		return
+		
+	print("✅ Grid container found. Clearing grid...")
+	grid_container.clear_grid()  # Clear any previous tiles before loading
+		
+	# ✅ Place Tiles on Grid
+	for key in map_data["tiles"].keys():
+		var coords = key.split(",")  # 🔹 Convert JSON key back into Vector2
+		var grid_pos = Vector2(coords[0].to_float(), coords[1].to_float())
+		
+		var tile_data = map_data["tiles"][key]
+		
+		var tile_texture: Texture2D
+		if "atlas" in tile_data:
+			var atlas_texture = AtlasTexture.new()
+			atlas_texture.atlas = load(tile_data["atlas"])
+			atlas_texture.region = Rect2(tile_data["region"][0], tile_data["region"][1], tile_data["region"][2], tile_data["region"][3])
+			tile_texture = atlas_texture
+		else:
+			tile_texture = load(tile_data["texture"])
+			
+		grid_container.place_tile(grid_pos, tile_texture)
+		
+		print("✅ Placed tile at:", grid_pos)
+	print("✅ Map Loaded Successfully!")
+
+
 
 # Load saved maps from files
 func load_maps_from_files():
-	print("Loading maps from files...")
-
 	var dir = DirAccess.open("user://maps")
 	if dir == null:
 		print("❌ Maps folder does not exist.")

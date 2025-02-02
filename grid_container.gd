@@ -174,64 +174,88 @@ func is_tile_occupied(grid_pos: Vector2) -> bool:
 	return grid_pos in placed_tiles
 
 func place_tile(grid_pos: Vector2, texture: Texture):
+	if grid_pos in placed_tiles:
+		print("⚠ Tile already exists at:", grid_pos)
+		return
+	
 	var tile = TextureRect.new()
 	tile.texture = texture
 	tile.stretch_mode = TextureRect.STRETCH_SCALE
 	tile.expand = true
 	tile.size = Vector2(GRID_SIZE, GRID_SIZE) # Ensure tile fits exactly into one grid cell
-	tile.position = grid_to_pixel(grid_pos)
 	tile.modulate = Color(1, 1, 1, 1)  # Ensure new tile starts with default color
+	tile.position = grid_to_pixel(grid_pos)
 	
 	add_child(tile)
 	placed_tiles[grid_pos] = tile
-	
 	clear_highlight()  # Ensure any previous highlight is removed
-	print("clear_highlight after, highlight cleared from placed tile")
+	
+	print("✅ Tile placed at:", grid_pos, "Position:", tile.position)
 
 
 # # # # LOADING AND SAVING MAP FUNCTIONALITY # # # #
 
 
-#func load_map_data(data):
-	#print("Rebuilding grid with loaded data")
-	#
-	#for grid_pos in data.keys():
-		#var tile_texture = load(data[grid_pos])  # Load tile texture path
-		#place_tile(grid_pos, tile_texture)
-
-
 func load_map(map_name: String):
+	print("🟢 Entered load_map() for:", map_name)
+	
 	var file_path = "user://maps/" + map_name + ".json"
-
 	if not FileAccess.file_exists(file_path):
-		print("Map file not found:", file_path)
+		print("❌ ERROR: Map file does not exist:", file_path)
 		return
-
-	var file = FileAccess.open(file_path, FileAccess.READ)
+		
+	print("✅ Found map file:", file_path)
+	
+	var file = FileAccess.open(file_path, FileAccess.READ) # ✅ Load JSON Data
 	var map_data = JSON.parse_string(file.get_as_text())
 	file.close()
 
-	print("Loading map:", map_name)
-
-	for grid_pos_str in map_data["tiles"].keys():
-		var grid_pos = str_to_vector(grid_pos_str)  # Convert back to Vector2
-		var tile_info = map_data["tiles"][grid_pos_str]
+	if map_data == null:
+		print("❌ ERROR: Failed to parse map JSON!")
+		return
 		
-		var tile_texture
-		if "atlas" in tile_info:
-			tile_texture = AtlasTexture.new()
-			tile_texture.atlas = load(tile_info["atlas"])
-			tile_texture.region = Rect2(tile_info["region"][0], tile_info["region"][1], tile_info["region"][2], tile_info["region"][3])
+		
+	clear_grid()  # ✅ Clear old tiles before loading
+	
+	print("✅ Successfully parsed map data:", map_data)
+	if not map_data.has("tiles"):
+		print("❌ ERROR: No 'tiles' key found in map JSON!")
+		return
+	
+	# ✅ Check if "tiles" key exists in JSON
+	if not map_data.has("tiles"):
+		print("❌ ERROR: No 'tiles' key found in map JSON!")
+		return
+	
+	# ✅ Place Tiles on Grid
+	for key in map_data["tiles"].keys():
+		var coords = key.split(",")  # Convert JSON key back into Vector2
+		var grid_pos = Vector2(coords[0].to_float(), coords[1].to_float())
+		var tile_data = map_data["tiles"][key]
+		
+		var tile_texture: Texture2D
+		if "atlas" in tile_data:
+			var atlas_texture = AtlasTexture.new()
+			atlas_texture.atlas = load(tile_data["atlas"])
+			atlas_texture.region = Rect2(tile_data["region"][0], tile_data["region"][1], tile_data["region"][2], tile_data["region"][3])
+			tile_texture = atlas_texture
 		else:
-			tile_texture = load(tile_info["texture"])
-			
-		place_tile(grid_pos, tile_texture)
+			tile_texture = load(tile_data["texture"])
+		
+		place_tile(grid_pos, tile_texture)  # ✅ Place tile
+		
+		print("✅ Placed tile at:", grid_pos, "with texture:", tile_texture)
+		
+	print("✅ Map Loaded Successfully!")
+	
+	
+	
+	
 		
 	#  Load Thumbnail If It Exists
 	if "thumbnail" in map_data and FileAccess.file_exists(map_data["thumbnail"]):
 		var image = Image.new()
 		image.load(map_data["thumbnail"])
-		var tex = ImageTexture.create_from_image(image)
 		print("Thumbnail loaded for:", map_name)
 	else:
 		print("No thumbnail found for", map_name)
@@ -240,37 +264,58 @@ func str_to_vector(pos_str: String) -> Vector2:
 	var parts = pos_str.split(",")
 	return Vector2(int(parts[0]), int(parts[1]))
 
+func clear_grid():
+	print("🧹 Clearing grid...")
+	
+	# ✅ Remove all child nodes that represent tiles
+	for tile in placed_tiles.values():
+		tile.queue_free()
+		
+	# ✅ Clear the placed_tiles dictionary
+	placed_tiles.clear()
+	
+	print("✅ Grid cleared successfully!")
+
+
 
 func save_map(map_name: String):
 	var map_data = { "name": map_name, "tiles": {} }
 	
-	# 🔹 Hide Save Menu Before Capturing
-	var save_menu = get_tree().get_root().find_child("SaveMenuPanel", true, false)
-	var was_visible = save_menu.visible if save_menu else false
-	
-	
-	if save_menu:
-		save_menu.visible = false
-		await get_tree().process_frame  # ✅ Wait for one frame
-		await RenderingServer.frame_post_draw  # ✅ Ensure UI fully updates before capture
+	print("🔵 Saving map:", map_name)
+	for grid_pos in placed_tiles.keys():
+		var tile_node = placed_tiles[grid_pos]  # ✅ TextureRect node
+		var tile_texture = tile_node.texture  # ✅ Extract actual texture
 		
-	# 🔹 NEW: Delay the screenshot by 0.1 seconds to fully hide the menu
-	await get_tree().create_timer(0.1).timeout  
-	
-	# ✅ Capture the Grid Only (Avoid Side Menu)
-	var viewport_texture = get_viewport().get_texture()
-	var full_image = viewport_texture.get_image()
-	
-	var grid_position = Vector2(100, 100)  # Adjust this based on the grid's actual position
-	var grid_size = Vector2(512, 512)  # Make this a square region (adjustable)
-	var cropped_image = full_image.get_region(Rect2(grid_position, grid_size)) # ✅ Define the Crop Region (Centered on the Grid)
-	cropped_image.resize(256, 256)
-	
-	# ✅ Restore Save Menu Visibility (After Screenshot)
-	if save_menu:
-		save_menu.visible = was_visible
-	
-	
+		var tile_data = {}
+		
+		if tile_texture is AtlasTexture:
+			tile_data = {
+				"atlas": tile_texture.atlas.resource_path, 
+				"region": [
+					tile_texture.region.position.x, 
+					tile_texture.region.position.y, 
+					tile_texture.region.size.x, 
+					tile_texture.region.size.y
+				]
+			}
+		else:
+			tile_data = { "texture": tile_texture.resource_path }
+			
+		map_data["tiles"][str(grid_pos.x) + "," + str(grid_pos.y)] = tile_data
+		print("✅ Saved Tile at:", grid_pos, "→", tile_data)
+		
+		
+	# ✅ Save JSON
+	var file_path = "user://maps/" + map_name + ".json"
+	var file = FileAccess.open(file_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(map_data, "\t"))
+	file.close()
+		
+		
+		
+	## CAPTURING A THUMBNAIL LOGIC OF THE MAP ##
+	capture_screenshot(map_name, map_data)
+
 	# ✅ Store tile data (supports both atlas and separate textures)
 	for grid_pos in placed_tiles.keys():
 		var tile_node = placed_tiles[grid_pos] 
@@ -291,6 +336,54 @@ func save_map(map_name: String):
 		else:
 			print("⚠️ Warning: Unrecognized tile texture at", grid_pos)
 	
+	
+		
+		
+	# ✅ Ensure the "maps" directory exists
+	var map_dir = DirAccess.open("user://maps")
+	if map_dir == null:
+		var root_map_dir = DirAccess.open("user://")
+		if root_map_dir:
+			root_map_dir.make_dir_recursive("user://maps")
+				
+				
+	
+	# ✅ Verify if the file was actually saved
+	if FileAccess.file_exists(file_path):
+		print("✅ save_map Map saved successfully:", file_path)
+	else:
+		print("❌ save_map Error: File not found after saving!", file_path)
+		
+	
+
+
+
+func capture_screenshot(map_name: String, map_data: Dictionary):
+	var save_menu = get_tree().get_root().find_child("SaveMenuPanel", true, false)
+	var was_visible = save_menu.visible if save_menu else false
+	
+	# 🔹 Hide Save Menu Before Capturing
+	if save_menu:
+		save_menu.visible = false
+		await get_tree().process_frame  # ✅ Wait for one frame
+		await RenderingServer.frame_post_draw  # ✅ Ensure UI fully updates before capture
+		
+	# 🔹 NEW: Delay the screenshot by 0.1 seconds to fully hide the menu
+	await get_tree().create_timer(0.1).timeout  
+	
+	# ✅ Capture the Grid Only (Avoid Side Menu)
+	var viewport_texture = get_viewport().get_texture()
+	var full_image = viewport_texture.get_image()
+	
+	var grid_position = Vector2(100, 100)  # Adjust this based on the grid's actual position
+	var grid_size = Vector2(512, 512)  # Make this a square region (adjustable)
+	var cropped_image = full_image.get_region(Rect2(grid_position, grid_size)) # ✅ Define the Crop Region (Centered on the Grid)
+	cropped_image.resize(256, 256)
+	
+	# ✅ Restore Save Menu Visibility (After Screenshot)
+	if save_menu:
+		save_menu.visible = was_visible
+		
 	# ✅ Ensure the "thumbnails" directory exists
 	var thumb_dir = DirAccess.open("user://thumbnails")
 	if thumb_dir == null:
@@ -307,34 +400,8 @@ func save_map(map_name: String):
 	else:
 		print("❌ Error saving thumbnail:", err)
 		
-		
-	# ✅ Ensure the "maps" directory exists
-	var map_dir = DirAccess.open("user://maps")
-	if map_dir == null:
-		var root_map_dir = DirAccess.open("user://")
-		if root_map_dir:
-			root_map_dir.make_dir_recursive("user://maps")
-				
-				
-	# ✅ Save map JSON
-	var file_path = "user://maps/" + map_name + ".json"
-	var file = FileAccess.open(file_path, FileAccess.WRITE)
-	file.store_string(JSON.stringify(map_data, "\t"))
-	file.close()  # ✅ Close file before checking existence
-	
-	# ✅ Verify if the file was actually saved
-	if FileAccess.file_exists(file_path):
-		print("✅ save_map Map saved successfully:", file_path)
-	else:
-		print("❌ save_map Error: File not found after saving!", file_path)
-		
 	print("✅ save_map Map saved:", map_name, "with thumbnail:", thumbnail_path)
 		
-	
-
-
-
-
 
 
 

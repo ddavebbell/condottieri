@@ -8,8 +8,8 @@ var map_data = {}  # Store loaded map data
 @onready var save_map_confirm_button = $SaveMapPopup/SaveMapConfirmButton
 @onready var save_map_button = $SaveMapButton  # Reference the button
 
-
 func _ready():
+	save_map_popup.visible = false
 	save_map_confirm_button.connect("pressed", Callable(self, "_on_confirm_save_map"))
  
 
@@ -48,12 +48,16 @@ func _on_confirm_save_map():
 		print("Error: 'user://maps/' directory does not exist.")
 
 
-func _on_load_map_button_pressed():
-	#var map_name = "my_saved_map"
-	#grid_container.load_map(map_name)
-	pass
+#func _on_load_map_button_pressed():
+	##var map_name = "my_saved_map"
+	##grid_container.load_map(map_name)
+	#pass
 
 
-func _on_save_map_button_mouse_entered() -> void:
-	print("Hovering over save map button")
-	pass # Replace with function body.
+#func _on_save_map_button_mouse_entered() -> void:
+	#print("Hovering over save map button")
+	#pass # Replace with function body.
+
+
+func _on_save_map_popup_close_requested() -> void:
+	save_map_popup.hide()
