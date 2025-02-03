@@ -7,13 +7,13 @@ var selected_button = null  # Store selected button reference
 
 # UI Nodes
 @onready var map_list_container = $MapListContainer  # Scrollable container for map list
+@onready var map_thumbnail_panel = $MapThumbnailPanel
 @onready var map_thumbnail = $MapThumbnailPanel/MapThumbnail  # Thumbnail preview
 @onready var create_map_button = $ButtonContainer/CreateMapButton
 @onready var delete_map_button = $ButtonContainer/DeleteMapButton
 @onready var open_map_button = $ButtonContainer/OpenMapButton
 @onready var title_label = $TitleLabel
-@onready var map_thumbnail_panel = $MapThumbnailPanel
-
+@onready var map_list_ui = $MapListContainer/MapListPanel  # Ensure you reference the ItemList node
 
 
 func _ready():
@@ -127,14 +127,19 @@ func _on_map_selected(map_data, clicked_button):
 	clicked_button.grab_focus()  # ✅ Ensures the button has focus (shows border)
 	selected_button = clicked_button
 	
-	
-	
+	# ✅ Store the thumbnail in `selected_map`
 	if map_data.has("thumbnail") and map_data["thumbnail"] is Texture2D:
-		map_thumbnail.texture = map_data["thumbnail"]  # ✅ Update the separate panel
+		selected_map["thumbnail"] = map_data["thumbnail"]  # ✅ Save for future use
+		map_thumbnail.texture = selected_map["thumbnail"]
+		map_thumbnail.visible = true
 	else:
-		map_thumbnail.texture = generate_error_thumbnail(map_data["name"])  # ✅ Use error image
-
-	map_thumbnail_panel.visible = true  # ✅ Make sure it's visible
+		selected_map["thumbnail"] = generate_error_thumbnail(map_data["name"])
+		map_thumbnail.texture = selected_map["thumbnail"]
+		map_thumbnail.visible = true
+		
+	# ✅ Ensure panel stays visible
+	map_thumbnail_panel.visible = true
+	
 	print("✅ Updated thumbnail for:", map_data["name"])
 	
 
@@ -143,6 +148,7 @@ func _on_delete_map():
 		print("No map selected to delete.")
 		return
 	
+	var map_name = selected_map["name"]
 	var file_path = "user://maps/" + selected_map["name"] + ".json"
 	var thumbnail_path = "user://thumbnails/" + selected_map["name"] + ".png"
 	
@@ -153,7 +159,6 @@ func _on_delete_map():
 	else:
 		print("❌ Map file not found:", selected_map["name"])
 	
-	
 	# Also delete the thumbnail if it exists
 	var thumb_dir = DirAccess.open("user://thumbnails")
 	if thumb_dir and thumb_dir.file_exists(thumbnail_path):
@@ -162,17 +167,109 @@ func _on_delete_map():
 	else:
 		print("❌ Thumbnail not found:", thumbnail_path)
 		
-		
-	# ✅ Reset Thumbnail Container (Hides Previous Map Thumbnail)
-	map_thumbnail.visible = false  # Hide the thumbnail preview
-	
-	# Refresh the map list after deletion
 	selected_map = null
-	delete_map_button.disabled = true
-	open_map_button.disabled = true
+	selected_button = null
 	
+	
+		
 	load_maps_from_files()
 	_populate_map_list()
+	await get_tree().process_frame  # Ensure UI updates before selection
+	auto_select_first_map()  # Auto-select the first available map
+
+func auto_select_first_map():
+	if map_list.size() > 0:
+		var first_map = map_list[0]
+		var first_map_name = first_map["name"]
+		select_map(first_map_name)  # Select it
+		print("✅ auto_select_first_map(): ", first_map_name)
+		
+		# ✅ Call `_on_map_selected()` instead of just `select_map()`
+		var first_button = get_first_map_button(first_map_name)
+		if first_button:
+			_on_map_selected(first_map, first_button)  # ✅ Ensure UI is updated
+		else:
+			print("❌ Could not find button for auto-selected map")
+	else:
+		print("⚠️ No maps left, resetting thumbnail.")
+		reset_thumbnail()  # No maps left, clear thumbnail
+
+func select_map(map_name: String):
+	selected_map = {"name": map_name}  # Store selected map info
+
+	# ✅ Update UI elements
+	delete_map_button.disabled = false
+	open_map_button.disabled = false
+		
+	update_thumbnail(map_name)  # Load the correct thumbnail
+	print("✅ Auto-selected map:", map_name)
+
+func get_first_map_button(map_name: String) -> Button:
+	var map_list_panel = $MapListContainer/MapListPanel  # Reference to your VBoxContainer
+	for child in map_list_panel.get_children():
+		if child is HBoxContainer:
+			for sub_child in child.get_children():
+				if sub_child is Button and sub_child.text == map_name:
+					return sub_child  # ✅ Return the button that matches the map name
+	return null
+
+
+
+func reset_thumbnail():
+	print("🔄 Resetting thumbnail.")
+	if map_thumbnail:
+		map_thumbnail.texture = null  # Fully clear the texture
+		map_thumbnail.visible = false  # Hide the UI element
+	if map_thumbnail_panel:
+		map_thumbnail_panel.visible = false  # Hide the whole panel if needed
+		print("🔄 Thumbnail preview fully reset.")
+
+func update_thumbnail(map_name: String):
+	# ✅ Try to load from selected_map first
+	if selected_map and selected_map.has("thumbnail") and selected_map["thumbnail"] is Texture2D:
+		print("🟢 Using cached thumbnail for:", map_name)
+		map_thumbnail.texture = selected_map["thumbnail"]
+		map_thumbnail_panel.visible = true
+		map_thumbnail.visible = true
+		return
+		
+	var thumbnail_path = "user://thumbnails/" + map_name + ".png"
+	print("🔍 Checking for thumbnail at:", thumbnail_path)
+	
+	if FileAccess.file_exists(thumbnail_path):
+		print("❌ Thumbnail file does not exist:", thumbnail_path)
+		
+		# ✅ Keep panel visible even if no image exists
+		map_thumbnail.texture = null
+		map_thumbnail.visible = false
+		map_thumbnail_panel.visible = true
+		return
+		
+		var texture = ImageTexture.new()
+		var image = Image.new()
+		
+		var load_result = image.load(thumbnail_path)
+		
+		if load_result != OK:
+			print("❌ Error loading image file:", thumbnail_path, "Error Code:", load_result)
+			reset_thumbnail()
+			return
+		
+		texture.create_from_image(image)
+		
+		# ✅ Extra Debugging
+		print("✅ Image loaded successfully:", image.get_size())
+		print("✅ Texture created:", texture.get_width(), "x", texture.get_height())
+		
+		
+		map_thumbnail.texture = null  # Clear any existing texture
+		await get_tree().process_frame  # Let UI update before setting new texture
+		map_thumbnail.texture = texture
+		map_thumbnail.visible = true  # Ensure the image is visible
+		map_thumbnail_panel.visible = true  # Show panel
+		
+		print("✅ Loaded and displayed thumbnail for:", map_name)
+		
 
 
 func _on_open_map():
@@ -320,41 +417,3 @@ func load_maps_from_files():
 			map_list.append(map_entry)  # Append the map entry to the list
 			
 		print("✅ Maps loaded:", map_list)
-
-
-func delete_all_maps():
-	print("Deleting all saved maps...")
-	
-	# ✅ Open the "maps" directory
-	var dir = DirAccess.open("user://maps")
-	if dir:
-		var files = dir.get_files()
-		for file_name in files:
-			if file_name.ends_with(".json"):  # ✅ Only delete JSON files
-				var file_path = "user://maps/" + file_name
-				dir.remove(file_path)
-				print("Deleted map file:", file_name)
-		
-	# ✅ Open the "thumbnails" directory (if using separate thumbnail storage)
-	var thumb_dir = DirAccess.open("user://thumbnails")
-	if thumb_dir:
-		var thumb_files = thumb_dir.get_files()
-		for thumb_file in thumb_files:
-			if thumb_file.ends_with(".png"):  # ✅ Only delete PNG thumbnails
-				var thumb_path = "user://thumbnails/" + thumb_file
-				thumb_dir.remove(thumb_path)
-				print("Deleted thumbnail:", thumb_file)
-				
-	# ✅ Clear the map list
-	map_list.clear()
-	print("Cleared map_list variable.")
-	
-	# ✅ Refresh UI by reloading maps (this will show an empty list)
-	load_maps_from_files()
-	
-	print("All maps deleted.")
-	
-
-
-func _on_delete_all_button_temp_pressed() -> void:
-	delete_all_maps()
