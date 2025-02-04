@@ -101,15 +101,11 @@ func generate_error_thumbnail(map_name: String) -> Texture2D:
 	var font = ThemeDB.fallback_font  # Get a default font
 	var text_position = Vector2(30, 120)  # Center-ish placement
 
-	error_image.lock()
-	error_image.draw_string(font, text_position, "ERROR", Color(1, 1, 1, 1), 24)
-	error_image.unlock()
+	
 
 	print("⚠️ Generated error thumbnail for:", map_name)
 
 	return ImageTexture.create_from_image(error_image)
-
-
 
 
 
@@ -182,7 +178,6 @@ func auto_select_first_map():
 		var first_map = map_list[0]
 		var first_map_name = first_map["name"]
 		select_map(first_map_name)  # Select it
-		print("✅ auto_select_first_map(): ", first_map_name)
 		
 		# ✅ Call `_on_map_selected()` instead of just `select_map()`
 		var first_button = get_first_map_button(first_map_name)
@@ -191,7 +186,6 @@ func auto_select_first_map():
 		else:
 			print("❌ Could not find button for auto-selected map")
 	else:
-		print("⚠️ No maps left, resetting thumbnail.")
 		reset_thumbnail()  # No maps left, clear thumbnail
 
 func select_map(map_name: String):
@@ -234,41 +228,31 @@ func update_thumbnail(map_name: String):
 		return
 		
 	var thumbnail_path = "user://thumbnails/" + map_name + ".png"
-	print("🔍 Checking for thumbnail at:", thumbnail_path)
 	
 	if FileAccess.file_exists(thumbnail_path):
 		print("❌ Thumbnail file does not exist:", thumbnail_path)
-		
-		# ✅ Keep panel visible even if no image exists
-		map_thumbnail.texture = null
-		map_thumbnail.visible = false
-		map_thumbnail_panel.visible = true
+		reset_thumbnail()
 		return
 		
-		var texture = ImageTexture.new()
-		var image = Image.new()
+	var texture = ImageTexture.new()
+	var image = Image.new()
 		
-		var load_result = image.load(thumbnail_path)
+	var load_result = image.load(thumbnail_path)
 		
-		if load_result != OK:
-			print("❌ Error loading image file:", thumbnail_path, "Error Code:", load_result)
-			reset_thumbnail()
-			return
+	if load_result != OK:
+		reset_thumbnail()
+		return
 		
-		texture.create_from_image(image)
-		
-		# ✅ Extra Debugging
-		print("✅ Image loaded successfully:", image.get_size())
-		print("✅ Texture created:", texture.get_width(), "x", texture.get_height())
-		
-		
-		map_thumbnail.texture = null  # Clear any existing texture
-		await get_tree().process_frame  # Let UI update before setting new texture
-		map_thumbnail.texture = texture
-		map_thumbnail.visible = true  # Ensure the image is visible
-		map_thumbnail_panel.visible = true  # Show panel
-		
-		print("✅ Loaded and displayed thumbnail for:", map_name)
+	texture.create_from_image(image)
+	
+	
+	map_thumbnail.texture = null  # Clear any existing texture
+	await get_tree().process_frame  # Let UI update before setting new texture
+	map_thumbnail.texture = texture
+	map_thumbnail.visible = true  # Ensure the image is visible
+	map_thumbnail_panel.visible = true  # Show panel
+	
+	print("✅ Loaded and displayed thumbnail for:", map_name)
 		
 
 
@@ -277,7 +261,6 @@ func _on_open_map():
 		print("❌ No map selected!")
 		return
 		
-	print("🟢 Opening map:", selected_map["name"])
 	
 	# Load the Map Editor scene
 	var map_editor_scene = load("res://map_editor_screen.tscn").instantiate()
@@ -290,7 +273,6 @@ func _on_open_map():
 		print("❌ ERROR: GridContainer not found inside map_editor_scene!")
 		return
 		
-	print("✅ GridContainer found. Calling load_map()...")
 	
 	grid_container.call_deferred("load_map", selected_map["name"])
 	
@@ -321,8 +303,6 @@ func _on_create_map_button_pressed():
 
 
 func load_map(map_name: String):
-	print("🟢 Loading Map:", map_name)
-
 	var file_path = "user://maps/" + map_name + ".json"
 	if not FileAccess.file_exists(file_path):
 		print("❌ Map file does not exist:", file_path)
@@ -364,7 +344,6 @@ func load_map(map_name: String):
 			
 		grid_container.place_tile(grid_pos, tile_texture)
 		
-		print("✅ Placed tile at:", grid_pos)
 	print("✅ Map Loaded Successfully!")
 
 
@@ -406,7 +385,6 @@ func load_maps_from_files():
 				var image = Image.new()
 				if image.load(thumbnail_path) == OK:
 					map_entry["thumbnail"] = ImageTexture.create_from_image(image)
-					print("✅ Loaded thumbnail for:", map_data["name"])
 				else:
 					print("❌ Error loading thumbnail for", map_data["name"])
 					map_entry["thumbnail"] = null  # Handle errors gracefully
@@ -417,3 +395,31 @@ func load_maps_from_files():
 			map_list.append(map_entry)  # Append the map entry to the list
 			
 		print("✅ Maps loaded:", map_list)
+
+
+func clear_map_cache():
+	var map_dir = DirAccess.open("user://maps")
+	if map_dir:
+		for file in map_dir.get_files():
+			var file_path = "user://maps/" + file
+			map_dir.remove(file_path)
+			print("🗑️ Deleted map file:", file_path)
+	else:
+		print("❌ Failed to access map directory.")
+		
+	var thumb_dir = DirAccess.open("user://thumbnails")
+	if thumb_dir:
+		for file in thumb_dir.get_files():
+			var file_path = "user://thumbnails/" + file
+			thumb_dir.remove(file_path)
+			print("🗑️ Deleted thumbnail file:", file_path)
+	else:
+		print("❌ Failed to access thumbnail directory.")
+		
+# ✅ Reset in-memory map list
+	var current_filename: String = ""  # Tracks the current map file name
+	current_filename = ""
+	print("🧹 Cleared all cached maps and thumbnails.")
+	
+	# ✅ Notify main menu to refresh the list
+	get_tree().root.call_deferred("emit_signal", "map_list_updated")

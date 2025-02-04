@@ -32,6 +32,7 @@ script = ExtResource("1_88hck")
 title = "Save Map"
 position = Vector2i(215, 306)
 size = Vector2i(365, 100)
+visible = false
 
 [node name="MarginContainer" type="MarginContainer" parent="SaveMapPopup"]
 anchors_preset = 15
@@ -58,17 +59,17 @@ placeholder_text = "Type map name here"
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="SaveMapConfirmButton" type="Button" parent="SaveMapPopup/MarginContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-text = "Save"
-
 [node name="SaveAsMapConfirmButton" type="Button" parent="SaveMapPopup/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 text = "Save As"
+
+[node name="SaveMapConfirmButton" type="Button" parent="SaveMapPopup/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "Save"
 
 [node name="HSplitContainer" type="HSplitContainer" parent="."]
 layout_mode = 1
@@ -247,30 +248,108 @@ layout_mode = 2
 [node name="PopUpList" type="VBoxContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/PopUpMenu/ScrollContainer"]
 layout_mode = 2
 
-[node name="SaveMapButton" type="Button" parent="."]
-layout_mode = 0
-offset_left = 582.0
-offset_top = 670.0
-offset_right = 665.0
-offset_bottom = 701.0
-theme_override_fonts/font = ExtResource("3_f76qc")
-theme_override_font_sizes/font_size = 18
-text = "Save Map"
+[node name="ErrorPopup" type="PopupPanel" parent="."]
+initial_position = 5
 
-[node name="BackToMain" type="Button" parent="."]
-layout_mode = 0
-offset_left = 464.02
-offset_top = 670.0
-offset_right = 572.02
-offset_bottom = 701.0
+[node name="MarginContainer" type="MarginContainer" parent="ErrorPopup"]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ErrorPopup/MarginContainer"]
+layout_mode = 2
+
+[node name="ErrorMessage" type="Label" parent="ErrorPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+
+[node name="ErrorPopupOkButton" type="Button" parent="ErrorPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+text = "OK"
+
+[node name="MapMenuPanel" type="Control" parent="."]
+z_index = 2
+layout_mode = 1
+anchor_left = 0.005
+anchor_top = 0.936
+anchor_right = 0.448
+anchor_bottom = 0.993
+offset_left = 0.599999
+offset_top = 0.0799561
+offset_right = 0.559998
+offset_bottom = -1.96002
+
+[node name="Panel" type="Panel" parent="MapMenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="HBoxContainer" parent="MapMenuPanel/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.009
+anchor_top = 0.122
+anchor_right = 0.99
+anchor_bottom = 0.878
+offset_left = -0.0390005
+offset_top = -0.00200033
+offset_right = -0.290039
+offset_bottom = 0.0019989
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackToMain" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("3_f76qc")
 theme_override_font_sizes/font_size = 18
 text = "Back to Main"
 
+[node name="SaveMapButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_f76qc")
+theme_override_font_sizes/font_size = 18
+text = "Save Map"
+
+[node name="SaveAsMapButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_f76qc")
+theme_override_font_sizes/font_size = 18
+text = "Save As"
+
+[node name="LoadMapButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_f76qc")
+theme_override_font_sizes/font_size = 18
+text = "Load Map"
+
+[node name="ToggleMapMenuButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 586.0
+offset_top = 679.0
+offset_right = 673.0
+offset_bottom = 706.0
+theme_override_fonts/font = ExtResource("3_f76qc")
+theme_override_font_sizes/font_size = 16
+text = "Open Menu"
+
 [connection signal="close_requested" from="SaveMapPopup" to="." method="_on_save_map_popup_close_requested"]
+[connection signal="pressed" from="SaveMapPopup/MarginContainer/VBoxContainer/HBoxContainer/SaveAsMapConfirmButton" to="." method="_on_save_as_map_button_pressed"]
 [connection signal="mouse_entered" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" method="_on_mouse_exited"]
 [connection signal="mouse_entered" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" method="_on_mouse_exited"]
-[connection signal="pressed" from="SaveMapButton" to="." method="_on_save_map_button_pressed"]
-[connection signal="pressed" from="BackToMain" to="." method="_on_back_to_main_pressed"]
+[connection signal="pressed" from="ErrorPopup/MarginContainer/VBoxContainer/ErrorPopupOkButton" to="." method="_on_error_popup_ok_button_pressed"]
+[connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/BackToMain" to="." method="_on_back_to_main_pressed"]
+[connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/SaveMapButton" to="." method="_on_save_map_button_pressed"]
+[connection signal="pressed" from="ToggleMapMenuButton" to="." method="_on_toggle_map_menu_button_pressed"]
