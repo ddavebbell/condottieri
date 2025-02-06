@@ -252,8 +252,10 @@ layout_mode = 2
 initial_position = 5
 
 [node name="MarginContainer" type="MarginContainer" parent="ErrorPopup"]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5

@@ -6,6 +6,7 @@ var current_filename: String = ""  # Tracks the current map file name
 var save_as_mode = false  # Track if we are saving as a new file
 
 @onready var map_menu_panel = $MapMenuPanel  # Reference the panel
+@onready var toggle_menu_button = $ToggleMapMenuButton  # Reference the button
 
 @onready var error_popup = $ErrorPopup
 @onready var error_message = $ErrorPopup/MarginContainer/VBoxContainer/ErrorMessage
@@ -33,11 +34,15 @@ func _on_toggle_map_menu_button_pressed():
 		tween.tween_property(map_menu_panel, "position", Vector2(7, 900), 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)  # Slide down
 		await tween.finished
 		map_menu_panel.visible = false
+		toggle_menu_button.text = "Open Menu"  # Change text to Open
 	else:
 		print("📂 Showing Map Menu Panel")
+		toggle_menu_button.text = "Close Menu"  # Change text to Close
 		map_menu_panel.visible = true
 		map_menu_panel.position = Vector2(7, 900)  # Ensure it starts at the bottom
 		tween.tween_property(map_menu_panel, "position", Vector2(7, 674), 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)  # Slide up
+		
+		
 		
 
 
