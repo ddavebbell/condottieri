@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://86x4xt5k0bsu"]
+[gd_scene load_steps=11 format=3 uid="uid://86x4xt5k0bsu"]
 
 [ext_resource type="Script" path="res://map_editor_screen.gd" id="1_88hck"]
 [ext_resource type="Script" path="res://grid_container.gd" id="2_ktsdv"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bxurxurdtxxo4" path="res://Condoterri - ATLAS TEXTURE - map tiles.png" id="4_nmiis"]
 [ext_resource type="Script" path="res://tile.gd" id="5_m2pae"]
 [ext_resource type="Script" path="res://divider_script.gd" id="6_ua3h0"]
+[ext_resource type="PackedScene" uid="uid://bxv0deocrf5tp" path="res://map_editor_pop_up.tscn" id="7_e7m8w"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vtgug"]
 atlas = ExtResource("4_nmiis")
@@ -27,49 +28,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_88hck")
-
-[node name="SaveMapPopup" type="Window" parent="."]
-title = "Save Map"
-position = Vector2i(215, 306)
-size = Vector2i(365, 100)
-visible = false
-
-[node name="MarginContainer" type="MarginContainer" parent="SaveMapPopup"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 0
-
-[node name="VBoxContainer" type="VBoxContainer" parent="SaveMapPopup/MarginContainer"]
-layout_mode = 2
-
-[node name="MapNameInput" type="LineEdit" parent="SaveMapPopup/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Type map name here"
-
-[node name="HBoxContainer" type="HBoxContainer" parent="SaveMapPopup/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="SaveAsMapConfirmButton" type="Button" parent="SaveMapPopup/MarginContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-text = "Save As"
-
-[node name="SaveMapConfirmButton" type="Button" parent="SaveMapPopup/MarginContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-text = "Save"
 
 [node name="HSplitContainer" type="HSplitContainer" parent="."]
 layout_mode = 1
@@ -248,31 +206,6 @@ layout_mode = 2
 [node name="PopUpList" type="VBoxContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/PopUpMenu/ScrollContainer"]
 layout_mode = 2
 
-[node name="ErrorPopup" type="PopupPanel" parent="."]
-initial_position = 5
-
-[node name="MarginContainer" type="MarginContainer" parent="ErrorPopup"]
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 96.0
-offset_bottom = 96.0
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="VBoxContainer" type="VBoxContainer" parent="ErrorPopup/MarginContainer"]
-layout_mode = 2
-
-[node name="ErrorMessage" type="Label" parent="ErrorPopup/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 1
-
-[node name="ErrorPopupOkButton" type="Button" parent="ErrorPopup/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 10
-text = "OK"
-
 [node name="MapMenuPanel" type="Control" parent="."]
 z_index = 2
 layout_mode = 1
@@ -314,26 +247,26 @@ theme_override_fonts/font = ExtResource("3_f76qc")
 theme_override_font_sizes/font_size = 18
 text = "Back to Main"
 
-[node name="SaveMapButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("3_f76qc")
-theme_override_font_sizes/font_size = 18
-text = "Save Map"
-
-[node name="SaveAsMapButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("3_f76qc")
-theme_override_font_sizes/font_size = 18
-text = "Save As"
-
 [node name="LoadMapButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("3_f76qc")
 theme_override_font_sizes/font_size = 18
 text = "Load Map"
+
+[node name="SaveAsButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_f76qc")
+theme_override_font_sizes/font_size = 18
+text = "Save As"
+
+[node name="SaveMapButton" type="Button" parent="MapMenuPanel/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_f76qc")
+theme_override_font_sizes/font_size = 18
+text = "Save Map"
 
 [node name="ToggleMapMenuButton" type="Button" parent="."]
 layout_mode = 0
@@ -345,13 +278,15 @@ theme_override_fonts/font = ExtResource("3_f76qc")
 theme_override_font_sizes/font_size = 16
 text = "Open Menu"
 
-[connection signal="close_requested" from="SaveMapPopup" to="." method="_on_save_map_popup_close_requested"]
-[connection signal="pressed" from="SaveMapPopup/MarginContainer/VBoxContainer/HBoxContainer/SaveAsMapConfirmButton" to="." method="_on_save_as_map_button_pressed"]
+[node name="MapEditorPopUp" parent="." instance=ExtResource("7_e7m8w")]
+visible = false
+
 [connection signal="mouse_entered" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider1" method="_on_mouse_exited"]
 [connection signal="mouse_entered" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider2" method="_on_mouse_exited"]
-[connection signal="pressed" from="ErrorPopup/MarginContainer/VBoxContainer/ErrorPopupOkButton" to="." method="_on_error_popup_ok_button_pressed"]
 [connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/BackToMain" to="." method="_on_back_to_main_pressed"]
+[connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/LoadMapButton" to="." method="_on_load_map_button_pressed"]
+[connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/SaveAsButton" to="." method="_on_save_as_button_pressed"]
 [connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/SaveMapButton" to="." method="_on_save_map_button_pressed"]
 [connection signal="pressed" from="ToggleMapMenuButton" to="." method="_on_toggle_map_menu_button_pressed"]

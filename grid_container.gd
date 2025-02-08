@@ -16,7 +16,7 @@ func _ready():
 	call_deferred("calculate_grid_offset")
 	connect("resized", Callable(self, "on_resized"))
 	
-
+## Tracks the mouse input events of drag and drop
 func _input(event):
 	# Handle mouse motion (hovering over tiles)
 	if event is InputEventMouseMotion:
@@ -61,7 +61,9 @@ func _input(event):
 			hovered_tile = null  # Reset hovered tile reference
 			print("Tile removed at:", grid_pos)
 
-# # # CREATE AND MAINTAIN GRID # # # #
+
+## # CREATE GRID AND MAINTAIN IT # # # #
+
 func _draw():
 	var grid_color = Color(0.3, 0.3, 0.3, 0.8)
 	
@@ -90,16 +92,15 @@ func update_tile_positions():
 		var tile = placed_tiles[grid_pos]
 		tile.position = grid_to_pixel(grid_pos)
 
-# # # # # GRID NAVIGATION FUNCTIONALITY # # # #
+
+
+#	# # # # GRID NAVIGATION FUNCTIONALITY # # # #
 
 func calculate_grid_offset():
 	var parent = get_parent() # Get the parent MainMapDisplay
 	
 	if parent:
-		#await get_tree().process_frame  # Wait for layout update to finish
-		var parent_size = parent.size  
-		# Get MainMapDisplay's actual size
-		var grid_total_size = Vector2(GRID_WIDTH * GRID_SIZE, GRID_HEIGHT * GRID_SIZE)
+		#var grid_total_size = Vector2(GRID_WIDTH * GRID_SIZE, GRID_HEIGHT * GRID_SIZE) # Get MainMapDisplay's actual size
 		
 		# Calculate the centered position within the parent container
 		position = grid_offset 
@@ -128,7 +129,9 @@ func remove_tile(grid_pos: Vector2):
 		print("No tile to remove at:", grid_pos)
 
 
-# # # # # DRAG AND DROP FUNCTIONALITY # # # # # #
+		##   ##    ##    ##    ##    ##   ##    ##
+		##       DRAG AND DROP FUNCTIONALITY    ##
+		##   ##    ##    ##    ##    ##   ##    ##
 
 func _can_drop_data(_pos, _data) -> bool:
 	return true  # Allow all drops for now
@@ -195,7 +198,6 @@ func place_tile(grid_pos: Vector2, texture: Texture):
 
 # # # # LOADING AND SAVING MAP FUNCTIONALITY # # # #
 
-
 func load_map(map_name: String):
 	print("🟢 Entered load_map() for:", map_name)
 	
@@ -260,24 +262,7 @@ func load_map(map_name: String):
 	else:
 		print("No thumbnail found for", map_name)
 
-func str_to_vector(pos_str: String) -> Vector2:
-	var parts = pos_str.split(",")
-	return Vector2(int(parts[0]), int(parts[1]))
-
-func clear_grid():
-	print("🧹 Clearing grid...")
-	
-	# ✅ Remove all child nodes that represent tiles
-	for tile in placed_tiles.values():
-		tile.queue_free()
-		
-	# ✅ Clear the placed_tiles dictionary
-	placed_tiles.clear()
-	
-	print("✅ Grid cleared successfully!")
-
-
-
+## Save map and capture thumbnail
 func save_map(map_name: String):
 	var map_data = { "name": map_name, "tiles": {} }
 	
@@ -335,8 +320,6 @@ func save_map(map_name: String):
 			map_data["tiles"][str(grid_pos)] = { "texture": tile_texture.resource_path } 
 		else:
 			print("⚠️ Warning: Unrecognized tile texture at", grid_pos)
-	
-	
 		
 		
 	# ✅ Ensure the "maps" directory exists
@@ -347,20 +330,17 @@ func save_map(map_name: String):
 			root_map_dir.make_dir_recursive("user://maps")
 				
 				
-	
 	# ✅ Verify if the file was actually saved
 	if FileAccess.file_exists(file_path):
 		print("✅ save_map Map saved successfully:", file_path)
 	else:
 		print("❌ save_map Error: File not found after saving!", file_path)
 		
-	
-
-
+		
 
 func capture_screenshot(map_name: String, map_data: Dictionary):
-	var save_menu = get_tree().get_root().find_child("SaveMenuPanel", true, false)
-	var was_visible = save_menu.visible if save_menu else false
+	var map_editor_popup = get_tree().get_root().find_child("MapEditorPopUp", true, false)
+	var save_menu = map_editor_popup.get_node_or_null("LoadSaveMapPopUp") if map_editor_popup else null
 	
 	# 🔹 Hide Save Menu Before Capturing
 	if save_menu:
@@ -380,15 +360,12 @@ func capture_screenshot(map_name: String, map_data: Dictionary):
 	var cropped_image = full_image.get_region(Rect2(grid_position, grid_size)) # ✅ Define the Crop Region (Centered on the Grid)
 	cropped_image.resize(256, 256)
 	
-	# ✅ Restore Save Menu Visibility (After Screenshot)
-	if save_menu:
-		save_menu.visible = was_visible
 		
 	# ✅ Ensure the "thumbnails" directory exists
-	var thumb_dir = DirAccess.open("user://thumbnails")
-	if thumb_dir == null:
-		var root_dir = DirAccess.open("user://")  # Open root directory
-		root_dir.make_dir_recursive("user://thumbnails") if root_dir else null
+	#var thumb_dir = DirAccess.open("user://thumbnails")
+	#if thumb_dir == null:
+		#var root_dir = DirAccess.open("user://")  # Open root directory
+		#root_dir.make_dir_recursive("user://thumbnails") if root_dir else null
 				
 	
 	# ✅ Save Thumbnail
@@ -402,57 +379,23 @@ func capture_screenshot(map_name: String, map_data: Dictionary):
 		
 	print("✅ save_map Map saved:", map_name, "with thumbnail:", thumbnail_path)
 		
+		
+		
+## Grid helper functions ##
+
+func str_to_vector(pos_str: String) -> Vector2:
+	var parts = pos_str.split(",")
+	return Vector2(int(parts[0]), int(parts[1]))
 
 
-
-# # # AFTER YOU HAVE CREATED THE CUSTOM CHESS BOARD / LOGIC GOES UNDER HERE # # #
-# DON'T KNOW IF THESE WORK YET # 
-
-
-# REVERT 2D ARRAY WORKING CHESS BOARD BACK TO DICTIONARY TO EDIT #
-func convert_to_dictionary(grid_array):
-	var new_dict = {}
+func clear_grid():
+	print("🧹 Clearing grid...")
 	
-	for x in range(len(grid_array)):
-		for y in range(len(grid_array[x])):
-			if grid_array[x][y] != null:
-				new_dict[Vector2(x, y)] = grid_array[x][y]
-				
-	print("Dictionary Restored:", new_dict)
-	return new_dict
-
-
-# USE THIS TO TURN THE DICTIONARY CHESS BOARD INTO 2D ARRAY WORKABLE CHESS BOARD #
-# Define the default unusable tile texture in the script
-#var default_tile_texture = preload("res://textures/unusable_tile.png")
-
-#func convert_to_2d_array_with_gaps():
-	#var grid_size_x = 8  # Maximum chessboard width
-	#var grid_size_y = 8  # Maximum chessboard height
-	## Initialize empty 2D array with default values
-	#var grid_array = []
-	#for x in range(grid_size_x):
-		#grid_array.append([])
-		#for y in range(grid_size_y):
-			#grid_array[x].append(null)  # Start with empty
-			#
-	## Populate the array with placed tiles and fill gaps
-	#for pos in placed_tiles.keys():
-		#var tile = placed_tiles[pos]
-		#var x = int(pos.x)
-		#var y = int(pos.y)
-		#
-		#if x >= 0 and x < grid_size_x and y >= 0 and y < grid_size_y:
-			#grid_array[x][y] = tile  # Place existing tile
-			#
-	## Fill empty spaces with default unusable tiles
-	#for x in range(grid_size_x):
-		#for y in range(grid_size_y):
-			#if grid_array[x][y] == null:
-				#var default_tile = TextureRect.new()
-				#default_tile.texture = default_tile_texture
-				#default_tile.self_modulate = Color(0.5, 0.5, 0.5, 0.7)  # Grey out unusable tiles
-				#grid_array[x][y] = default_tile
-				#
-	#print("2D Array with gaps filled:", grid_array)
-	#return grid_array
+	# ✅ Remove all child nodes that represent tiles
+	for tile in placed_tiles.values():
+		tile.queue_free()
+		
+	# ✅ Clear the placed_tiles dictionary
+	placed_tiles.clear()
+	
+	print("✅ Grid cleared successfully!")
