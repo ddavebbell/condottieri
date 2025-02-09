@@ -263,16 +263,16 @@ func load_map(map_name: String):
 		print("No thumbnail found for", map_name)
 
 ## Save map and capture thumbnail
-func save_map(map_name: String):
+func save_map(map_name: String) -> String:
 	var map_data = { "name": map_name, "tiles": {} }
 	
-	print("🔵 Saving map:", map_name)
+	print("💾 Saving map:", map_name)
 	for grid_pos in placed_tiles.keys():
 		var tile_node = placed_tiles[grid_pos]  # ✅ TextureRect node
 		var tile_texture = tile_node.texture  # ✅ Extract actual texture
-		
+
 		var tile_data = {}
-		
+
 		if tile_texture is AtlasTexture:
 			tile_data = {
 				"atlas": tile_texture.atlas.resource_path, 
@@ -285,21 +285,23 @@ func save_map(map_name: String):
 			}
 		else:
 			tile_data = { "texture": tile_texture.resource_path }
-			
+		
 		map_data["tiles"][str(grid_pos.x) + "," + str(grid_pos.y)] = tile_data
 		print("✅ Saved Tile at:", grid_pos, "→", tile_data)
-		
-		
+
 	# ✅ Save JSON
-	var file_path = "user://maps/" + map_name + ".json"
+	var file_path = "user://maps/" + map_name.to_lower() + ".json"
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(map_data, "\t"))
 	file.close()
-		
-		
-		
-	## CAPTURING A THUMBNAIL LOGIC OF THE MAP ##
+
+	# ✅ Capture thumbnail
 	capture_screenshot(map_name, map_data)
+
+	print("✅ Map saved successfully:", file_path)
+	
+	return map_name  # ✅ Return the saved map name
+
 
 	# ✅ Store tile data (supports both atlas and separate textures)
 	for grid_pos in placed_tiles.keys():
@@ -360,7 +362,9 @@ func capture_screenshot(map_name: String, map_data: Dictionary):
 	var cropped_image = full_image.get_region(Rect2(grid_position, grid_size)) # ✅ Define the Crop Region (Centered on the Grid)
 	cropped_image.resize(256, 256)
 	
-		
+	
+	
+	
 	# ✅ Ensure the "thumbnails" directory exists
 	#var thumb_dir = DirAccess.open("user://thumbnails")
 	#if thumb_dir == null:
@@ -378,9 +382,22 @@ func capture_screenshot(map_name: String, map_data: Dictionary):
 		print("❌ Error saving thumbnail:", err)
 		
 	print("✅ save_map Map saved:", map_name, "with thumbnail:", thumbnail_path)
+
+
+	print("🔍 Checking if thumbnail exists:", thumbnail_path)
+	if FileAccess.file_exists(thumbnail_path):
+		print("✅ Thumbnail successfully saved:", thumbnail_path)
+	else:
+		print("❌ ERROR: Thumbnail was NOT saved!")
 		
-		
-		
+
+func map_exists(map_name: String) -> bool:
+	var file_path = "user://maps/" + map_name.to_lower() + ".json"
+	return FileAccess.file_exists(file_path)
+
+
+
+
 ## Grid helper functions ##
 
 func str_to_vector(pos_str: String) -> Vector2:

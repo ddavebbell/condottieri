@@ -53,24 +53,22 @@ func _on_toggle_map_menu_button_pressed():
 		
 func _on_save_as_button_pressed() -> void:
 	print("📝 Save As button pressed")
+	load_save_map_popup_scene.open_as_save()
 	open_save_as_popup("Save map as...")
 
 
-func _on_save_map_button_pressed() -> void:
-	if grid_container:
-		if current_filename.is_empty():
-			# ✅ First-time saving → Open "Save As" pop-up
-			print("🔹 No filename found, opening Save As menu...")
-			open_save_as_popup("Save map as...")
-		else:
-			# ✅ Auto-save without pop-up
-			grid_container.save_map(current_filename)
-			print("✅ Auto-saved map:", current_filename)
+func _on_save_map_button_pressed():
+	print("💾 Save Map button pressed")
 
-			# ✅ Show confirmation pop-up after saving
-			load_save_map_popup_menu.show_confirmation("Map saved successfully!")
+	# ✅ Check if the map has been saved before
+	if current_filename.is_empty() or not grid_container.map_exists(current_filename):
+		print("🔹 No filename found, opening Save As menu...")
+		load_save_map_popup_scene.open_as_save()  # ✅ Open Save As pop-up
 	else:
-		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+		print("💾 Saving existing map:", current_filename)
+		grid_container.save_map(current_filename)  # ✅ Save directly
+		load_save_map_popup_scene.show_confirmation("✅ Map saved successfully!")  # ✅ Show confirmation message
+
 
 
 func open_save_as_popup(title_text: String):
@@ -96,6 +94,7 @@ func set_map_data(data):
 
 func _on_load_map_button_pressed() -> void:
 	print("📂 Load Map button pressed")
+	load_save_map_popup_scene.open_as_load()
 	open_load_map_popup("Load Map")
 
 func _on_back_to_main_pressed() -> void:

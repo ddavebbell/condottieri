@@ -8,10 +8,10 @@ layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_umg5j")
 
-[node name="LoadSaveMapPopUp" type="Popup" parent="."]
-position = Vector2i(0, 36)
-size = Vector2i(400, 400)
-borderless = false
+[node name="LoadSaveMapPopUp" type="Window" parent="."]
+initial_position = 1
+size = Vector2i(400, 500)
+visible = false
 
 [node name="MarginContainer" type="MarginContainer" parent="LoadSaveMapPopUp"]
 anchors_preset = 15
@@ -39,8 +39,17 @@ horizontal_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_38bw8")
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
 
-[node name="MapList" type="ItemList" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+[node name="ThumbnailView" type="TextureRect" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(256, 256)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MapList" type="VBoxContainer" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -65,7 +74,7 @@ text = "Save Map"
 layout_mode = 2
 text = "Save As"
 
-[node name="ErrorPopup" type="PopupPanel" parent="."]
+[node name="ErrorPopup" type="Popup" parent="."]
 auto_translate_mode = 1
 initial_position = 5
 
@@ -91,9 +100,8 @@ layout_mode = 2
 size_flags_vertical = 10
 text = "OK"
 
-[connection signal="popup_hide" from="LoadSaveMapPopUp" to="." method="_on_load_save_map_pop_up_popup_hide"]
+[connection signal="close_requested" from="LoadSaveMapPopUp" to="." method="_on_load_save_map_pop_up_close_requested"]
 [connection signal="text_changed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput" to="." method="_on_map_name_input_text_changed"]
 [connection signal="pressed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/LoadButton" to="." method="_on_load_button_pressed"]
 [connection signal="pressed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
 [connection signal="pressed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveAsButton" to="." method="_on_save_as_button_pressed"]
-[connection signal="pressed" from="ErrorPopup/MarginContainer/VBoxContainer/ErrorPopupOkButton" to="." method="_on_error_popup_ok_button_pressed"]

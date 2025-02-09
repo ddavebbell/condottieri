@@ -2,67 +2,205 @@ extends Control
 
 		## Map Editor Screen Info ##
 @onready var current_filename: String = ""  # Tracks the current map file name
+@onready var first_selection_screen = get_tree().get_root().find_child("FirstSelectionScreen", true, false)
+
 
 		## Error Pop Up VARIABLES ##
 @onready var error_popup = $ErrorPopup
 @onready var error_message = $ErrorPopup/MarginContainer/VBoxContainer/ErrorMessage
-@onready var confirmation_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
+@onready var error_ok_button = $ErrorPopup/MarginContainer/VBoxContainer/ErrorPopupOkButton
 
 
 		## Map Editor Pop Up VARIABLES ##
+@onready var load_save_map_popup = $LoadSaveMapPopUp
+@onready var confirmation_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
 @onready var title_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/PopUpTitle
+@onready var thumbnail_view = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ThumbnailView
 @onready var map_list = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapList
 @onready var map_name_input = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
 @onready var load_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/LoadButton
 @onready var save_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveButton
 @onready var save_as_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveAsButton
-@onready var load_save_map_popup = $LoadSaveMapPopUp
 
 
-## # # # NEED TO GET PROPER PANEL COORDINATES GLOBAL SEND THIS TO OTHER SCENE SCRIPT # # # # # # # 
 var grid_container = null # No @onready because it needs to be set manually
-
 var save_as_mode = false  # Track if we are saving as a new file
 var popup_mode = "load"  # "load" or "save"
+var selected_map_name: String = ""
+
 
 func _ready():
 	confirmation_label.hide()  # ✅ Ensure it's hidden initially
+	
+	thumbnail_view.visible = true
+	thumbnail_view.custom_minimum_size = Vector2(256, 256)  # Ensure proper size
+	thumbnail_view.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED  # Maintain aspect ratio
+
+	
+	# ✅ Manually connect the error OK button to the function
+	if error_ok_button:
+		error_ok_button.connect("pressed", _on_error_popup_ok_button_pressed)
+	else:
+		print("❌ ERROR: error_ok_button not found!")
+
+func populate_saveload_map_list():
+	print("🔄 Attempting to populate Save/Load map list...")
+
+	if not map_list:
+		print("❌ ERROR: map_list_panel not found in LoadSaveMapPopUp!")
+		return
+
+	# ✅ Clear existing map list items
+	for child in map_list.get_children():
+		child.queue_free()
+
+	# ✅ Check if the maps directory exists
+	var dir_path = "user://maps/"
+	var dir = DirAccess.open(dir_path)
+
+	if dir == null or not DirAccess.dir_exists_absolute(dir_path):
+		print("❌ No maps directory found for Save/Load!")
+		return  # Exit early
+
+	# ✅ Read all `.json` files in `user://maps/`
+	dir.list_dir_begin()
+	var file_name = dir.get_next()
+	var maps_found = false
+
+	while file_name != "":
+		if file_name.ends_with(".json"):
+			maps_found = true
+			var map_name = file_name.trim_suffix(".json")
+
+			# ✅ Create a button for each map
+			var button = Button.new()
+			button.text = map_name
+			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			button.custom_minimum_size = Vector2(0, 35)
+
+			# ✅ Ensure `_on_saveload_map_selected()` is called when clicking a button
+			button.connect("pressed", Callable(self, "_on_saveload_map_selected").bind(map_name, button))
+			map_list.add_child(button)
+
+			print("📂 Added map to list:", map_name)
+
+		file_name = dir.get_next()
+
+	dir.list_dir_end()
+
+	# ✅ If no maps exist, show placeholder text
+	if not maps_found:
+		var no_maps_label = Label.new()
+		no_maps_label.text = "No saved maps available"
+		no_maps_label.add_theme_color_override("font_color", Color(1, 0, 0))  
+		map_list.add_child(no_maps_label)
+		print("⚠️ No saved maps found in Save/Load.")
+
+	print("✅ populate_saveload_map_list() completed.")
+
 
 
 func open_as_load():
 	popup_mode = "load"
 	title_label.text = "Load Map"
-	
-	map_name_input.hide()  # No need for input in load mode
-	save_button.hide()
-	save_as_button.hide()
-	load_button.show()
-	
-	# ✅ Reference first_selection_screen and call populate_map_list()
-	var first_screen = get_node("/root/Control/FirstSelectionScreen")  # Adjust path if needed
-	if first_screen and first_screen.has_method("populate_map_list"):
-		first_screen.populate_map_list()
-	else:
-		print("❌ ERROR: Could not find FirstSelectionScreen or populate_map_list()!")
+	map_name_input.hide()  
 
-	show()
+	# ✅ Print button node paths
+	print("🔎 Debugging Buttons in LoadSaveMapPopUp")
+	print("👉 save_button path:", save_button)
+	print("👉 save_as_button path:", save_as_button)
+	print("👉 load_button path:", load_button)
+
+	if not save_button or not save_as_button or not load_button:
+		print("❌ ERROR: One or more buttons were NOT found in LoadSaveMapPopUp!")
+		return
+
+	# ✅ Ensure proper button visibility
+	save_button.visible = false
+	save_as_button.visible = false
+	load_button.visible = true  # Only Load should be visible
+	print("✅ Button visibility updated for Load Map mode.")
+
+	populate_saveload_map_list()  # ✅ Populate the list
+
+	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapList
+	if map_list_panel:
+		map_list_panel.visible = true  
+		print("✅ Forced map_list_panel to be visible!")
+
+	load_save_map_popup.show()
+
 
 func open_as_save():
 	popup_mode = "save"
-	title_label.text = "Save Map"
+	title_label.text = "Save map as..."
 	map_name_input.show()
-	save_button.show()
-	save_as_button.show()
-	load_button.hide()
-	
-	# ✅ Call populate_map_list() from first_selection_screen
-	var first_screen = get_node("/root/Control/FirstSelectionScreen")  
-	if first_screen and first_screen.has_method("populate_map_list"):
-		first_screen.populate_map_list()
+
+	# ✅ Print button node paths
+	print("🔎 Debugging Buttons in LoadSaveMapPopUp")
+	print("👉 save_button path:", save_button)
+	print("👉 save_as_button path:", save_as_button)
+	print("👉 load_button path:", load_button)
+
+	if not save_button or not save_as_button or not load_button:
+		print("❌ ERROR: One or more buttons were NOT found in LoadSaveMapPopUp!")
+		return
+
+	# ✅ Ensure proper button visibility
+	save_button.visible = true
+	save_as_button.visible = true
+	load_button.visible = false  # Hide Load button
+	print("✅ Button visibility updated for Save Map mode.")
+
+	populate_saveload_map_list()  # ✅ Populate the list
+
+	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapList
+	if map_list_panel:
+		map_list_panel.visible = true  
+		print("✅ Forced map_list_panel to be visible!")
+
+	load_save_map_popup.show()
+
+
+func _on_saveload_map_selected(map_name: String, button: Button):
+	print("✅ Selected map from Save/Load list:", map_name)
+
+	# ✅ Highlight the selected button visually
+	for child in button.get_parent().get_children():
+		if child is Button:
+			child.modulate = Color(1, 1, 1, 1)  # Reset all buttons to default color
+	button.modulate = Color(0.6, 1, 0.6, 1)  # ✅ Highlight the selected button
+
+	selected_map_name = map_name
+	print("✅ Selected map:", selected_map_name)
+
+	# ✅ Load and Display Thumbnail
+	var thumbnail_path = "user://thumbnails/" + map_name + ".png"
+	print("🔍 Checking thumbnail path:", thumbnail_path)
+
+	if FileAccess.file_exists(thumbnail_path):
+		print("🟢 Thumbnail file found:", thumbnail_path)
+
+		var image = Image.new()
+		var load_result = image.load(thumbnail_path)
+
+		if load_result == OK:
+			var texture = ImageTexture.create_from_image(image)
+			thumbnail_view.texture = texture  # ✅ Set thumbnail in UI
+			thumbnail_view.visible = true  # ✅ Ensure it's visible
+			thumbnail_view.custom_minimum_size = Vector2(200, 200)  # ✅ Force size for debugging
+
+			print("🖼️ Thumbnail displayed for:", selected_map_name)
+		else:
+			print("❌ ERROR: Failed to load image from:", thumbnail_path)
+			thumbnail_view.texture = null  # ✅ Remove texture if error
 	else:
-		print("❌ ERROR: Could not find FirstSelectionScreen or populate_map_list()!")
-	
-	show()
+		print("⚠️ No thumbnail found for", selected_map_name)
+		thumbnail_view.texture = null  # ✅ Remove texture if missing
+		thumbnail_view.visible = false  # ✅ Hide if no thumbnail found
+
+
 
 
 func set_popup_title(title_text: String):
@@ -71,19 +209,12 @@ func set_popup_title(title_text: String):
 
 func show_confirmation(message: String):
 	if confirmation_label:
-		confirmation_label.text = message
-		confirmation_label.show()
+		confirmation_label.text = message  # ✅ Set message text
+		confirmation_label.show()  # ✅ Make it visible
 		await get_tree().create_timer(2.0).timeout  # ✅ Show for 2 seconds
-		confirmation_label.hide()
+		confirmation_label.hide()  # ✅ Hide after timeout
 	else:
 		print("❌ ERROR: ConfirmationMessage label is missing!")
-
-
-func _on_map_name_input_changed(new_text: String):
-	if confirmation_label:
-		confirmation_label.hide()  # Hide any previous confirmation messages
-	if error_popup and error_message:
-		error_message.hide()  # Hide error message when the user types
 
 
 func set_grid_container(grid_ref):
@@ -96,23 +227,22 @@ func set_grid_container(grid_ref):
 				## ## ## ## ## ## ## ## ##
 
 
-
 func _on_load_button_pressed() -> void:
-	var selected = map_list.get_selected_items()
-	if selected.size() > 0:
-		var map_name = map_list.get_item_text(selected[0])  # ✅ Get selected map name
-		
-		if grid_container:
-			grid_container.load_map(map_name)  # ✅ Directly load the map
-			print("📂 Loaded map:", map_name)
-			hide()
-		else:
-			print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
-	else:
+	if selected_map_name.is_empty():
 		print("❌ ERROR: No map selected!")
-		display_error("Please select a map to load.")
-		
-	hide()
+		display_error("Please select a map before loading.")
+		return  # ✅ Stop if no map is selected
+
+	if grid_container:
+		grid_container.load_map(selected_map_name)  # ✅ Load selected map
+		print("📂 Loaded map:", selected_map_name)
+		if load_save_map_popup:
+			load_save_map_popup.hide()  # ✅ Close the pop-up only if it exists
+			print("🛑 LoadSaveMapPopUp closed after loading!")
+
+	else:
+		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+
 
 
 func _on_save_button_pressed() -> void:
@@ -157,24 +287,20 @@ func _on_save_as_button_pressed() -> void:
 		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
 
 
-func _on_save_map_popup_close_requested() -> void:
-	load_save_map_popup.hide()
-
-
-
 	## Open Save Menu Functionality ##
 
 
 func _on_confirm_save_map():
 	var new_map_name = map_name_input.text.strip_edges()
-	   
+	
+	# ✅ Prevent saving an empty map name
 	if new_map_name.is_empty():
 		print("❌ Map name cannot be empty!")
 		display_error("Map name cannot be empty!")
-		return
-		
+		return  # ❌ Do NOT proceed further
+
+	# ✅ If "Save As" mode is active, duplicate the map under a new name
 	if save_as_mode:
-		# ✅ "Save As" Mode - Duplicate the map under a new name
 		print("📂 Saving as a new map:", new_map_name)
 		
 		var new_file_path = "user://maps/" + new_map_name.to_lower() + ".json"
@@ -183,28 +309,27 @@ func _on_confirm_save_map():
 		if current_filename.is_empty():
 			print("❌ No current map to duplicate!")
 			display_error("No current map to duplicate!")
-			return
+			return  # ❌ Do NOT proceed further
 			
-		grid_container.save_map(current_filename)  # Save the current map state
-		
-		# ✅ Load the existing map data
+		grid_container.save_map(current_filename)  # ✅ Save current map
+
+		# ✅ Check if the original map file exists
 		var original_file_path = "user://maps/" + current_filename.to_lower() + ".json"
 		if not FileAccess.file_exists(original_file_path):
 			print("❌ Original map file does not exist:", original_file_path)
 			display_error("Original map file does not exist.")
-			return
-		
+			return  # ❌ Do NOT proceed further
+
 		var file = FileAccess.open(original_file_path, FileAccess.READ)
 		if file == null:
 			print("❌ Error: Could not open original map file for duplication")
 			display_error("Error: Could not open original map file.")
-			return
-			
+			return  # ❌ Do NOT proceed further
 			
 		var original_map_data = file.get_as_text()
 		file.close()
-		
-		# ✅ Wri te the duplicated data to a new file
+
+		# ✅ Write the duplicated data to a new file
 		var new_file = FileAccess.open(new_file_path, FileAccess.WRITE)
 		if new_file:
 			new_file.store_string(original_map_data)
@@ -213,8 +338,8 @@ func _on_confirm_save_map():
 		else:
 			print("❌ Error saving duplicated map:", new_map_name)
 			display_error("Error saving duplicated map.")
-			return
-			
+			return  # ❌ Do NOT proceed further
+
 		# ✅ Duplicate the thumbnail if it exists
 		var original_thumbnail_path = "user://thumbnails/" + current_filename.to_lower() + ".png"
 		var new_thumbnail_path = "user://thumbnails/" + new_map_name.to_lower() + ".png"
@@ -227,22 +352,26 @@ func _on_confirm_save_map():
 			else:
 				print("❌ Failed to duplicate thumbnail.")
 				display_error("Failed to duplicate thumbnail.")
-				
-			# ✅ Update the currently opened map name
+
+		# ✅ Update the current filename & reset save mode
 		current_filename = new_map_name
-		save_as_mode = false  # ✅ Reset mode after saving
-				
-		# ✅ Notify main menu that a new map is available
+		save_as_mode = false  
+
+		# ✅ Notify the main menu to refresh the map list
 		print("🔄 Notifying main menu to refresh map list.")
 		get_tree().root.call_deferred("emit_signal", "map_list_updated")
-		
+
 	else:
-		# ✅ Regular "Save" (Not Save As)
+		# ✅ Regular Save (Not Save As)
 		print("💾 Saving map:", new_map_name)
 		grid_container.save_map(new_map_name.to_lower())
 		current_filename = new_map_name  # ✅ Update the current map name
-		
-	load_save_map_popup.hide()  # ✅ Close the pop-up
+
+	# ✅ Now that saving is complete, hide the pop-up
+	load_save_map_popup.hide()  
+
+	# ✅ Show confirmation message after successful save
+	show_confirmation("✅ Map saved successfully!")
 
 
 func save_map(map_name):
@@ -251,6 +380,7 @@ func save_map(map_name):
 		print("✅ Map saved from pop-up:", map_name)
 	else:
 		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+
 
 func load_map(map_name):
 	print("load map function")
@@ -271,7 +401,23 @@ func _on_save_menu_input_changed(new_name):
 
 
 func _on_error_popup_ok_button_pressed() -> void:
-	error_popup.hide()
+	print("🛑 ErrorPopup OK button pressed!")
+
+	if error_popup:
+		print("✅ Hiding ONLY ErrorPopup, NOT LoadSaveMapPopUp...")
+
+		# ✅ Use .hide() instead of popup_hide()
+		error_popup.hide()  
+
+		# ✅ Ensure LoadSaveMapPopUp stays visible
+		if load_save_map_popup:
+			print("👀 Keeping LoadSaveMapPopUp open...")
+			load_save_map_popup.visible = true  # ✅ Force it to remain open
+			load_save_map_popup.show()  # ✅ Ensure visibility
+
+	else:
+		print("❌ ERROR: error_popup not found!")
+
 
 func display_error(message: String):
 	if error_popup and error_message:
@@ -367,11 +513,21 @@ func _duplicate_map(original_name: String, new_name: String):
 	print("✅ Map duplication complete.")
 	
 
-
 func _on_map_name_input_text_changed(new_text: String) -> void:
-	pass # Replace with function body.
+	if confirmation_label:
+		confirmation_label.hide()  # Hide any previous confirmation messages
+	if error_popup and error_message:
+		error_message.hide()  # Hide error message when the user types
 
 
-func _on_load_save_map_pop_up_popup_hide() -> void:
-	print("🔴 LoadSaveMapPopUp closed")
-	hide()  # ✅ Hide the pop-up when "X" is pressed
+func _on_load_save_map_pop_up_close_requested() -> void:
+	if load_save_map_popup and load_save_map_popup.visible:
+		print("🛑 LoadSaveMapPopUp closed!")
+		load_save_map_popup.hide()
+	else:
+		print("✅ LoadSaveMapPopUp was already hidden, ignoring...")
+		
+
+func _on_map_selected(map_name: String, button):
+	selected_map_name = map_name  # ✅ Directly assign string
+	print("✅ Selected map:", selected_map_name)

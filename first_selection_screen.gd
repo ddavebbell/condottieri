@@ -28,10 +28,15 @@ func _ready():
 	open_map_button.connect("pressed", Callable(self, "_on_open_map"))
 	
 	# Populate the map list from GlobalData
-	_populate_map_list()
+	populate_map_list()
 
-func _populate_map_list():
+func populate_map_list():
 	var map_list_panel = $MapListContainer/MapListPanel  # ✅ Get VBoxContainer
+	
+	if not map_list_panel:
+		print("❌ ERROR: map_list_panel not found!")
+		return
+	
 	map_list_panel.visible = true  # ✅ Keep it visible even when empty
 	
 	for child in map_list_panel.get_children():
@@ -169,7 +174,7 @@ func _on_delete_map():
 	
 		
 	load_maps_from_files()
-	_populate_map_list()
+	populate_map_list()
 	await get_tree().process_frame  # Ensure UI updates before selection
 	auto_select_first_map()  # Auto-select the first available map
 
