@@ -16,7 +16,7 @@ extends Control
 @onready var confirmation_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
 @onready var title_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/PopUpTitle
 @onready var thumbnail_view = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ThumbnailView
-@onready var map_list = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapList
+@onready var map_list = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
 @onready var map_name_input = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
 @onready var load_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/LoadButton
 @onready var save_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveButton
@@ -124,7 +124,7 @@ func open_as_load():
 
 	populate_saveload_map_list()  # ✅ Populate the list
 
-	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapList
+	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
 	if map_list_panel:
 		map_list_panel.visible = true  
 		print("✅ Forced map_list_panel to be visible!")
@@ -155,7 +155,7 @@ func open_as_save():
 
 	populate_saveload_map_list()  # ✅ Populate the list
 
-	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapList
+	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
 	if map_list_panel:
 		map_list_panel.visible = true  
 		print("✅ Forced map_list_panel to be visible!")
@@ -207,14 +207,31 @@ func set_popup_title(title_text: String):
 	if title_label:
 		title_label.text = title_text
 
-func show_confirmation(message: String):
-	if confirmation_label:
-		confirmation_label.text = message  # ✅ Set message text
-		confirmation_label.show()  # ✅ Make it visible
-		await get_tree().create_timer(2.0).timeout  # ✅ Show for 2 seconds
-		confirmation_label.hide()  # ✅ Hide after timeout
-	else:
-		print("❌ ERROR: ConfirmationMessage label is missing!")
+func show_confirmation_popup(message: String):
+	print("🔎 Attempting to show confirmation message:", message)
+
+	# Ensure all UI components exist
+	if not load_save_map_popup:
+		print("❌ ERROR: load_save_map_popup_menu is not set!")
+		return
+
+	if not confirmation_label:
+		print("❌ ERROR: load_save_map_confirmation_message is not set!")
+		return
+
+	# ✅ Set the message text
+	confirmation_label.text = message
+	print("✅ Confirmation message text set:", message)
+
+	# ✅ Ensure it's visible
+	confirmation_label.show()
+	print("🟢 Confirmation message is now visible.")
+
+	# ✅ Keep it visible for 2 seconds, then hide it
+	await get_tree().create_timer(1.0).timeout
+	confirmation_label.hide()
+	print("🛑 Confirmation message hidden after delay.")
+
 
 
 func set_grid_container(grid_ref):
@@ -236,12 +253,21 @@ func _on_load_button_pressed() -> void:
 	if grid_container:
 		grid_container.load_map(selected_map_name)  # ✅ Load selected map
 		print("📂 Loaded map:", selected_map_name)
+
+		# ✅ Show confirmation message after loading
+		show_confirmation_popup("📂 Loaded map: " + selected_map_name)
+
+		# ✅ Close the Save/Load Map popup
+		await get_tree().process_frame  # ✅ Ensure UI updates before closing
 		if load_save_map_popup:
-			load_save_map_popup.hide()  # ✅ Close the pop-up only if it exists
-			print("🛑 LoadSaveMapPopUp closed after loading!")
+			load_save_map_popup.hide()
+			print("🛑 LoadSaveMapPopUp menu hidden after loading!")
+
 
 	else:
-		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")  
+
+
 
 
 
@@ -256,7 +282,7 @@ func _on_save_button_pressed() -> void:
 		grid_container.save_map(map_name)  # ✅ Calls grid_container function
 
 		# ✅ Show confirmation
-		show_confirmation("Map saved successfully!")
+		show_confirmation_popup("Map saved successfully!")
 
 		# ✅ Close pop-up after saving
 		await get_tree().process_frame
@@ -371,7 +397,7 @@ func _on_confirm_save_map():
 	load_save_map_popup.hide()  
 
 	# ✅ Show confirmation message after successful save
-	show_confirmation("✅ Map saved successfully!")
+	show_confirmation_popup("✅ Map saved successfully!")
 
 
 func save_map(map_name):
@@ -381,10 +407,6 @@ func save_map(map_name):
 	else:
 		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
 
-
-func load_map(map_name):
-	print("load map function")
-	pass
 
 func _on_save_menu_input_changed(new_name):
 	if new_name.strip_edges() != "":

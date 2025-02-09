@@ -20,20 +20,27 @@ var map_data = {}  # Store loaded map data
 
 
 func _ready():
-	await get_tree().process_frame  # Wait to ensure nodes are loaded
+	if grid_container:
+		grid_container.connect("map_loaded", Callable(self, "_on_map_loaded"))
 	
 	var grid_container_ref = get_node("HSplitContainer/MarginContainer/MainMapDisplay/GridContainer")
+	
+	await get_tree().process_frame  # Wait to ensure nodes are loaded
 
 	if load_save_map_popup_scene and grid_container_ref:
 		load_save_map_popup_scene.set_grid_container(grid_container_ref)  # ✅ Pass grid_container reference
 	else:
 		print("❌ ERROR: Could not find MapEditorPopUp or grid container")
 	
-	
+	print("current filename is..... ",current_filename)
 	load_save_map_popup_scene.visible = false  # Ensure the pop-up is hidden initially
 	map_menu_panel.visible = false  # Hide the menu by default
 	map_menu_panel.position = Vector2(7, 900)  # Move below the screen
 	
+
+func _on_map_loaded(map_name):
+	current_filename = map_name  # ✅ Update map filename
+	print("📂 Map Editor Screen - Current filename set to:", current_filename)
 
 func _on_toggle_map_menu_button_pressed():
 	var tween = create_tween()  # Create a new Tween dynamically
@@ -60,14 +67,15 @@ func _on_save_as_button_pressed() -> void:
 func _on_save_map_button_pressed():
 	print("💾 Save Map button pressed")
 
-	# ✅ Check if the map has been saved before
-	if current_filename.is_empty() or not grid_container.map_exists(current_filename):
+	# ✅ If the map has NOT been saved before, open Save As pop-up
+	if current_filename.is_empty():
 		print("🔹 No filename found, opening Save As menu...")
-		load_save_map_popup_scene.open_as_save()  # ✅ Open Save As pop-up
+		load_save_map_popup_scene.open_as_save()  # ✅ Open pop-up only if first save
 	else:
+		# ✅ If the map has a filename, just save it
 		print("💾 Saving existing map:", current_filename)
 		grid_container.save_map(current_filename)  # ✅ Save directly
-		load_save_map_popup_scene.show_confirmation("✅ Map saved successfully!")  # ✅ Show confirmation message
+		show_confirmation_popup("✅ Map saved successfully!")  # ✅ Show confirmation message
 
 
 
@@ -94,8 +102,48 @@ func set_map_data(data):
 
 func _on_load_map_button_pressed() -> void:
 	print("📂 Load Map button pressed")
+
+	# ✅ Open the pop-up for loading a map
 	load_save_map_popup_scene.open_as_load()
 	open_load_map_popup("Load Map")
+
+	# ✅ Retrieve the selected map name
+	var selected_button = get_selected_map_button()
+	if selected_button:
+		var selected_map_name = selected_button.text  # ✅ Get the name from the button text
+		print("✅ Confirmation displayed for loaded map:", selected_map_name)
+
+		# ✅ Load the selected map
+		if grid_container:
+			grid_container.load_map(selected_map_name)
+			show_confirmation_popup("📂 Loaded map: " + selected_map_name)
+	
+			print("✅ Map loaded successfully:", selected_map_name)
+
+			## ✅ Ensure the pop-up is fully closed
+			#await get_tree().process_frame  # ✅ Wait for UI update
+			#if load_save_map_popup_menu:
+				#print(load_save_map_popup_menu)
+				#load_save_map_popup_menu.hide()
+				#print("🛑 LoadSaveMapPopUp menu hidden after loading!")
+#
+			#if load_save_map_popup_scene:
+				#print(load_save_map_popup_scene)
+				#load_save_map_popup_scene.hide()
+				#print("🛑 LoadSaveMapPopUp scene hidden after loading!")
+
+		else:
+			print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+	else:
+		print("❌ ERROR: No map selected for loading!")
+
+
+func get_selected_map_button():
+	for child in load_save_map_popup_menu.get_node("MarginContainer/VBoxContainer/ScrollContainer/MapList").get_children():
+		if child is Button and child.modulate == Color(0.6, 1, 0.6, 1):  # ✅ Check if the button is highlighted
+			return child
+	return null
+
 
 func _on_back_to_main_pressed() -> void:
 	print("🔙 Returning to Main Screen...")
@@ -119,7 +167,10 @@ func open_load_map_popup(title_text: String):
 
 func show_confirmation_popup(message: String):
 	if load_save_map_popup_menu and load_save_map_confirmation_message:
-		load_save_map_confirmation_message.show_confirmation(message)
+		load_save_map_confirmation_message.text = message  # ✅ Set confirmation message text
+		load_save_map_confirmation_message.show()  # ✅ Make it visible
+		await get_tree().create_timer(2.0).timeout  # ✅ Keep visible for 2 seconds
+		load_save_map_confirmation_message.hide()  # ✅ Hide after delay
 		print("✅ Showing confirmation message:", message)
 	else:
-		print("❌ ERROR: load_save_map_popup_scene is not set!")
+		print("❌ ERROR: load_save_map_popup_menu or load_save_map_confirmation_message is not set!")

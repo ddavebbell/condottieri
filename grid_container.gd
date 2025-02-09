@@ -7,8 +7,9 @@ const GRID_HEIGHT = 14
 var placed_tiles = {}
 var grid_offset = Vector2.ZERO # store the centered position
 var hovered_tile = null  # Store currently hovered tile reference
+var current_filename: String = ""  # Tracks the current map file name
 
-
+signal map_loaded(map_name)  # ✅ New signal to notify when a map is loaded
 
 func _ready():
 	position = Vector2.ZERO # ensure no initial offsets
@@ -249,6 +250,12 @@ func load_map(map_name: String):
 		print("✅ Placed tile at:", grid_pos, "with texture:", tile_texture)
 		
 	print("✅ Map Loaded Successfully!")
+	
+	# ✅ Set `current_filename`
+	current_filename = map_name  
+	emit_signal("map_loaded", current_filename)  # ✅ Notify that map was loaded
+	print("✅ Map Loaded Successfully:", current_filename)
+
 	
 	
 	

@@ -29,12 +29,6 @@ theme_override_constants/margin_bottom = 12
 [node name="VBoxContainer" type="VBoxContainer" parent="LoadSaveMapPopUp/MarginContainer"]
 layout_mode = 2
 
-[node name="ConfirmationMessage" type="Label" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_38bw8")
-theme_override_font_sizes/font_size = 16
-horizontal_alignment = 1
-
 [node name="PopUpTitle" type="Label" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -49,9 +43,20 @@ custom_minimum_size = Vector2(256, 256)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="MapList" type="VBoxContainer" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="MapList" type="VBoxContainer" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ConfirmationMessage" type="Label" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_38bw8")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
 
 [node name="MapNameInput" type="LineEdit" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
