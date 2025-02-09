@@ -6,14 +6,19 @@ extends Control
 
 
 		## Error Pop Up VARIABLES ##
-@onready var error_popup = $ErrorPopup
-@onready var error_message = $ErrorPopup/MarginContainer/VBoxContainer/ErrorMessage
-@onready var error_ok_button = $ErrorPopup/MarginContainer/VBoxContainer/ErrorPopupOkButton
+@onready var error_popup = $ErrorPopUp
+@onready var error_message = $ErrorPopUp/MarginContainer/VBoxContainer/ErrorMessage
+@onready var error_ok_button = $ErrorPopUp/MarginContainer/VBoxContainer/ErrorPopupOkButton
+
+		## Confirmation Popup
+@onready var confirmation_label = $ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
+@onready var confirmation_popup = $ConfirmationPopUp
+@onready var confirmation_ok_button = $ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationPopupOKButton
+
 
 
 		## Map Editor Pop Up VARIABLES ##
 @onready var load_save_map_popup = $LoadSaveMapPopUp
-@onready var confirmation_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
 @onready var title_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/PopUpTitle
 @onready var thumbnail_view = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ThumbnailView
 @onready var map_list = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
@@ -27,7 +32,8 @@ var grid_container = null # No @onready because it needs to be set manually
 var save_as_mode = false  # Track if we are saving as a new file
 var popup_mode = "load"  # "load" or "save"
 var selected_map_name: String = ""
-
+var selected_map_button: Button = null  # Track the selected button
+var user_selected_map = false  # Default to false at start
 
 func _ready():
 	confirmation_label.hide()  # ✅ Ensure it's hidden initially
@@ -66,6 +72,10 @@ func populate_saveload_map_list():
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	var maps_found = false
+	
+	var first_button = null  # ✅ Store first button reference
+
+
 
 	while file_name != "":
 		if file_name.ends_with(".json"):
@@ -83,6 +93,10 @@ func populate_saveload_map_list():
 			button.connect("pressed", Callable(self, "_on_saveload_map_selected").bind(map_name, button))
 			map_list.add_child(button)
 
+			## ✅ Set the first button as default selection
+			#if first_button == null:
+				#first_button = button
+
 			print("📂 Added map to list:", map_name)
 
 		file_name = dir.get_next()
@@ -97,7 +111,16 @@ func populate_saveload_map_list():
 		map_list.add_child(no_maps_label)
 		print("⚠️ No saved maps found in Save/Load.")
 
+	# ✅ Auto-select the first map in the list
+	if first_button:
+		first_button.modulate = Color(0.6, 1, 0.6, 1)  # ✅ Highlight the first option
+		selected_map_button = first_button  # ✅ Store selection
+		selected_map_name = first_button.text  # ✅ Update selected map name
+		print("✅ First map auto-selected, but NOT loaded:", selected_map_name)
+
 	print("✅ populate_saveload_map_list() completed.")
+
+
 
 
 
@@ -155,9 +178,8 @@ func open_as_save():
 
 	populate_saveload_map_list()  # ✅ Populate the list
 
-	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
-	if map_list_panel:
-		map_list_panel.visible = true  
+	if map_list:
+		map_list.visible = true  
 		print("✅ Forced map_list_panel to be visible!")
 
 	load_save_map_popup.show()
@@ -165,14 +187,16 @@ func open_as_save():
 
 func _on_saveload_map_selected(map_name: String, button: Button):
 	print("✅ Selected map from Save/Load list:", map_name)
-
+	user_selected_map = true  # ✅ Now user has selected a map
+	
 	# ✅ Highlight the selected button visually
 	for child in button.get_parent().get_children():
 		if child is Button:
 			child.modulate = Color(1, 1, 1, 1)  # Reset all buttons to default color
-	button.modulate = Color(0.6, 1, 0.6, 1)  # ✅ Highlight the selected button
+	button.modulate = Color(0.6, 1, 0.6, 1)
 
 	selected_map_name = map_name
+	selected_map_button = button  
 	print("✅ Selected map:", selected_map_name)
 
 	# ✅ Load and Display Thumbnail
@@ -208,29 +232,20 @@ func set_popup_title(title_text: String):
 		title_label.text = title_text
 
 func show_confirmation_popup(message: String):
-	print("🔎 Attempting to show confirmation message:", message)
+	if confirmation_popup and confirmation_label:
+		print("✅ Confirmation label found:", confirmation_label.name)
+		confirmation_label.text = message
+		confirmation_label.visible = true
 
-	# Ensure all UI components exist
-	if not load_save_map_popup:
-		print("❌ ERROR: load_save_map_popup_menu is not set!")
-		return
+		confirmation_popup.popup_centered()  # ✅ Display it centered
+		print("✅ Confirmation popup displayed:", message)
 
-	if not confirmation_label:
-		print("❌ ERROR: load_save_map_confirmation_message is not set!")
-		return
+		await get_tree().create_timer(1.0).timeout
+		confirmation_popup.hide()
+		print("🛑 Confirmation popup auto-hidden after 2 seconds.")
+	else:
+		print("❌ ERROR: ConfirmationPopup UI is missing!")
 
-	# ✅ Set the message text
-	confirmation_label.text = message
-	print("✅ Confirmation message text set:", message)
-
-	# ✅ Ensure it's visible
-	confirmation_label.show()
-	print("🟢 Confirmation message is now visible.")
-
-	# ✅ Keep it visible for 2 seconds, then hide it
-	await get_tree().create_timer(1.0).timeout
-	confirmation_label.hide()
-	print("🛑 Confirmation message hidden after delay.")
 
 
 
@@ -245,27 +260,32 @@ func set_grid_container(grid_ref):
 
 
 func _on_load_button_pressed() -> void:
-	if selected_map_name.is_empty():
-		print("❌ ERROR: No map selected!")
+	print("🟢 Load button pressed inside pop-up")
+
+	# ✅ Ensure the user selects a map before proceeding
+	if selected_map_name == "" or selected_map_name == null:
+		print("⚠️ No map selected! Waiting for user selection.")
 		display_error("Please select a map before loading.")
-		return  # ✅ Stop if no map is selected
+		return  # ✅ Stop execution if no map is selected
 
+	# ✅ Load the selected map
 	if grid_container:
-		grid_container.load_map(selected_map_name)  # ✅ Load selected map
-		print("📂 Loaded map:", selected_map_name)
+		print("📂 Loading selected map:", selected_map_name)
+		grid_container.load_map(selected_map_name)
 
-		# ✅ Show confirmation message after loading
+		# ✅ Show confirmation popup after loading
 		show_confirmation_popup("📂 Loaded map: " + selected_map_name)
 
-		# ✅ Close the Save/Load Map popup
-		await get_tree().process_frame  # ✅ Ensure UI updates before closing
-		if load_save_map_popup:
-			load_save_map_popup.hide()
-			print("🛑 LoadSaveMapPopUp menu hidden after loading!")
-
-
+		# ✅ Close the pop-up after successful load
+		await get_tree().process_frame  # ✅ Ensure UI updates
+		load_save_map_popup.hide()
+		print("🛑 LoadSaveMapPopUp menu hidden after loading!")
 	else:
-		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")  
+		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+		display_error("Grid container not found.")
+
+  
+
 
 
 
@@ -282,6 +302,7 @@ func _on_save_button_pressed() -> void:
 		grid_container.save_map(map_name)  # ✅ Calls grid_container function
 
 		# ✅ Show confirmation
+		load_save_map_popup.visible = false
 		show_confirmation_popup("Map saved successfully!")
 
 		# ✅ Close pop-up after saving
@@ -449,6 +470,26 @@ func display_error(message: String):
 	else:
 		print("❌ Error Popup UI is missing!")
 
+func get_selected_map_button() -> Button:
+	# ✅ If a selected button exists, return it
+	if selected_map_button:
+		print("✅ Returning selected button:", selected_map_button.text)
+		return selected_map_button
+
+	# ✅ Check if there's a button in the list and select the first one
+	for child in map_list.get_children():
+		if child is Button:
+			selected_map_button = child
+			print("✅ Returning first button in list as selected:", child.text)
+			return child
+
+	# ❌ No button selected
+	print("❌ ERROR: No map selected!")
+	return null
+
+
+
+
 
 
 			##    ##   ##    ##    ##    ##   ##
@@ -479,14 +520,12 @@ func save_map_to_file(map_name: String):
 func load_map_from_file(map_name: String):
 	if map_name.is_empty():
 		print("❌ Map name cannot be empty!")
-		display_error("Map name cannot be empty!")
 		return
 
 	var load_path = "user://maps/" + map_name.to_lower() + ".json"
 	
 	if not FileAccess.file_exists(load_path):
 		print("❌ Error: Map file does not exist:", load_path)
-		display_error("Map file does not exist.")
 		return
 	
 	var file = FileAccess.open(load_path, FileAccess.READ)
@@ -501,6 +540,14 @@ func load_map_from_file(map_name: String):
 		else:
 			print("❌ Error: Failed to parse map data.")
 			display_error("Failed to load map.")
+
+func get_user_selected_map() -> String:
+	if selected_map_name and not selected_map_name.is_empty():
+		print("✅ Returning user-selected map:", selected_map_name)
+		return selected_map_name
+	
+	print("⚠️ No user-selected map available!")
+	return ""  # Return empty string if no selection
 
 
 func _duplicate_map(original_name: String, new_name: String):
@@ -553,3 +600,9 @@ func _on_load_save_map_pop_up_close_requested() -> void:
 func _on_map_selected(map_name: String, button):
 	selected_map_name = map_name  # ✅ Directly assign string
 	print("✅ Selected map:", selected_map_name)
+
+
+func _on_confirmation_popup_ok_button_pressed() -> void:
+	if confirmation_popup:
+		confirmation_popup.hide()
+		print("🛑 Confirmation popup closed!")

@@ -103,8 +103,6 @@ func generate_error_thumbnail(map_name: String) -> Texture2D:
 	var error_image = Image.create(256, 256, false, Image.FORMAT_RGBA8)
 	error_image.fill(Color(1, 0, 0, 1))  # 🔴 Red background (error indicator)
 		
-	var font = ThemeDB.fallback_font  # Get a default font
-	var text_position = Vector2(30, 120)  # Center-ish placement
 
 	
 
@@ -149,7 +147,6 @@ func _on_delete_map():
 		print("No map selected to delete.")
 		return
 	
-	var map_name = selected_map["name"]
 	var file_path = "user://maps/" + selected_map["name"] + ".json"
 	var thumbnail_path = "user://thumbnails/" + selected_map["name"] + ".png"
 	

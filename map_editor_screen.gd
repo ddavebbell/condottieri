@@ -1,10 +1,12 @@
 extends Control  # Attach this to the root node of map_editor_screen.tscn
 
-
 var map_data = {}  # Store loaded map data
 
 @onready var map_name_input = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
 
+		## Confirmation Popup
+@onready var confirmation_label = $MapEditorPopUp/ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
+@onready var confirmation_popup = $MapEditorPopUp/ConfirmationPopUp
 
 @onready var current_filename: String = ""  # Tracks the current map file name
 
@@ -12,7 +14,6 @@ var map_data = {}  # Store loaded map data
 @onready var load_save_map_popup_scene = $MapEditorPopUp  # Reference to the popup scene
 @onready var load_save_map_popup_menu = $MapEditorPopUp/LoadSaveMapPopUp
 @onready var load_save_map_popup_title = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/PopUpTitle
-@onready var load_save_map_confirmation_message = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
 
 @onready var map_menu_panel = $MapMenuPanel  # Reference the panel
 @onready var toggle_menu_button = $ToggleMapMenuButton  # Reference the button
@@ -99,7 +100,7 @@ func set_map_data(data):
 	
 	if grid_container:
 		grid_container.load_map_data(map_data)
-
+		
 func _on_load_map_button_pressed() -> void:
 	print("📂 Load Map button pressed")
 
@@ -107,43 +108,33 @@ func _on_load_map_button_pressed() -> void:
 	load_save_map_popup_scene.open_as_load()
 	open_load_map_popup("Load Map")
 
-	# ✅ Retrieve the selected map name
-	var selected_button = get_selected_map_button()
-	if selected_button:
-		var selected_map_name = selected_button.text  # ✅ Get the name from the button text
-		print("✅ Confirmation displayed for loaded map:", selected_map_name)
+	# ✅ Wait for the user to interact
+	await get_tree().process_frame  
 
-		# ✅ Load the selected map
-		if grid_container:
-			grid_container.load_map(selected_map_name)
-			show_confirmation_popup("📂 Loaded map: " + selected_map_name)
+	# ✅ Retrieve user-selected map from the pop-up AFTER user interaction
+	var selected_map_name = load_save_map_popup_scene.get_user_selected_map()
 	
-			print("✅ Map loaded successfully:", selected_map_name)
+	if selected_map_name.is_empty():
+		print("⚠️ No map selected! Waiting for user selection.")
+		return  # ✅ Stop execution if no map is selected
 
-			## ✅ Ensure the pop-up is fully closed
-			#await get_tree().process_frame  # ✅ Wait for UI update
-			#if load_save_map_popup_menu:
-				#print(load_save_map_popup_menu)
-				#load_save_map_popup_menu.hide()
-				#print("🛑 LoadSaveMapPopUp menu hidden after loading!")
-#
-			#if load_save_map_popup_scene:
-				#print(load_save_map_popup_scene)
-				#load_save_map_popup_scene.hide()
-				#print("🛑 LoadSaveMapPopUp scene hidden after loading!")
+	# ✅ Load the selected map
+	print("✅ Selected map:", selected_map_name)
 
-		else:
-			print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+	if grid_container:
+		grid_container.load_map(selected_map_name)
+		print("✅ Map loaded successfully:", selected_map_name)
+
+		# ✅ Show confirmation popup after loading
+		show_confirmation_popup("📂 Loaded map: " + selected_map_name)
+
+		# ✅ Close the Save/Load Map popup after loading
+		await get_tree().process_frame  # ✅ Ensure UI updates before closing
+		load_save_map_popup_menu.hide()
+		print("🛑 LoadSaveMapPopUp menu hidden after loading!")
 	else:
-		print("❌ ERROR: No map selected for loading!")
-
-
-func get_selected_map_button():
-	for child in load_save_map_popup_menu.get_node("MarginContainer/VBoxContainer/ScrollContainer/MapList").get_children():
-		if child is Button and child.modulate == Color(0.6, 1, 0.6, 1):  # ✅ Check if the button is highlighted
-			return child
-	return null
-
+		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
+		load_save_map_popup_scene.display_error("Please select a map before loading.")
 
 func _on_back_to_main_pressed() -> void:
 	print("🔙 Returning to Main Screen...")
@@ -158,6 +149,7 @@ func _on_back_to_main_pressed() -> void:
 	
 
 func open_load_map_popup(title_text: String):
+	load_save_map_popup_scene.user_selected_map = false  # ✅ Reset selection status
 	if load_save_map_popup_menu and load_save_map_popup_title:
 		load_save_map_popup_scene.set_popup_title(title_text)
 		load_save_map_popup_menu.popup_centered()
@@ -166,11 +158,13 @@ func open_load_map_popup(title_text: String):
 		print("❌ ERROR: load_save_map_popup_scene is not set!")
 
 func show_confirmation_popup(message: String):
-	if load_save_map_popup_menu and load_save_map_confirmation_message:
-		load_save_map_confirmation_message.text = message  # ✅ Set confirmation message text
-		load_save_map_confirmation_message.show()  # ✅ Make it visible
-		await get_tree().create_timer(2.0).timeout  # ✅ Keep visible for 2 seconds
-		load_save_map_confirmation_message.hide()  # ✅ Hide after delay
-		print("✅ Showing confirmation message:", message)
+	if confirmation_popup and confirmation_label:
+		print("✅ Confirmation label found:", confirmation_label.name)
+		confirmation_label.text = message
+		confirmation_label.show()  # ✅ Make sure it's visible
+
+		# ✅ Ensure the popup is on top
+		confirmation_popup.popup_centered()  # Show the popup
+		print("✅ Confirmation popup displayed on top:", message)
 	else:
-		print("❌ ERROR: load_save_map_popup_menu or load_save_map_confirmation_message is not set!")
+		print("❌ ERROR: ConfirmationPopup UI is missing!")
