@@ -303,7 +303,6 @@ func _on_save_button_pressed() -> void:
 
 		# ✅ Show confirmation
 		load_save_map_popup.visible = false
-		show_confirmation_popup("Map saved successfully!")
 
 		# ✅ Close pop-up after saving
 		await get_tree().process_frame

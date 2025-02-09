@@ -10,6 +10,8 @@ var hovered_tile = null  # Store currently hovered tile reference
 var current_filename: String = ""  # Tracks the current map file name
 
 signal map_loaded(map_name)  # ✅ New signal to notify when a map is loaded
+@onready var load_save_map_popup = $/root/Control/MapEditorPopUp
+
 
 func _ready():
 	position = Vector2.ZERO # ensure no initial offsets
@@ -255,11 +257,6 @@ func load_map(map_name: String):
 	current_filename = map_name  
 	emit_signal("map_loaded", current_filename)  # ✅ Notify that map was loaded
 	print("✅ Map Loaded Successfully:", current_filename)
-
-	
-	
-	
-	
 		
 	#  Load Thumbnail If It Exists
 	if "thumbnail" in map_data and FileAccess.file_exists(map_data["thumbnail"]):
@@ -303,8 +300,8 @@ func save_map(map_name: String) -> String:
 	file.close()
 
 	# ✅ Capture thumbnail
-	capture_screenshot(map_name, map_data)
-
+	await capture_screenshot(map_name, map_data)
+	load_save_map_popup.show_confirmation_popup("✅ Map saved successfully!")
 	print("✅ Map saved successfully:", file_path)
 	
 	return map_name  # ✅ Return the saved map name
@@ -369,15 +366,6 @@ func capture_screenshot(map_name: String, map_data: Dictionary):
 	var cropped_image = full_image.get_region(Rect2(grid_position, grid_size)) # ✅ Define the Crop Region (Centered on the Grid)
 	cropped_image.resize(256, 256)
 	
-	
-	
-	
-	# ✅ Ensure the "thumbnails" directory exists
-	#var thumb_dir = DirAccess.open("user://thumbnails")
-	#if thumb_dir == null:
-		#var root_dir = DirAccess.open("user://")  # Open root directory
-		#root_dir.make_dir_recursive("user://thumbnails") if root_dir else null
-				
 	
 	# ✅ Save Thumbnail
 	var thumbnail_path = "user://thumbnails/" + map_name + ".png"

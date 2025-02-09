@@ -104,12 +104,15 @@ func set_map_data(data):
 func _on_load_map_button_pressed() -> void:
 	print("📂 Load Map button pressed")
 
-	# ✅ Open the pop-up for loading a map
+	# ✅ Ensure no previous map is auto-selected
+	load_save_map_popup_scene.selected_map_name = ""  # Reset selection before opening
+	load_save_map_popup_scene.selected_map_button = null  
+	
 	load_save_map_popup_scene.open_as_load()
 	open_load_map_popup("Load Map")
 
-	# ✅ Wait for the user to interact
-	await get_tree().process_frame  
+	
+	await get_tree().process_frame # ✅ Wait for the user to interact
 
 	# ✅ Retrieve user-selected map from the pop-up AFTER user interaction
 	var selected_map_name = load_save_map_popup_scene.get_user_selected_map()
