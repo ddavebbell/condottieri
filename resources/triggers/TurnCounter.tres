@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Trigger" load_steps=2 format=3 uid="uid://cye750e27bvr0"]
+
+[ext_resource type="Script" path="res://scripts/triggers_and_effects/trigger.gd" id="1_ycbh7"]
+
+[resource]
+script = ExtResource("1_ycbh7")
+cause = "Turn Count Reached"
+trigger_area_type = 1
+trigger_tiles = Array[Vector2]([])
+effects = Array[Resource]([])
+effect_area_type = 1
+effect_tiles = Array[Vector2]([])
+sound_effect = ""
+pop_up_text = ""

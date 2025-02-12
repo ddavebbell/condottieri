@@ -265,7 +265,7 @@ func _on_open_map():
 		
 	
 	# Load the Map Editor scene
-	var map_editor_scene = load("res://map_editor_screen.tscn").instantiate()
+	var map_editor_scene = load("res://scenes/MapEditor.tscn").instantiate()
 	get_tree().root.add_child(map_editor_scene)
 	get_tree().current_scene.queue_free()
 	get_tree().current_scene = map_editor_scene
@@ -281,7 +281,7 @@ func _on_open_map():
 	
 func _on_create_map_pressed():
 	# Load the Map Editor scene
-	var map_editor_scene = preload("res://map_editor_screen.tscn").instance()
+	var map_editor_scene = preload("res://scenes/MapEditor.tscn").instance()
 	
 	# Switch to the Map Editor
 	get_tree().root.add_child(map_editor_scene)
@@ -295,7 +295,7 @@ func _on_create_map_pressed():
 
 func _on_create_map_button_pressed():
 	# Load the Map Editor scene
-	var map_editor_scene = load("res://map_editor_screen.tscn").instantiate()
+	var map_editor_scene = load("res://scenes/MapEditor.tscn").instantiate()
 	# Switch to the Map Editor
 	get_tree().root.add_child(map_editor_scene)
 	get_tree().current_scene.queue_free()  # Unload the current scene
@@ -420,8 +420,6 @@ func clear_map_cache():
 		
 # ✅ Reset in-memory map list
 	var current_filename: String = ""  # Tracks the current map file name
-	current_filename = ""
 	print("🧹 Cleared all cached maps and thumbnails.")
 	
-	# ✅ Notify main menu to refresh the list
 	get_tree().root.call_deferred("emit_signal", "map_list_updated")

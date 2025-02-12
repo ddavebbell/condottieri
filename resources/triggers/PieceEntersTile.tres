@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Trigger" load_steps=2 format=3 uid="uid://co56jlxwgw4ev"]
+
+[ext_resource type="Script" path="res://scripts/triggers_and_effects/trigger.gd" id="1_yqoud"]
+
+[resource]
+script = ExtResource("1_yqoud")
+cause = "Piece Enters Tile"
+trigger_area_type = 0
+trigger_tiles = Array[Vector2]([])
+effects = Array[Resource]([])
+effect_area_type = 1
+effect_tiles = Array[Vector2]([])
+sound_effect = ""
+pop_up_text = ""

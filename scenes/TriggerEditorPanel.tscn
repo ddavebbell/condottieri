@@ -1,0 +1,232 @@
+[gd_scene load_steps=5 format=3 uid="uid://c62mac2dft62j"]
+
+[ext_resource type="Script" path="res://scripts/triggers_and_effects/trigger_editor_panel.gd" id="1_ycgt3"]
+[ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="2_di8q0"]
+
+[sub_resource type="Theme" id="Theme_mswss"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j71jd"]
+bg_color = Color(0.133333, 0.133333, 0.133333, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.666667, 0.666667, 0.666667, 1)
+border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="TriggerEditorPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = SubResource("Theme_mswss")
+script = ExtResource("1_ycgt3")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Popups" type="Control" parent="."]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackgroundPanel" type="PanelContainer" parent="Popups"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 53.0
+offset_top = 30.0
+offset_right = -54.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_j71jd")
+
+[node name="Padding" type="MarginContainer" parent="Popups/BackgroundPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="MainLayout" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding"]
+layout_mode = 2
+
+[node name="HeaderContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="TriggerEditorLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_fonts/font = ExtResource("2_di8q0")
+theme_override_font_sizes/font_size = 24
+text = "  Trigger Editor Menu  "
+horizontal_alignment = 1
+vertical_alignment = 1
+uppercase = true
+
+[node name="CloseButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HeaderContainer"]
+z_index = 200
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+text = "✖ Close Menu"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContentVBox" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="TriggerSettings" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TriggerLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_fonts/font = ExtResource("2_di8q0")
+theme_override_font_sizes/font_size = 20
+text = "Trigger 
+Settings"
+horizontal_alignment = 1
+
+[node name="CauseDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 10.0
+
+[node name="SelectTrigger" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 4
+text = "Select Trigger"
+
+[node name="AreaSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="TriggerAreaLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_di8q0")
+theme_override_font_sizes/font_size = 20
+text = "Trigger 
+Area"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AreaTypeDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TileSelectionCustomNode" type="Control" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+
+[node name="EffectSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="EffectsLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_fonts/font = ExtResource("2_di8q0")
+theme_override_font_sizes/font_size = 20
+text = "Effects"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 10.0
+
+[node name="EffectListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AddEffectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Add Effect"
+
+[node name="SoundEffect" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SoundEffectLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/SoundEffect"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("2_di8q0")
+theme_override_font_sizes/font_size = 20
+text = "Sound 
+Effects"
+horizontal_alignment = 1
+
+[node name="SoundEffectDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/SoundEffect"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddSoundFX" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/SoundEffect"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Add SoundFX"
+
+[node name="Buttons" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+
+[node name="CancelButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/Buttons"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+text = "Cancel"
+
+[node name="SaveTriggerButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/Buttons"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+text = "Save Trigger"
+
+[node name="TileSelectorCustomNode" type="Control" parent="Popups/BackgroundPanel/Padding"]
+visible = false
+layout_mode = 2
+
+[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]

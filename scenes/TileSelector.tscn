@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://ccrn34yxo5b0p"]
+
+[ext_resource type="Script" path="res://scripts/tile_selector.gd" id="1_sf6lv"]
+
+[node name="TileSelector" type="Node2D"]
+script = ExtResource("1_sf6lv")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="TileButton" type="Button" parent="PanelContainer/GridContainer"]
+layout_mode = 2

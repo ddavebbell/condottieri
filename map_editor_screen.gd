@@ -1,10 +1,11 @@
-extends Control  # Attach this to the root node of map_editor_screen.tscn
+extends Control 
 
 var map_data = {}  # Store loaded map data
+var selected_trigger = null  # Stores the currently selected trigger for editing
+var triggers: Array = []  # ✅ Store created triggers in memory
 
-@onready var map_name_input = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
 
-		## Confirmation Popup
+## Confirmation Popup
 @onready var confirmation_label = $MapEditorPopUp/ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
 @onready var confirmation_popup = $MapEditorPopUp/ConfirmationPopUp
 
@@ -14,46 +15,109 @@ var map_data = {}  # Store loaded map data
 @onready var load_save_map_popup_scene = $MapEditorPopUp  # Reference to the popup scene
 @onready var load_save_map_popup_menu = $MapEditorPopUp/LoadSaveMapPopUp
 @onready var load_save_map_popup_title = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/PopUpTitle
-
+	
+## Menu Stuff ##
+@onready var map_name_input = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
 @onready var map_menu_panel = $MapMenuPanel  # Reference the panel
 @onready var toggle_menu_button = $ToggleMapMenuButton  # Reference the button
 @onready var grid_container = $HSplitContainer/MarginContainer/MainMapDisplay/GridContainer  # Reference to GridContainer
 
+## Trigger Variables ##
+
+
+@onready var trigger_menu = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu
+@onready var trigger_list = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/ScrollContainer/TriggerList
+@onready var create_trigger_button = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer/CreateTriggerButton
+@onready var edit_trigger_button = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer/EditTriggerButton
+@onready var trigger_manager_scene = preload("res://scenes/TriggerManager.tscn")  # ✅ Load the SCENE, not the script
+var trigger_manager = null  # ✅ Will store the actual instance
+
 
 func _ready():
-	if grid_container:
-		grid_container.connect("map_loaded", Callable(self, "_on_map_loaded"))
+	var all_nodes = get_tree().get_root().get_children()
+	for node in all_nodes:
+		print("Node in tree: ", node.name)  # ✅ This prints all top-level nodes
+
 	
-	var grid_container_ref = get_node("HSplitContainer/MarginContainer/MainMapDisplay/GridContainer")
+	create_trigger_button.connect("pressed", Callable(self, "_on_create_trigger_pressed"))
+	edit_trigger_button.connect("pressed", Callable(self, "_on_edit_trigger_pressed"))
+	
+	
+	if grid_container.has_signal("map_loaded"):
+		grid_container.connect("map_loaded", Callable(self, "_on_map_loaded"))
 	
 	await get_tree().process_frame  # Wait to ensure nodes are loaded
 
-	if load_save_map_popup_scene and grid_container_ref:
-		load_save_map_popup_scene.set_grid_container(grid_container_ref)  # ✅ Pass grid_container reference
+	if load_save_map_popup_scene and grid_container:
+		load_save_map_popup_scene.set_grid_container(grid_container)  # ✅ Pass grid_container reference
 	else:
 		print("❌ ERROR: Could not find MapEditorPopUp or grid container")
 	
 	print("current filename is..... ",current_filename)
+	
 	load_save_map_popup_scene.visible = false  # Ensure the pop-up is hidden initially
 	map_menu_panel.visible = false  # Hide the menu by default
 	map_menu_panel.position = Vector2(7, 900)  # Move below the screen
+
+
+		##     ##       ##     ##
+		## Trigger Logic stuff ##
+		##     ##       ##     ##
+
+
+func _on_create_trigger_pressed():
+	print("🚀 BUTTON CLICKED: Create Trigger Pressed!")  # ✅ Debug message to check if the function runs
+
+	if not trigger_manager:
+		print("🛠 Creating TriggerManager...")
+		trigger_manager = trigger_manager_scene.instantiate()
+		add_child(trigger_manager)
+		print("✅ TriggerManager ADDED to Scene Tree: ", trigger_manager)
+
+	print("🚀 Calling open_trigger_editor() on TriggerManager")
+	trigger_manager.open_trigger_editor()  # ✅ This should open the editor
+
+
+func _on_edit_trigger_pressed():
+	if selected_trigger == null:
+		print("No trigger selected for editing.")
+		return
+
+	var trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
+	add_child(trigger_editor)
+	trigger_editor.setup_trigger(selected_trigger)
+	trigger_editor.connect("trigger_saved", Callable(self, "_on_trigger_saved"))
+
+func _toggle_trigger_menu():
+	trigger_menu.visible = !trigger_menu.visible  # ✅ Show or hide trigger menu
+
+func _on_trigger_saved(trigger):
+	triggers.append(trigger)  # ✅ Store trigger in list
 	
+	var button = Button.new()
+	button.text = trigger.cause
+	trigger_list.add_child(button)
+	
+	button.set_meta("trigger_data", trigger)
+	button.connect("pressed", Callable(self, "_on_edit_trigger_pressed").bind(trigger))
+
+func _on_select_trigger(button):
+	selected_trigger = button.get_meta("trigger_data")  # Retrieve stored trigger data
 
 func _on_map_loaded(map_name):
-	current_filename = map_name  # ✅ Update map filename
 	print("📂 Map Editor Screen - Current filename set to:", current_filename)
+	current_filename = map_name  # ✅ Update map filename
+
 
 func _on_toggle_map_menu_button_pressed():
 	var tween = create_tween()  # Create a new Tween dynamically
 	
 	if map_menu_panel.visible:
-		print("📂 Hiding Map Menu Panel")
 		tween.tween_property(map_menu_panel, "position", Vector2(7, 900), 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)  # Slide down
 		await tween.finished
 		map_menu_panel.visible = false
 		toggle_menu_button.text = "Open Menu"  # Change text to Open
 	else:
-		print("📂 Showing Map Menu Panel")
 		toggle_menu_button.text = "Close Menu"  # Change text to Close
 		map_menu_panel.visible = true
 		map_menu_panel.position = Vector2(7, 900)  # Ensure it starts at the bottom
@@ -77,7 +141,6 @@ func _on_save_map_button_pressed():
 		print("💾 Saving existing map:", current_filename)
 		grid_container.save_map(current_filename)  # ✅ Save directly
 		show_confirmation_popup("✅ Map saved successfully!")  # ✅ Show confirmation message
-
 
 
 func open_save_as_popup(title_text: String):
@@ -143,13 +206,13 @@ func _on_back_to_main_pressed() -> void:
 	print("🔙 Returning to Main Screen...")
 	
 	# Load the main screen scene
-	var main_screen_scene = load("res://first_selection_screen.tscn").instantiate()
+	var main_screen_scene = load("res://scenes/FirstSelectionScreen.tscn").instantiate()
 	
 	# Switch to the main screen
 	get_tree().root.add_child(main_screen_scene)
 	get_tree().current_scene.queue_free()  # Remove current scene
 	get_tree().current_scene = main_screen_scene  # Set new scene
-	
+
 
 func open_load_map_popup(title_text: String):
 	load_save_map_popup_scene.user_selected_map = false  # ✅ Reset selection status

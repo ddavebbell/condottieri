@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Trigger" load_steps=2 format=3 uid="uid://cpt6x542fwlhu"]
+
+[ext_resource type="Script" path="res://scripts/triggers_and_effects/trigger.gd" id="1_v5j5u"]
+
+[resource]
+script = ExtResource("1_v5j5u")
+cause = "10 Turns Passed"
+trigger_area_type = 0
+trigger_tiles = Array[Vector2]([])
+effects = Array[Resource]([null])
+effect_area_type = 1
+effect_tiles = Array[Vector2]([])
+sound_effect = "drum_roll"
+pop_up_text = "Enemy reinforcements have arrived!"

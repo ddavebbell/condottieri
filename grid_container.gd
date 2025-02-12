@@ -10,8 +10,8 @@ var hovered_tile = null  # Store currently hovered tile reference
 var current_filename: String = ""  # Tracks the current map file name
 
 signal map_loaded(map_name)  # ✅ New signal to notify when a map is loaded
-@onready var load_save_map_popup = $/root/Control/MapEditorPopUp
-
+@onready var load_save_map_popup = $/root/MapEditor/MapEditorPopUp
+@onready var trigger_manager = preload("res://scripts/triggers_and_effects/trigger_manager.gd").new()  # Load Trigger Manager
 
 func _ready():
 	position = Vector2.ZERO # ensure no initial offsets
@@ -49,8 +49,8 @@ func _input(event):
 		var adjusted_pos = local_pos - grid_offset
 		var grid_pos = snap_to_grid(adjusted_pos)
 	
-		if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
-			print("Tile selected at:", grid_pos)
+		#if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
+			#print("Tile selected at:", grid_pos)
 		
 	# Handle right mouse button click (tile removal)
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
@@ -61,8 +61,6 @@ func _input(event):
 		if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
 			remove_tile(grid_pos)
 			clear_highlight()  # Clear highlight when a tile is deleted
-			hovered_tile = null  # Reset hovered tile reference
-			print("Tile removed at:", grid_pos)
 
 
 ## # CREATE GRID AND MAINTAIN IT # # # #
@@ -113,12 +111,10 @@ func calculate_grid_offset():
 
 func highlight_tile(tile):
 	tile.modulate = Color(1.5, 1.5, 1.5, 1.0)  # Brighten the tile slightly
-	print("Tile highlighted at:", tile.position)
 
 func clear_highlight():
 	if hovered_tile:
 		hovered_tile.modulate = Color(1, 1, 1, 1)  # Reset to normal color
-		print("Tile highlight cleared at:", hovered_tile.position)
 		hovered_tile = null
 
 func remove_tile(grid_pos: Vector2):
@@ -214,11 +210,12 @@ func load_map(map_name: String):
 	var file = FileAccess.open(file_path, FileAccess.READ) # ✅ Load JSON Data
 	var map_data = JSON.parse_string(file.get_as_text())
 	file.close()
-
-	if map_data == null:
-		print("❌ ERROR: Failed to parse map JSON!")
+	
+	if not map_data:
+		print("❌ ERROR: Failed to parse map data.")
 		return
-		
+	
+	
 		
 	clear_grid()  # ✅ Clear old tiles before loading
 	
@@ -249,9 +246,7 @@ func load_map(map_name: String):
 		
 		place_tile(grid_pos, tile_texture)  # ✅ Place tile
 		
-		print("✅ Placed tile at:", grid_pos, "with texture:", tile_texture)
 		
-	print("✅ Map Loaded Successfully!")
 	
 	# ✅ Set `current_filename`
 	current_filename = map_name  
@@ -268,7 +263,11 @@ func load_map(map_name: String):
 
 ## Save map and capture thumbnail
 func save_map(map_name: String) -> String:
-	var map_data = { "name": map_name, "tiles": {} }
+	var map_data = {
+		"name": map_name,
+		"tiles": {},
+		"triggers": trigger_manager.get_all_triggers() if trigger_manager else {}  # ✅ Ensure "triggers" key exists
+	}
 	
 	print("💾 Saving map:", map_name)
 	for grid_pos in placed_tiles.keys():
@@ -307,43 +306,6 @@ func save_map(map_name: String) -> String:
 	return map_name  # ✅ Return the saved map name
 
 
-	# ✅ Store tile data (supports both atlas and separate textures)
-	for grid_pos in placed_tiles.keys():
-		var tile_node = placed_tiles[grid_pos] 
-		var tile_texture = tile_node.texture 
-		
-		if tile_texture is AtlasTexture:
-			map_data["tiles"][str(grid_pos)] = {
-				"atlas": tile_texture.atlas.resource_path, 
-				"region": [
-					tile_texture.region.position.x, 
-					tile_texture.region.position.y, 
-					tile_texture.region.size.x, 
-					tile_texture.region.size.y
-				]
-			}
-		elif tile_texture is Texture2D:
-			map_data["tiles"][str(grid_pos)] = { "texture": tile_texture.resource_path } 
-		else:
-			print("⚠️ Warning: Unrecognized tile texture at", grid_pos)
-		
-		
-	# ✅ Ensure the "maps" directory exists
-	var map_dir = DirAccess.open("user://maps")
-	if map_dir == null:
-		var root_map_dir = DirAccess.open("user://")
-		if root_map_dir:
-			root_map_dir.make_dir_recursive("user://maps")
-				
-				
-	# ✅ Verify if the file was actually saved
-	if FileAccess.file_exists(file_path):
-		print("✅ save_map Map saved successfully:", file_path)
-	else:
-		print("❌ save_map Error: File not found after saving!", file_path)
-		
-		
-
 func capture_screenshot(map_name: String, map_data: Dictionary):
 	var map_editor_popup = get_tree().get_root().find_child("MapEditorPopUp", true, false)
 	var save_menu = map_editor_popup.get_node_or_null("LoadSaveMapPopUp") if map_editor_popup else null
@@ -376,7 +338,6 @@ func capture_screenshot(map_name: String, map_data: Dictionary):
 	else:
 		print("❌ Error saving thumbnail:", err)
 		
-	print("✅ save_map Map saved:", map_name, "with thumbnail:", thumbnail_path)
 
 
 	print("🔍 Checking if thumbnail exists:", thumbnail_path)
@@ -401,13 +362,8 @@ func str_to_vector(pos_str: String) -> Vector2:
 
 
 func clear_grid():
-	print("🧹 Clearing grid...")
-	
-	# ✅ Remove all child nodes that represent tiles
-	for tile in placed_tiles.values():
+	for tile in placed_tiles.values(): # ✅ Remove all child nodes that represent tiles
 		tile.queue_free()
 		
-	# ✅ Clear the placed_tiles dictionary
 	placed_tiles.clear()
-	
 	print("✅ Grid cleared successfully!")

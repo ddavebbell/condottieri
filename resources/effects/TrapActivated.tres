@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Effect" load_steps=2 format=3 uid="uid://jikyw6uiaavm"]
+
+[ext_resource type="Script" path="res://scripts/triggers_and_effects/effect.gd" id="1_ifiv8"]
+
+[resource]
+script = ExtResource("1_ifiv8")
+effect_type = 0
+effect_parameters = {}

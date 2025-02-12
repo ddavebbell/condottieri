@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Trigger" load_steps=3 format=3 uid="uid://ceu11nfw61gn1"]
+
+[ext_resource type="Resource" uid="uid://dvgrlepvwly7p" path="res://resources/effects/EndLevelVictory.tres" id="1_5nd2m"]
+[ext_resource type="Script" path="res://scripts/triggers_and_effects/trigger.gd" id="1_6bic8"]
+
+[resource]
+script = ExtResource("1_6bic8")
+cause = "Piece Captured"
+trigger_area_type = 0
+trigger_tiles = Array[Vector2]([])
+effects = Array[Resource]([ExtResource("1_5nd2m")])
+effect_area_type = 1
+effect_tiles = Array[Vector2]([])
+sound_effect = ""
+pop_up_text = ""
