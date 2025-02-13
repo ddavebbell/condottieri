@@ -34,9 +34,19 @@ var trigger_manager = null  # ✅ Will store the actual instance
 
 
 func _ready():
-	var all_nodes = get_tree().get_root().get_children()
-	for node in all_nodes:
-		print("Node in tree: ", node.name)  # ✅ This prints all top-level nodes
+	add_to_group("MapEditor")  # ✅ Ensures MapEditor is in the correct group
+	print("🚀 MapEditor added to group 'MapEditor'!")  # ✅ Debug message
+	
+	
+	var ui_layers = get_tree().get_nodes_in_group("UI")
+	if ui_layers.size() == 0:
+		print("❌ ERROR: UI Layer missing! Creating one now...")
+		var ui_layer = Control.new()
+		ui_layer.name = "UI"
+		get_tree().get_root().add_child(ui_layer)
+		ui_layer.add_to_group("UI")
+		print("✅ UI Layer created in MapEditor")
+	
 
 	
 	create_trigger_button.connect("pressed", Callable(self, "_on_create_trigger_pressed"))
@@ -96,10 +106,11 @@ func _on_trigger_saved(trigger):
 	
 	var button = Button.new()
 	button.text = trigger.cause
+	button.set_meta("trigger_data", trigger)  # ✅ Store trigger data in the button
 	trigger_list.add_child(button)
-	
-	button.set_meta("trigger_data", trigger)
 	button.connect("pressed", Callable(self, "_on_edit_trigger_pressed").bind(trigger))
+	
+	print("✅ Trigger Added to UI List:", trigger.cause)
 
 func _on_select_trigger(button):
 	selected_trigger = button.get_meta("trigger_data")  # Retrieve stored trigger data

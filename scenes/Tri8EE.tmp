@@ -172,26 +172,15 @@ horizontal_alignment = 1
 [node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 12.11
+size_flags_vertical = 3
+size_flags_stretch_ratio = 10.0
 
 [node name="EffectListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer"]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 2
 mouse_filter = 0
-
-[node name="HBoxContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.0
-
-[node name="LeftColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="RightColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="AddEffectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
 custom_minimum_size = Vector2(130, 0)

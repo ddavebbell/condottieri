@@ -7,6 +7,20 @@ var active_triggers = []  # List of triggers in the current game
 @onready var ui_layer = get_parent().find_child("UI", true, false)
 
 
+func _ready():
+	var ui_layers = get_tree().get_nodes_in_group("UI")  # ✅ Get all nodes in the "UI" group
+	if ui_layers.size() > 0:
+		ui_layer = ui_layers[0]  # ✅ Assign the first UI node found
+		print("✅ UI Layer Found:", ui_layer.name)
+	else:
+		print("❌ ERROR: UI Layer NOT found! Creating one manually...")
+		ui_layer = Control.new()
+		ui_layer.name = "UI"
+		get_tree().get_root().add_child(ui_layer)
+		ui_layer.add_to_group("UI")  # ✅ Ensure it is in the UI group
+		print("✅ New UI Layer Created:", ui_layer.name)
+
+
 func add_trigger(trigger: Trigger):
 	active_triggers.append(trigger)
 
@@ -49,9 +63,17 @@ func open_trigger_editor():
 	if ui_layer:
 		print("ui_layer found",ui_layer)
 		ui_layer.add_child(trigger_editor)  # ✅ Add to UI layer instead of Node2D
+		trigger_editor.visible = true  # ✅ Ensure it is visible
 		trigger_editor.z_index = 50  # ✅ Forces it to the top layer
+		print("✅ TriggerEditorPanel Successfully Added to UI!")
 	else:
 		print("Error: UI container not found in MapEditor")
+		
+	# 🟢 Final Debug Check
+	print("🟢 Final Debug Check:")
+	print("📌 UI Layer Exists?:", ui_layer != null)
+	print("📌 UI Layer Name:", ui_layer.name if ui_layer else "❌ None")
+	print("📌 Trigger Editor Parent:", trigger_editor.get_parent().name if trigger_editor else "❌ None")
 
 
 func remove_trigger(trigger_name: String):
