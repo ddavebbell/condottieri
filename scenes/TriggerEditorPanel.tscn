@@ -45,10 +45,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 53.0
-offset_top = 30.0
-offset_right = -54.0
-offset_bottom = -30.0
+offset_left = 748.0
+offset_top = 84.0
+offset_right = -79.0
+offset_bottom = -91.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -68,7 +68,8 @@ mouse_filter = 2
 
 [node name="HeaderContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
 layout_mode = 2
-size_flags_vertical = 4
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.15
 mouse_filter = 2
 
 [node name="TriggerEditorLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HeaderContainer"]
@@ -76,8 +77,9 @@ layout_mode = 2
 size_flags_horizontal = 6
 theme_override_fonts/font = ExtResource("2_di8q0")
 theme_override_font_sizes/font_size = 24
-text = "  Trigger Editor Menu  "
-horizontal_alignment = 1
+text = "Trigger & EVENTS 
+Menu"
+horizontal_alignment = 2
 vertical_alignment = 1
 uppercase = true
 
@@ -85,163 +87,167 @@ uppercase = true
 z_index = 200
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 0
+size_flags_vertical = 4
 text = "✖ Close Menu"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
+[node name="ContentVBox" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
 layout_mode = 2
+size_flags_horizontal = 6
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="ContentVBox" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-mouse_filter = 2
-theme_override_constants/separation = 18
-
-[node name="TriggerSettings" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+[node name="TriggerSettings" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox"]
 layout_mode = 2
 size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="TriggerLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings"]
+[node name="VBoxContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings"]
+layout_mode = 2
+
+[node name="TriggerLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 2
+size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_di8q0")
 theme_override_font_sizes/font_size = 20
-text = "Trigger 
+text = "Trigger
 Settings"
-horizontal_alignment = 1
 
-[node name="CauseDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings"]
+[node name="CauseDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 size_flags_stretch_ratio = 10.0
 
-[node name="SelectTrigger" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings"]
+[node name="SelectTrigger" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 size_flags_horizontal = 10
-size_flags_vertical = 4
-text = "Select Trigger"
-
-[node name="AreaSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 8
-
-[node name="TriggerAreaLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("2_di8q0")
-theme_override_font_sizes/font_size = 20
-text = "Trigger 
-Area"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="AreaTypeDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection"]
-layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 0
+text = "Add Trigger"
 
-[node name="TileSelectionCustomNode" type="Control" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection"]
-custom_minimum_size = Vector2(130, 0)
-layout_mode = 2
-
-[node name="EffectSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+[node name="TriggerListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings"]
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="EffectSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
 theme_override_constants/separation = 8
 
-[node name="EffectsLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
+[node name="EffectsLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 2
+size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_di8q0")
 theme_override_font_sizes/font_size = 20
 text = "Effects"
-horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 12.11
 
-[node name="EffectListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer"]
+[node name="EffectListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.0
 
-[node name="LeftColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
+[node name="LeftColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RightColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
+[node name="RightColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="AddEffectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection"]
+[node name="AddEffectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
+size_flags_vertical = 0
 text = "Add Effect"
 
-[node name="SoundEffect" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+[node name="AreaAndSound" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox"]
 layout_mode = 2
 size_flags_vertical = 3
-mouse_filter = 2
-theme_override_constants/separation = 8
+size_flags_stretch_ratio = 0.25
 
-[node name="SoundEffectLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/SoundEffect"]
-custom_minimum_size = Vector2(100, 0)
+[node name="AreaSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound"]
 layout_mode = 2
 size_flags_horizontal = 0
+size_flags_stretch_ratio = 0.5
+theme_override_constants/separation = 8
+
+[node name="TriggerAreaLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_di8q0")
 theme_override_font_sizes/font_size = 20
-text = "Sound 
-Effects"
+text = "Trigger Area"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="SoundEffectDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/SoundEffect"]
+[node name="AreaTypeDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 
-[node name="AddSoundFX" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/SoundEffect"]
-custom_minimum_size = Vector2(130, 0)
+[node name="TileSelectionCustomNode" type="Control" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
-size_flags_vertical = 4
-text = "Add SoundFX"
+size_flags_horizontal = 4
+size_flags_stretch_ratio = 0.5
 
-[node name="Buttons" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox"]
+[node name="SoundEffect" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound"]
+layout_mode = 2
+size_flags_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="SoundEffectLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/SoundEffect"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_di8q0")
+theme_override_font_sizes/font_size = 20
+text = "Sound Effect"
+horizontal_alignment = 1
+
+[node name="SoundEffectDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/SoundEffect"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="Buttons" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox"]
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
 
-[node name="CancelButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/Buttons"]
+[node name="CancelButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/Buttons"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 text = "Cancel"
 
-[node name="SaveTriggerButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/Buttons"]
+[node name="SaveTriggerButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/Buttons"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 text = "Save Trigger"
 
 [connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
-[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/AddEffectButton" to="." method="_add_effect"]
-[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/Buttons/CancelButton" to="." method="_on_cancel_button_pressed"]
+[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/AddEffectButton" to="." method="_add_effect"]
+[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/Buttons/CancelButton" to="." method="_on_cancel_button_pressed"]

@@ -1,14 +1,18 @@
 extends Control
 
-@onready var cause_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings/CauseDropdown
-@onready var area_type_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection/AreaTypeDropdown
-@onready var tile_selector = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/AreaSelection/TileSelectionCustomNode
-@onready var effect_list_container = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer
-@onready var add_effect_button = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/EffectSelection/AddEffectButton
-@onready var sound_effect_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/SoundEffect/SoundEffectDropdown
-@onready var save_button = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/Buttons/SaveTriggerButton
+@onready var cause_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/CauseDropdown
+@onready var area_type_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/AreaTypeDropdown
+@onready var tile_selector = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/TileSelectionCustomNode
+@onready var effect_list_container = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer
+@onready var add_effect_button = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/AddEffectButton
+@onready var sound_effect_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/SoundEffect/SoundEffectDropdown
+@onready var save_button = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/Buttons/SaveTriggerButton
+@onready var add_trigger_button = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/SelectTrigger
 
-@onready var trigger_list = $Popups/BackgroundPanel/Padding/MainLayout/ScrollContainer/ContentVBox/TriggerSettings/CauseDropdown
+@onready var trigger_list = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/CauseDropdown
+@onready var trigger_list_container = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/TriggerListContainer
+
+var triggers: Array = []  # ✅ Stores all added triggers
 
 
 var trigger_editor_open = false  # ✅ Track when TriggerEditor is open
@@ -27,6 +31,67 @@ func _process(delta):
 	else:
 		mouse_filter = Control.MOUSE_FILTER_STOP  # ✅ Allow clicks when TriggerEditor is closed
 
+func _on_add_trigger_pressed():
+	print("➕ Adding New Trigger...")
+
+	# ✅ Get selected trigger type from dropdown
+	var selected_index = cause_dropdown.selected
+	var selected_cause = cause_dropdown.get_item_text(selected_index)
+
+	# ✅ Create a new trigger instance
+	var new_trigger = Trigger.new()
+	new_trigger.cause = selected_cause  # ✅ Assign cause
+	# No need to do `new_trigger.effects = []` since it's now auto-initialized in `Trigger.gd`
+
+	# ✅ Create UI entry for the new trigger
+	var trigger_ui = _create_trigger_ui(new_trigger)
+
+	# ✅ Add UI to the list container
+	trigger_list_container.add_child(trigger_ui)
+
+	# ✅ Store trigger in the list
+	triggers.append(new_trigger)
+
+	print("✅ Trigger Added: ", selected_cause, " Total Triggers:", triggers.size())
+
+
+
+func _create_trigger_ui(trigger: Trigger):
+	var hbox = HBoxContainer.new()
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL  
+
+	var dropdown = OptionButton.new()
+	dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL  
+
+	# ✅ Add dropdown items
+	dropdown.add_item("Piece Captured")
+	dropdown.add_item("Piece Enters Tile")
+	dropdown.add_item("Turn Count Reached")
+
+	# ✅ Find correct index for trigger cause
+	var cause_index = -1
+	for i in range(dropdown.get_item_count()):
+		if dropdown.get_item_text(i) == trigger.cause:
+			cause_index = i
+			break
+
+	if cause_index != -1:
+		dropdown.selected = cause_index  # ✅ Set dropdown selection
+	else:
+		print("❌ ERROR: Cause not found in dropdown:", trigger.cause)
+
+	dropdown.connect("item_selected", Callable(self, "_update_trigger").bind(trigger))
+	hbox.add_child(dropdown)
+
+	var remove_button = Button.new()
+	remove_button.text = "X"
+	remove_button.connect("pressed", Callable(self, "_remove_trigger").bind(trigger, hbox))
+	hbox.add_child(remove_button)
+
+	return hbox
+
+
+
 func _on_close_trigger_editor():
 	# ✅ When closing, re-enable `MapEditor` input
 	var map_editor = get_tree().get_root().find_node("MapEditor", true, false)
@@ -34,59 +99,27 @@ func _on_close_trigger_editor():
 		map_editor.trigger_editor_open = false
 
 func _ready():
-	if effect_list_container:
-		print("✅ Effect List Container Found:", effect_list_container.name)
-	else:
-		print("❌ ERROR: Effect List Container NOT Found! Check Node Path.")
-	
-
 	var hbox_container = effect_list_container.get_node("HBoxContainer")
 	var left_column = effect_list_container.get_node("HBoxContainer/LeftColumn")
 	var right_column = effect_list_container.get_node("HBoxContainer/RightColumn")
-
-	effect_list_container.custom_minimum_size = Vector2(0, 0)  # ✅ Prevent forced empty space
-
-
-	
-	
-	print("🧐 TriggerEditorPanel's parent is:", get_parent().name)
 	
 	check_map_editor()
 	await get_tree().process_frame  # ✅ Wait for 1 frame before populating
 	
-	print("🎨 Adjusting Trigger Editor Panel...")
 	_setup_panel_position()  # ✅ Separate function for size & position
 	_populate_dropdowns()  # ✅ Separate function for dropdowns
 	_connect_signals()  # ✅ Separate function for connecting buttons
-	
-	# ✅ Force dropdown sizes
-	cause_dropdown.custom_minimum_size = Vector2(200, 30)
-	area_type_dropdown.custom_minimum_size = Vector2(200, 30)
-	sound_effect_dropdown.custom_minimum_size = Vector2(200, 30)
-	
-	# ✅ Delay before searching for MapEditor
-	await get_tree().process_frame  # ✅ Wait for 2 frames before searching
 
-		
-	 # ✅ Try searching for MapEditor again
 	var map_editors = get_tree().get_nodes_in_group("MapEditor")
 	if map_editors.size() > 0:
 		var map_editor = map_editors[0]
+		map_editor.visible = true
 		print("✅ Found MapEditor: " + map_editor.name)
 
-		# ✅ DEBUG: Confirm if this actually hides MapEditor
-		map_editor.visible = true
-		await get_tree().process_frame  # ✅ Wait for a frame to apply visibility change
-		print("🛑 MapEditor visibility set to:", map_editor.visible)
-	else:
-		print("❌ ERROR: MapEditor still not found after delay!")
-		
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	z_index = 100
 	visible = true   
-	print("✅ TriggerEditorPanel is now VISIBLE & ON TOP")
-	# ✅ Ensure this window always stays on top
-	
+
 
 func check_map_editor():
 	var found = false
@@ -160,8 +193,9 @@ func _populate_dropdowns():
 
 # ✅ Function to connect UI signals
 func _connect_signals():
-	cause_dropdown.connect("item_selected", Callable(self, "_on_cause_dropdown_item_selected"))
+	add_trigger_button.connect("pressed", Callable(self, "_on_add_trigger_pressed"))  # ✅ Connect button
 	save_button.connect("pressed", Callable(self, "_save_trigger"))
+	cause_dropdown.connect("item_selected", Callable(self, "_on_cause_dropdown_item_selected"))
 	print("✅ Signals Connected!")
 
 func setup_trigger(trigger: Trigger = null):
@@ -255,7 +289,7 @@ func _add_effect():
 func _create_effect_ui(effect: Effect):
 	var hbox = HBoxContainer.new()
 	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL  # ✅ Allow stretching
-	hbox.custom_minimum_size = Vector2(250, 50)  # ✅ Adjust width to prevent squeezing
+	#hbox.custom_minimum_size = Vector2(250, 50)  # ✅ Adjust width to prevent squeezing
 
 	var dropdown = OptionButton.new()
 	dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL  # ✅ Expand to fill space
