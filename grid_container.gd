@@ -8,10 +8,14 @@ var placed_tiles = {}
 var grid_offset = Vector2.ZERO # store the centered position
 var hovered_tile = null  # Store currently hovered tile reference
 var current_filename: String = ""  # Tracks the current map file name
+var triggers: Array = []  
 
 signal map_loaded(map_name)  # ✅ New signal to notify when a map is loaded
+signal triggers_loaded(trigger_data)  # ✅ Define a signal
+
 @onready var load_save_map_popup = $/root/MapEditor/MapEditorPopUp
 @onready var trigger_manager = preload("res://scripts/triggers_and_effects/trigger_manager.gd").new()  # Load Trigger Manager
+
 
 func _ready():
 	position = Vector2.ZERO # ensure no initial offsets
@@ -197,44 +201,71 @@ func place_tile(grid_pos: Vector2, texture: Texture):
 
 # # # # LOADING AND SAVING MAP FUNCTIONALITY # # # #
 
+## ✅ Main function to load a map
 func load_map(map_name: String):
 	print("🟢 Entered load_map() for:", map_name)
 	
-	var file_path = "user://maps/" + map_name + ".json"
-	if not FileAccess.file_exists(file_path):
-		print("❌ ERROR: Map file does not exist:", file_path)
+	var map_data = _verify_map_name_and_data(map_name)
+	
+	if map_data == null:
+		print("❌ ERROR: Invalid map data! Aborting load.")
 		return
-		
-	print("✅ Found map file:", file_path)
-	
-	var file = FileAccess.open(file_path, FileAccess.READ) # ✅ Load JSON Data
-	var map_data = JSON.parse_string(file.get_as_text())
-	file.close()
-	
-	if not map_data:
-		print("❌ ERROR: Failed to parse map data.")
-		return
-	
-	
-		
-	clear_grid()  # ✅ Clear old tiles before loading
 	
 	print("✅ Successfully parsed map data:", map_data)
-	if not map_data.has("tiles"):
+
+	## ✅ Place tiles on grid
+	_place_tiles_on_grid(map_data)
+	
+	## ✅ Load triggers from saved map data
+	if map_data.has("triggers"):
+		_load_triggers(map_data["triggers"])
+	else:
+		print("⚠️ WARNING: No triggers found in saved map.")
+
+	## ✅ Load thumbnail if it exists
+	_load_thumbnail_for_map(map_data)
+
+	## ✅ Save the current filename & emit map loaded signal
+	current_filename = map_name
+	emit_signal("map_loaded", current_filename)
+	
+	print("✅ Map Loaded Successfully:", current_filename)
+
+
+## ✅ Validate file path & return JSON map data
+func _verify_map_name_and_data(name: String) -> Dictionary:
+	var file_path = "user://maps/" + name + ".json"
+	
+	if not FileAccess.file_exists(file_path):
+		print("❌ ERROR: Map file does not exist:", file_path)
+		return {}
+	
+	## ✅ Open and parse JSON file
+	var file = FileAccess.open(file_path, FileAccess.READ)
+	var map_data = JSON.parse_string(file.get_as_text())
+	file.close()
+
+	if map_data == null or not map_data.has("tiles"):
+		print("❌ ERROR: Invalid or missing map data!")
+		return {}
+
+	return map_data
+
+
+## ✅ Places tiles on the grid from loaded map data
+func _place_tiles_on_grid(json_map_data):
+	clear_grid()  ## ✅ Ensure grid is cleared before placing new tiles
+
+	if not json_map_data.has("tiles"):
 		print("❌ ERROR: No 'tiles' key found in map JSON!")
 		return
-	
-	# ✅ Check if "tiles" key exists in JSON
-	if not map_data.has("tiles"):
-		print("❌ ERROR: No 'tiles' key found in map JSON!")
-		return
-	
-	# ✅ Place Tiles on Grid
-	for key in map_data["tiles"].keys():
-		var coords = key.split(",")  # Convert JSON key back into Vector2
+
+	## ✅ Place Tiles on Grid
+	for key in json_map_data["tiles"].keys():
+		var coords = key.split(",")  
 		var grid_pos = Vector2(coords[0].to_float(), coords[1].to_float())
-		var tile_data = map_data["tiles"][key]
-		
+		var tile_data = json_map_data["tiles"][key]
+
 		var tile_texture: Texture2D
 		if "atlas" in tile_data:
 			var atlas_texture = AtlasTexture.new()
@@ -243,33 +274,172 @@ func load_map(map_name: String):
 			tile_texture = atlas_texture
 		else:
 			tile_texture = load(tile_data["texture"])
-		
-		place_tile(grid_pos, tile_texture)  # ✅ Place tile
-		
-		
+
+		place_tile(grid_pos, tile_texture)  ## ✅ Place tile on grid
+
+	print("✅ Tiles placed on grid!")
+
+
+## ✅ Loads triggers from saved map data
+func _load_triggers(trigger_data: Array):
+	print("🔄 Loading Triggers...")
+
+	## ✅ Ensure triggers is initialized
+	if not "triggers" in self:
+		triggers = []
 	
-	# ✅ Set `current_filename`
-	current_filename = map_name  
-	emit_signal("map_loaded", current_filename)  # ✅ Notify that map was loaded
-	print("✅ Map Loaded Successfully:", current_filename)
-		
-	#  Load Thumbnail If It Exists
-	if "thumbnail" in map_data and FileAccess.file_exists(map_data["thumbnail"]):
+	## ✅ Clear existing triggers before loading new ones
+	triggers.clear()
+
+	if trigger_data.is_empty():
+		print("⚠️ No triggers found in saved map!")
+		return
+	
+	for data in trigger_data:
+		if not data.has("cause") or not data.has("effects"):
+			print("❌ ERROR: Missing required trigger fields! Skipping...")
+			continue  ## Skip incomplete trigger data
+
+		var new_trigger = Trigger.new()
+		new_trigger.cause = data["cause"]
+		new_trigger.trigger_area_type = data["trigger_area_type"]
+		new_trigger.trigger_tiles = data.get("trigger_tiles", [])
+		new_trigger.sound_effect = data.get("sound_effect", "")
+		new_trigger.effects = _deserialize_effects(data.get("effects"))
+
+		triggers.append(new_trigger)  ## ✅ Add to memory
+
+	emit_signal("triggers_loaded", triggers)  ## ✅ Emit signal to update UI
+
+	print("✅ All triggers loaded successfully!")
+
+
+## ✅ Convert JSON effect data into Effect objects
+func _deserialize_effects(effect_data: Array) -> Array:
+	var effects = []
+	for data in effect_data:
+		var effect = Effect.new()
+		effect.effect_type = data["effect_type"]
+		effect.effect_parameters = data["effect_parameters"]
+		effects.append(effect)
+	return effects
+
+
+## ✅ Load thumbnail if it exists in map data
+func _load_thumbnail_for_map(map_data):
+	if map_data.has("thumbnail") and FileAccess.file_exists(map_data["thumbnail"]):
 		var image = Image.new()
 		image.load(map_data["thumbnail"])
-		print("Thumbnail loaded for:", map_name)
+		print("✅ Thumbnail loaded for:", map_data)
 	else:
-		print("No thumbnail found for", map_name)
+		print("⚠️ No thumbnail found for", map_data)
+
+
+
+
+
+#func load_map(map_name: String):
+	#print("🟢 Entered load_map() for:", map_name)
+	#
+	#var map_data = _varify_map_name_and_data(map_name)
+	#print("AAA ✅ Successfully parsed map data:", map_data)
+	#
+	#_place_tiles_on_grid(map_data)
+	#print("BBB map data after place tiles on grid:  ", map_data)
+	#
+	#var loady_trig = _load_triggers(map_data.get("triggers", []))
+	#print("BBB map data after place tiles on grid:  ", loady_trig)
+	#
+	#current_filename = map_name 
+	#emit_signal("map_loaded", current_filename)
+	#print("✅ Map Loaded Successfully:", current_filename)
+	#
+	###  Load Thumbnail If It Exists
+	#_load_thumbnails_in_map_data(map_data)
+	#
+#
+#func _load_thumbnails_in_map_data(map_data):
+	#if "thumbnail" in map_data and FileAccess.file_exists(map_data["thumbnail"]):
+		#var image = Image.new()
+		#image.load(map_data["thumbnail"])
+		#print("Thumbnail loaded for:", map_data)
+	#else:
+		#print("No thumbnail found for", map_data)
+	#
+	#return map_data
+#
+#func _place_tiles_on_grid(json_map_data):
+	#
+	#clear_grid()
+		## ✅ Check if "tiles" key exists in JSON
+	#if not json_map_data.has("tiles"):
+		#print("❌ ERROR: No 'tiles' key found in map JSON!")
+		#return
+	#
+	## ✅ Place Tiles on Grid
+	#for key in json_map_data["tiles"].keys():
+		#var coords = key.split(",")  # Convert JSON key back into Vector2
+		#var grid_pos = Vector2(coords[0].to_float(), coords[1].to_float())
+		#var tile_data = json_map_data["tiles"][key]
+		#
+		#var tile_texture: Texture2D
+		#if "atlas" in tile_data:
+			#var atlas_texture = AtlasTexture.new()
+			#atlas_texture.atlas = load(tile_data["atlas"])
+			#atlas_texture.region = Rect2(tile_data["region"][0], tile_data["region"][1], tile_data["region"][2], tile_data["region"][3])
+			#tile_texture = atlas_texture
+		#else:
+			#tile_texture = load(tile_data["texture"])
+		#
+		#place_tile(grid_pos, tile_texture)  # ✅ Place tile
+#
+#
+#func _varify_map_name_and_data(name: String):
+	#if not FileAccess.file_exists(name):
+		#print("❌ map_name not found")
+		#return
+	#
+	#var file_path = "user://maps/" + name + ".json"
+	#if not FileAccess.file_exists(file_path):
+		#print("❌ Map file does not exist:", file_path)
+		#return
+	#
+	### Load JSON data into map_data
+	#var file = FileAccess.open(file_path, FileAccess.READ)
+	#var map_data = JSON.parse_string(file.get_as_text())
+	#file.close()
+	#
+	#if not map_data:
+		#print("❌ ERROR: Invalid map data!")
+		#return
+		#
+	#return map_data 
+
+
+
+
+
 
 ## Save map and capture thumbnail
-func save_map(map_name: String) -> String:
-	var map_data = {
+func save_map(map_name: String, map_data: Dictionary) -> String:
+	print("map_data before anything... ", map_data)
+	print("💾 Saving map:", map_name)
+
+	# ✅ Initialize base map data
+	var map_data_map_data = {
 		"name": map_name,
 		"tiles": {},
-		"triggers": trigger_manager.get_all_triggers() if trigger_manager else {}  # ✅ Ensure "triggers" key exists
+		"triggers": trigger_manager.get_all_triggers() if trigger_manager else []
 	}
+
+	# ✅ Merge existing map_data (ensuring it contains "tiles" and "triggers")
+	if map_data.has("tiles"):
+		map_data_map_data["tiles"] = map_data["tiles"]
 	
-	print("💾 Saving map:", map_name)
+	if map_data.has("triggers"):
+		map_data_map_data["triggers"] = map_data["triggers"]
+
+	# ✅ Ensure tiles are stored properly
 	for grid_pos in placed_tiles.keys():
 		var tile_node = placed_tiles[grid_pos]  # ✅ TextureRect node
 		var tile_texture = tile_node.texture  # ✅ Extract actual texture
@@ -289,21 +459,64 @@ func save_map(map_name: String) -> String:
 		else:
 			tile_data = { "texture": tile_texture.resource_path }
 		
-		map_data["tiles"][str(grid_pos.x) + "," + str(grid_pos.y)] = tile_data
+		map_data_map_data["tiles"][str(grid_pos.x) + "," + str(grid_pos.y)] = tile_data
 		print("✅ Saved Tile at:", grid_pos, "→", tile_data)
 
 	# ✅ Save JSON
 	var file_path = "user://maps/" + map_name.to_lower() + ".json"
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
-	file.store_string(JSON.stringify(map_data, "\t"))
+	file.store_string(JSON.stringify(map_data_map_data, "\t"))
 	file.close()
 
 	# ✅ Capture thumbnail
-	await capture_screenshot(map_name, map_data)
+	await capture_screenshot(map_name, map_data_map_data)  # ✅ Pass updated map data
 	load_save_map_popup.show_confirmation_popup("✅ Map saved successfully!")
 	print("✅ Map saved successfully:", file_path)
-	
+
 	return map_name  # ✅ Return the saved map name
+
+
+
+#func _load_triggers(trigger_data: Array):
+	#print("🔄 Loading Triggers...")
+	#
+	## ✅ Ensure `triggers` is defined
+	#if not "triggers" in self:
+		#triggers = []
+		#
+	#if not trigger_data or trigger_data.size() == 0:
+		#print("⚠️ No triggers found in saved map!")
+		#return
+	#
+	#triggers.clear()
+#
+	#for data in trigger_data:
+		#if not data.has("cause") or not data.has("effects"):  
+			#print("❌ ERROR: Missing required trigger fields! Skipping...")
+			#continue  # Skip triggers with missing data
+			#
+		#var new_trigger = Trigger.new()
+		#new_trigger.cause = data["cause"]
+		#new_trigger.trigger_area_type = data["trigger_area_type"]
+		#new_trigger.trigger_tiles = data.get("trigger_tiles", [])
+		#new_trigger.sound_effect = data.get("sound_effect", "")
+		#new_trigger.effects = _deserialize_effects(data["effects"])
+		#
+		#triggers.append(new_trigger) # ✅ Add trigger to memory
+#
+		## ✅ Add to UI
+	#emit_signal("triggers_loaded", triggers)
+#
+	#print("✅ All triggers loaded from GridContainer!")
+#
+#func _deserialize_effects(effect_data: Array) -> Array:
+	#var effects = []
+	#for data in effect_data:
+		#var effect = Effect.new()
+		#effect.effect_type = data["effect_type"]
+		#effect.effect_parameters = data["effect_parameters"]
+		#effects.append(effect)
+	#return effects
 
 
 func capture_screenshot(map_name: String, map_data: Dictionary):

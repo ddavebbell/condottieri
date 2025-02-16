@@ -4,6 +4,7 @@ var map_data = {}  # Store loaded map data
 var selected_trigger = null  # Stores the currently selected trigger for editing
 var triggers: Array = []  # ✅ Store created triggers in memory
 
+@onready var first_selection_screen = null
 
 ## Confirmation Popup
 @onready var confirmation_label = $MapEditorPopUp/ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
@@ -23,12 +24,10 @@ var triggers: Array = []  # ✅ Store created triggers in memory
 @onready var grid_container = $HSplitContainer/MarginContainer/MainMapDisplay/GridContainer  # Reference to GridContainer
 
 ## Trigger Variables ##
-
-
 @onready var trigger_menu = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu
 @onready var trigger_list = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/ScrollContainer/TriggerList
 @onready var create_trigger_button = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer/CreateTriggerButton
-@onready var edit_trigger_button = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer/EditTriggerButton
+
 @onready var trigger_manager_scene = preload("res://scenes/TriggerManager.tscn")  # ✅ Load the SCENE, not the script
 var trigger_manager = null  # ✅ Will store the actual instance
 
@@ -37,6 +36,33 @@ func _ready():
 	add_to_group("MapEditor")  # ✅ Ensures MapEditor is in the correct group
 	print("🚀 MapEditor added to group 'MapEditor'!")  # ✅ Debug message
 	
+	first_selection_screen = get_tree().get_root().get_node_or_null("FirstSelectionScreen")
+	
+	for child in get_children():
+		print("- ", child.name)
+		
+	if grid_container:
+		print("✅ GridContainer found:", grid_container)
+	else:
+		print("❌ ERROR: GridContainer NOT FOUND in MapEditor!")
+	
+	
+	if has_signal("triggers_loaded"):
+		print("✅ `triggers_loaded` signal exists. Calling it manually...")
+		_on_triggers_loaded([])
+	else:
+		print("❌ ERROR: `triggers_loaded` signal is missing!")
+	# ✅ Check if GridContainer Exists
+	if has_node("GridContainer"):
+		print("✅ GridContainer FOUND inside MapEditor:", get_node("GridContainer"))
+	else:
+		print("❌ ERROR: GridContainer NOT FOUND inside MapEditor!")
+
+	
+	if not first_selection_screen:
+		print("❌ ERROR: Could not find FirstSelectionScreen in scene tree!")
+	else:
+		print("✅ FirstSelectionScreen Found:", first_selection_screen)
 	
 	var ui_layers = get_tree().get_nodes_in_group("UI")
 	if ui_layers.size() == 0:
@@ -47,14 +73,13 @@ func _ready():
 		ui_layer.add_to_group("UI")
 		print("✅ UI Layer created in MapEditor")
 	
-
-	
-	create_trigger_button.connect("pressed", Callable(self, "_on_create_trigger_pressed"))
-	edit_trigger_button.connect("pressed", Callable(self, "_on_edit_trigger_pressed"))
-	
-	
+	## load map and triggers
 	if grid_container.has_signal("map_loaded"):
 		grid_container.connect("map_loaded", Callable(self, "_on_map_loaded"))
+		
+	if grid_container:
+		grid_container.connect("triggers_loaded", Callable(self, "_on_triggers_loaded"))
+		print("✅ Connected `triggers_loaded` signal from GridContainer.")
 	
 	await get_tree().process_frame  # Wait to ensure nodes are loaded
 
@@ -75,42 +100,187 @@ func _ready():
 		##     ##       ##     ##
 
 
-func _on_create_trigger_pressed():
-	print("🚀 BUTTON CLICKED: Create Trigger Pressed!")  # ✅ Debug message to check if the function runs
+func _load_triggers(trigger_data: Array):
+	print("🔄 Loading Triggers...")
 
+	triggers.clear()
+
+	for data in trigger_data:
+		var new_trigger = Trigger.new()
+		new_trigger.cause = data["cause"]
+		new_trigger.trigger_area_type = data["trigger_area_type"]
+
+		# ✅ Ensure trigger_tiles is an Array before assigning
+		new_trigger.trigger_tiles = data.get("trigger_tiles", []) if data.get("trigger_tiles", []) is Array else []
+		
+		new_trigger.sound_effect = data.get("sound_effect", "")
+		new_trigger.effects = _deserialize_effects(data.get("effects"))
+
+		triggers.append(new_trigger)  ## ✅ Add to memory
+
+	print("✅ All triggers loaded into memory:", triggers.size())
+
+
+func _deserialize_effects(effect_data: Array) -> Array:
+	var effects = []
+	for data in effect_data:
+		var effect = Effect.new()
+		effect.effect_type = data["effect_type"]
+		effect.effect_parameters = data["effect_parameters"]
+		effects.append(effect)
+	return effects
+
+func _on_triggers_loaded(trigger_data: Array):
+	print("📥 Receiving Triggers from GridContainer:", trigger_data.size())
+
+	for trigger in trigger_data:
+		_on_trigger_saved(trigger)  # ✅ Add to UI
+
+	print("✅ All triggers added to the menu!")
+
+
+
+func _on_create_trigger_pressed():
+	print("🚀 BUTTON CLICKED: Create Trigger Pressed!")  # ✅ Debug message
+
+	# ✅ Ensure only one Trigger Manager exists
 	if not trigger_manager:
 		print("🛠 Creating TriggerManager...")
 		trigger_manager = trigger_manager_scene.instantiate()
 		add_child(trigger_manager)
-		print("✅ TriggerManager ADDED to Scene Tree: ", trigger_manager)
+		print("✅ TriggerManager ADDED to Scene Tree:", trigger_manager)
 
-	print("🚀 Calling open_trigger_editor() on TriggerManager")
-	trigger_manager.open_trigger_editor()  # ✅ This should open the editor
+	print("🚀 Opening Trigger Editor...")
+
+	# ✅ Ensure only one Trigger Editor exists at a time
+	var trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
+	trigger_editor.connect("trigger_saved", Callable(self, "_on_trigger_saved"))
+	add_child(trigger_editor)  # ✅ Add Trigger Editor to scene
 
 
-func _on_edit_trigger_pressed():
-	if selected_trigger == null:
-		print("No trigger selected for editing.")
+func _on_trigger_added(button):
+	# ✅ Ensure we got a Button
+	if not button is Button:
+		print("❌ ERROR: Expected a Button but got:", button)
 		return
 
+	# ✅ Retrieve the trigger from the button's metadata
+	if not button.has_meta("trigger_data"):
+		print("❌ ERROR: Button has NO trigger metadata!")
+		return
+	
+	var trigger = button.get_meta("trigger_data")
+
+	# 🔍 Debug: Ensure trigger is valid
+	if trigger == null:
+		print("❌ ERROR: Extracted Trigger is NULL!")
+		return
+
+	print("📥 Received New Trigger:", trigger.cause)
+
+	# ✅ Store trigger in list
+	triggers.append(trigger)
+
+	# ✅ Ensure button is properly connected
+	button.connect("pressed", Callable(self, "_on_edit_trigger_pressed").bind(button))
+
+	# ✅ Add button to UI
+	trigger_list.add_child(button)
+
+	print("✅ Trigger Added to Menu:", trigger.cause)
+
+
+
+func _on_edit_trigger_pressed(button: Button):
+	# ✅ Ensure button is valid
+	if button == null or not button is Button:
+		print("❌ ERROR: Expected a Button, but got:", button)
+		return
+
+	print("🔍 Button Clicked:", button.text)
+
+	# ✅ Check if button has trigger metadata
+	if not button.has_meta("trigger_data"):
+		print("❌ ERROR: Button has NO trigger metadata!")
+		return
+	
+	# ✅ Retrieve the stored trigger
+	selected_trigger = button.get_meta("trigger_data")
+
+	# 🔍 DEBUG: Ensure selected trigger is valid
+	if selected_trigger == null:
+		print("❌ ERROR: Extracted Trigger is NULL!")
+		return
+
+	print("✅ Extracted Trigger:", selected_trigger, "| Cause:", selected_trigger.cause)
+
+	# ✅ Open Trigger Editor with the selected trigger
 	var trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
 	add_child(trigger_editor)
 	trigger_editor.setup_trigger(selected_trigger)
 	trigger_editor.connect("trigger_saved", Callable(self, "_on_trigger_saved"))
+	print("✅ Trigger Editor Opened for Editing")
+
+
+func _open_trigger_editor(trigger: Trigger = null):
+	var trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
+	
+	add_child(trigger_editor)
+
+	if trigger:
+		trigger_editor.setup_trigger(trigger)  # ✅ Ensure trigger is passed
+		trigger_editor._populate_existing_trigger(trigger)  # ✅ Force repopulation
+	
+	trigger_editor.connect("trigger_saved", Callable(self, "_on_trigger_saved"))
+	print("✅ Trigger Editor Opened for:", trigger.cause if trigger else "New Trigger")
+
 
 func _toggle_trigger_menu():
 	trigger_menu.visible = !trigger_menu.visible  # ✅ Show or hide trigger menu
 
 func _on_trigger_saved(trigger):
-	triggers.append(trigger)  # ✅ Store trigger in list
+	if not trigger:
+		print("❌ ERROR: Trigger is NULL!")
+		return
 	
+	if trigger not in triggers:
+		triggers.append(trigger)  # ✅ Store trigger in memory
+		print("✅ Trigger Stored in Memory:", trigger.cause)
+	else:
+		print("⚠️ Trigger Already Exists:", trigger.cause)
+	
+	# ✅ Gather effect names
+	var effect_names = []
+	for e in trigger.effects:
+		effect_names.append(Effect.EffectType.keys()[e.effect_type])
+	
+	# ✅ Format effect summary properly for multiple lines
+	var effect_summary = "\n".join(effect_names) if effect_names.size() > 0 else "No Effects"
+
+	# ✅ Define trigger name and type
+	var trigger_type_icon = "🌍 Global" if trigger.trigger_area_type == Trigger.AreaType.GLOBAL else "📍 Local"
+	var trigger_name = trigger.cause if trigger.cause else "Unnamed Trigger"
+
+	# ✅ Format button text for multiple lines
+	var button_text = "Triggers: %s\n%s\n🔽 Effects:\n%s" % [trigger_name, trigger_type_icon, effect_summary]
+
+	# ✅ Create a Button for the New Trigger
 	var button = Button.new()
-	button.text = trigger.cause
-	button.set_meta("trigger_data", trigger)  # ✅ Store trigger data in the button
+	button.text = button_text
+	button.set_meta("trigger_data", trigger)
+
+	# ✅ Enable text wrapping so it doesn’t get cut off
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD  # Allow word wrapping
+	button.clip_text = false  # Prevent text from being clipped
+
+	# ✅ Connect button to edit function
+	button.connect("pressed", Callable(self, "_on_edit_trigger_pressed").bind(button))
+
+	# ✅ Add the button to the trigger list UI
 	trigger_list.add_child(button)
-	button.connect("pressed", Callable(self, "_on_edit_trigger_pressed").bind(trigger))
-	
-	print("✅ Trigger Added to UI List:", trigger.cause)
+
+	print("✅ Trigger Added to Menu:", button.text)
+
 
 func _on_select_trigger(button):
 	selected_trigger = button.get_meta("trigger_data")  # Retrieve stored trigger data
@@ -143,6 +313,17 @@ func _on_save_as_button_pressed() -> void:
 func _on_save_map_button_pressed():
 	print("💾 Save Map button pressed")
 
+	var serialized_triggers = _serialize_triggers()
+	
+		# ✅ Get existing map data
+	var map_data = {
+		"triggers": serialized_triggers,
+		# Add other existing data that gets saved
+	}
+	
+	if triggers.is_empty():
+		print("⚠️ WARNING: No triggers found, saving an empty map!")
+	
 	# ✅ If the map has NOT been saved before, open Save As pop-up
 	if current_filename.is_empty():
 		print("🔹 No filename found, opening Save As menu...")
@@ -150,8 +331,37 @@ func _on_save_map_button_pressed():
 	else:
 		# ✅ If the map has a filename, just save it
 		print("💾 Saving existing map:", current_filename)
-		grid_container.save_map(current_filename)  # ✅ Save directly
+		print("map data before saving.... ", map_data)
+		grid_container.save_map(current_filename, map_data)  # ✅ Save directly
 		show_confirmation_popup("✅ Map saved successfully!")  # ✅ Show confirmation message
+		
+	print("📡 Saving Map with Triggers:", serialized_triggers.size())
+
+
+func _serialize_triggers() -> Array:
+	var serialized_triggers = []
+
+	for trigger in triggers:
+		var trigger_data = {
+			"cause": trigger.cause,
+			"trigger_area_type": trigger.trigger_area_type,
+			"trigger_tiles": trigger.trigger_tiles,
+			"sound_effect": trigger.sound_effect,
+			"effects": []
+		}
+
+		# ✅ Serialize Effects
+		for effect in trigger.effects:
+			trigger_data["effects"].append({
+				"effect_type": effect.effect_type,
+				"effect_parameters": effect.effect_parameters
+			})
+
+		serialized_triggers.append(trigger_data)
+
+	print("✅ Serialized Triggers for Save:", serialized_triggers)  # <-- Debug
+	return serialized_triggers
+
 
 
 func open_save_as_popup(title_text: String):

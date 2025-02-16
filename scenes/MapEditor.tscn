@@ -162,20 +162,20 @@ text = "Triggers"
 
 [node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu"]
 layout_mode = 2
-theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 6
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer"]
 custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
-size_flags_vertical = 4
 
 [node name="TriggerList" type="VBoxContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 8
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer"]
 layout_mode = 2
@@ -188,13 +188,6 @@ size_flags_vertical = 8
 theme_override_fonts/font = ExtResource("3_t6ewt")
 theme_override_font_sizes/font_size = 16
 text = "Create Trigger"
-
-[node name="EditTriggerButton" type="Button" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 8
-theme_override_fonts/font = ExtResource("3_t6ewt")
-theme_override_font_sizes/font_size = 16
-text = "Edit Trigger"
 
 [node name="MapMenuPanel" type="Control" parent="."]
 z_index = 2
@@ -273,6 +266,7 @@ visible = false
 
 [connection signal="mouse_entered" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider" to="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/Divider" method="_on_mouse_exited"]
+[connection signal="pressed" from="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer/CreateTriggerButton" to="." method="_on_create_trigger_pressed"]
 [connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/BackToMain" to="." method="_on_back_to_main_pressed"]
 [connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/LoadMapButton" to="." method="_on_load_map_button_pressed"]
 [connection signal="pressed" from="MapMenuPanel/Panel/VBoxContainer/SaveAsButton" to="." method="_on_save_as_button_pressed"]

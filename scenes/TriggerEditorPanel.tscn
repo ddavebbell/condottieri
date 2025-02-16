@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://c62mac2dft62j"]
+[gd_scene load_steps=6 format=3 uid="uid://c62mac2dft62j"]
 
 [ext_resource type="Script" path="res://scripts/triggers_and_effects/trigger_editor_panel.gd" id="1_ycgt3"]
 [ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="2_di8q0"]
+[ext_resource type="Script" path="res://scripts/tile_selector.gd" id="3_dyxfi"]
 
 [sub_resource type="Theme" id="Theme_mswss"]
 
@@ -92,7 +93,7 @@ text = "✖ Close Menu"
 
 [node name="ContentVBox" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
 layout_mode = 2
-size_flags_horizontal = 6
+size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
 
@@ -186,7 +187,6 @@ size_flags_stretch_ratio = 0.25
 
 [node name="AreaSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound"]
 layout_mode = 2
-size_flags_horizontal = 0
 size_flags_stretch_ratio = 0.5
 theme_override_constants/separation = 8
 
@@ -206,15 +206,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
 
-[node name="TileSelectionCustomNode" type="Control" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_stretch_ratio = 0.5
+[node name="TileSelectionCustomNode" type="Node2D" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
+script = ExtResource("3_dyxfi")
 
 [node name="SoundEffect" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound"]
 layout_mode = 2
-size_flags_horizontal = 2
+size_flags_horizontal = 3
 mouse_filter = 2
 theme_override_constants/separation = 8
 

@@ -6,11 +6,11 @@ enum AreaType { LOCAL, GLOBAL }
 @export var cause: String = ""  # ✅ Default to an empty string to prevent null errors
 
 # ✅ Trigger Area Settings
-@export var trigger_area_type: AreaType = AreaType.LOCAL  # ✅ Dropdown in Inspector
-@export var trigger_tiles: Array[Vector2] = []  # ✅ List of affected tiles
+@export var trigger_area_type: int = 0  # ✅ Dropdown in Inspector
+@export var trigger_tiles: Array = []  # ✅ List of affected tiles
 
 # ✅ Effects (List of Effect Resources)
-@export var effects: Array[Effect] = []  # ✅ Ensure effects is always an array of Effect resources
+@export var effects: Array = []  # ✅ Ensure effects is always an array of Effect resources
 
 # ✅ Effect Area Settings
 @export var effect_area_type: AreaType = AreaType.GLOBAL  # ✅ Dropdown in Inspector
