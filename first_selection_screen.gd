@@ -5,11 +5,11 @@ var map_list = []
 var selected_map = null  # Store selected map globally
 var selected_button = null  # Store selected button reference
 
+var map_editor = preload("res://scenes/MapEditor.tscn")
+var map_editor_instance = null
 
 # UI Nodes
 @onready var grid_container = null
-
-@onready var map_editor_screen = null
 @onready var map_list_container = $MapListContainer  # Scrollable container for map list
 @onready var map_thumbnail_panel = $MapThumbnailPanel
 @onready var map_thumbnail = $MapThumbnailPanel/MapThumbnail  # Thumbnail preview
@@ -22,140 +22,30 @@ var selected_button = null  # Store selected button reference
 
 
 func _ready():
-	# ✅ Load saved maps
 	load_maps_from_files()
-
-	# ✅ DEBUG: Print all child nodes
-	print("🚀 FirstSelectionScreen Loaded...")
-	print("📌 Child Nodes in FirstSelectionScreen:")
-	for child in get_children():
-		print(" -", child.name)
-
-	# ✅ Ensure UI elements exist before using them
-	if not has_node("MapListContainer/MapListPanel"):
-		print("❌ ERROR: MapListPanel NOT FOUND!")
-	else:
-		$MapListContainer/MapListPanel.visible = true
-
-	# ✅ Ensure required UI elements are found
-	if not has_node("LoadMapButton"):
-		print("❌ ERROR: LoadMapButton NOT FOUND!")
-	if not has_node("MapList"):
-		print("❌ ERROR: MapList NOT FOUND!")
-	if not has_node("MapPreviewContainer"):
-		print("❌ ERROR: MapPreviewContainer NOT FOUND!")
-
-	# ✅ Ensure MapEditor is **NOT** instantiated on startup
-	var map_editor_screen = get_tree().get_root().get_node_or_null("MapEditor")
-	if map_editor_screen:
-		print("✅ MapEditor Already Exists:", map_editor_screen)
-	else:
-		print("🛠️ MapEditor will be instantiated ONLY when a map is opened.")
-
-	# ✅ Connect button signals
+	
 	create_map_button.connect("pressed", Callable(self, "_on_create_map"))
 	delete_map_button.connect("pressed", Callable(self, "_on_delete_map"))
 	open_map_button.connect("pressed", Callable(self, "_on_open_map"))
 
-	# ✅ Populate the map list
 	populate_map_list()
 
-	print("✅ FirstSelectionScreen Ready!")
-
-## ---------------------- ✅ HELPER FUNCTIONS ---------------------- ##
-
-## ✅ Ensure critical UI elements exist
-func _validate_ui_elements():
-	print("📌 Validating UI Elements in FirstSelectionScreen...")
-
-	var required_nodes = {
-		"MapListPanel": $MapListContainer/MapListPanel,
-		"LoadMapButton": get_node_or_null("LoadMapButton"),
-		"MapList": get_node_or_null("MapList"),
-		"MapPreviewContainer": get_node_or_null("MapPreviewContainer")
-	}
-
-	for key in required_nodes.keys():
-		if required_nodes[key]:
-			print("✅ Found:", key)
-		else:
-			print("❌ ERROR:", key, "NOT FOUND in FirstSelectionScreen!")
-
-	## ✅ Ensure MapListPanel is visible if found
-	if required_nodes["MapListPanel"]:
-		required_nodes["MapListPanel"].visible = true
-
-## ✅ Ensure MapEditor is instantiated and available
-func _ensure_map_editor_exists():
-	var map_editor_screen = get_tree().get_root().get_node_or_null("MapEditor")
-
-	if not map_editor_screen:
-		print("🛠️ Instantiating MapEditor...")
-		var map_editor_scene = load("res://scenes/MapEditor.tscn").instantiate()
-		get_tree().get_root().call_deferred("add_child", map_editor_scene)
-		map_editor_screen = map_editor_scene
-		print("✅ MapEditor Instantiated and Added to Root.")
-	else:
-		print("✅ MapEditor Already Exists:", map_editor_screen)
-
-## ✅ Ensure GridContainer exists within MapEditor
-func _ensure_grid_container_exists():
-	var map_editor_screen = get_tree().get_root().get_node_or_null("MapEditor")
-
-	if not map_editor_screen:
-		print("❌ ERROR: MapEditor NOT FOUND in Scene Tree!")
-		return
-
-	var grid_container = map_editor_screen.get_node_or_null("HSplitContainer/MarginContainer/MainMapDisplay/GridContainer")
-
-	if grid_container:
-		print("✅ GridContainer FOUND in MapEditor:", grid_container)
-	else:
-		print("❌ ERROR: GridContainer NOT FOUND in MapEditor!")
-
-
-
-
-func _check_essential_nodes():
-	var nodes_to_check = {
-		"GridContainer": "MapEditor",
-		"LoadMapButton": "FirstSelectionScreen",
-		"MapList": "FirstSelectionScreen",
-		"MapPreviewContainer": "FirstSelectionScreen"
-	}
-
-	for node_name in nodes_to_check.keys():
-		if has_node(node_name):
-			print("✅", node_name, "FOUND in", nodes_to_check[node_name])
-		else:
-			print("❌ ERROR:", node_name, "NOT FOUND in", nodes_to_check[node_name])
-
-func _find_map_editor():
-	await get_tree().process_frame  # ✅ Wait to ensure the scene tree is ready
-	
-	var map_editor_scene = preload("res://scenes/MapEditor.tscn")
-	var map_editor_screen = map_editor_scene.instantiate()
-	get_tree().get_root().add_child(map_editor_screen)
-
-	await get_tree().process_frame  # ✅ Wait another frame for it to initialize
-	print("✅ MapEditor Successfully Instantiated!")
 
 
 func populate_map_list():
-	var map_list_panel = $MapListContainer/MapListPanel  # ✅ Get VBoxContainer
-	
-	if not map_list_panel:
+	## Validation
+	if not map_list_ui:
 		print("❌ ERROR: map_list_panel not found!")
 		return
-	
-	map_list_panel.visible = true  # ✅ Keep it visible even when empty
-	
-	for child in map_list_panel.get_children():
-		child.queue_free()
 	
 	if map_list.size() == 0:
 		print("❌ No saved maps found.")
 		return
+	
+	map_list_ui.visible = true  # ✅ Keep it visible even when empty
+	
+	for child in map_list_ui.get_children():
+		child.queue_free()
 		
 	var first_button = null  # Store first button reference
 		
@@ -168,7 +58,7 @@ func populate_map_list():
 	# ✅ Use MarginContainer for precise control over padding
 	var top_margin_container = MarginContainer.new()
 	top_margin_container.add_theme_constant_override("margin_top", 10)
-	map_list_panel.add_child(top_margin_container)
+	map_list_ui.add_child(top_margin_container)
 	
 	for map_data in map_list:
 		var hbox = HBoxContainer.new()
@@ -177,7 +67,7 @@ func populate_map_list():
 		# ✅ Create a Spacer for Top Margin
 		var top_spacer = Control.new()
 		top_spacer.size_flags_vertical = Control.SIZE_SHRINK_BEGIN 
-		map_list_panel.add_child(top_spacer)  # ✅ Add spacer to VBoxContainer
+		map_list_ui.add_child(top_spacer)  # ✅ Add spacer to VBoxContainer
 		
 		var left_spacer = Control.new() # ✅ Create a spacer to add left margin
 		left_spacer.custom_minimum_size = Vector2(15, 0)
@@ -201,10 +91,9 @@ func populate_map_list():
 		hbox.add_child(button)  # Button in the center
 		hbox.add_child(right_spacer)  # Right margin
 		
-		map_list_panel.add_child(hbox) # Add to VBoxContainer
+		map_list_ui.add_child(hbox) # Add to VBoxContainer
 		
-		if first_button == null:
-			first_button = button  # Store first button for auto-selection
+		first_button = button  # Store first button for auto-selection
 		
 		# Select the first map by default
 	if first_button:
@@ -217,7 +106,6 @@ func generate_error_thumbnail(map_name: String) -> Texture2D:
 	print("⚠️ Generated error thumbnail for:", map_name)
 
 	return ImageTexture.create_from_image(error_image)
-
 
 
 func _on_map_selected(map_data, clicked_button):
@@ -365,42 +253,28 @@ func update_thumbnail(map_name: String):
 	print("✅ Loaded and displayed thumbnail for:", map_name)
 		
 
-
+## this instantiates the map editor scene AND loads the map
 func _on_open_map():
 	if selected_map == null:
 		print("❌ No map selected!")
 		return
+	print("📂 _on_open_map :   ", selected_map["name"])
 
-	print("📂 Opening Map:", selected_map["name"])
-
-	# ✅ Check if MapEditor already exists
-	var map_editor_screen = get_tree().get_root().get_node_or_null("MapEditor")
-
-	if not map_editor_screen:
-		print("🛠️ Instantiating MapEditor...")
-		map_editor_screen = load("res://scenes/MapEditor.tscn").instantiate()
-		get_tree().get_root().add_child(map_editor_screen)
-	else:
-		print("✅ MapEditor already exists!")
-
-	# ✅ Wait for MapEditor to be added to the scene tree
+	var map_editor_instance = map_editor.instantiate()
+	print("🛠️ Instantiating MapEditor...")
+	get_tree().get_root().add_child(map_editor_instance)
 	await get_tree().process_frame
-
-	# ✅ Now try to find GridContainer inside MapEditor
-	var grid_container = map_editor_screen.get_node_or_null("HSplitContainer/MarginContainer/MainMapDisplay/GridContainer")
-
-	if grid_container == null:
-		print("❌ ERROR: GridContainer not found inside MapEditor!")
-		return
-
-	print("✅ GridContainer found inside MapEditor:", grid_container)
-
-	# ✅ Load the selected map
+	
+	var grid_container = map_editor_instance.get_node_or_null("HSplitContainer/MarginContainer/MainMapDisplay/GridContainer")
+	if grid_container:
+		print("✅ Instantiating GridContainer:", grid_container)
+	else:
+		print("❌ ERROR: GridContainer NOT found inside MapEditor!")
+		
 	grid_container.call_deferred("load_map", selected_map["name"])
 
-	# ✅ Remove FirstSelectionScreen and switch scenes
 	get_tree().current_scene.queue_free()
-	get_tree().current_scene = map_editor_screen
+	get_tree().current_scene = map_editor_instance
 
 
 func _on_create_map_pressed():
@@ -431,39 +305,18 @@ func _on_create_map_button_pressed():
 func load_map(map_name: String):
 	print("📂 Loading map from file:", map_name)
 	
-	var map_data = _varify_map_name_and_data(map_name)
-	
-	_load_map_editor_screen()
-	
-	if "triggers" in map_data:
-		print("📡 Sending Triggers to Map Editor...")
-		map_editor_screen._load_triggers(map_data["triggers"])
-	
-	_place_tiles_on_grid(map_data)
-
-	print("✅ Map Loaded Successfully!")
-
-
-func _varify_map_name_and_data(name: String):
-	if not FileAccess.file_exists(name):
-		print("❌ map_name not found")
-		return
-	
 	var file_path = "user://maps/" + name + ".json"
-	if not FileAccess.file_exists(file_path):
-		print("❌ Map file does not exist:", file_path)
-		return
-	
-	## Load JSON data into map_data
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	var map_data = JSON.parse_string(file.get_as_text())
 	file.close()
 	
-	if not map_data:
-		print("❌ ERROR: Invalid map data!")
-		return
+	if "triggers" in map_data:
+		print("📡 Sending Triggers to Map Editor...")
+		map_editor._load_triggers(map_data["triggers"])
 	
-	return map_data 
+	_place_tiles_on_grid(map_data)
+
+	print("✅ Map Loaded Successfully!")
 
 
 func _place_tiles_on_grid(json_map_data):
@@ -500,19 +353,6 @@ func _place_tiles_on_grid(json_map_data):
 			
 		grid_container.place_tile(grid_pos, tile_texture)
 	return json_map_data
-
-func _load_map_editor_screen():
-	## varification checks 2nd for map_data and map editor scene
-	if not map_editor_screen:
-		print("❌ ERROR: Map Editor Screen not found! Trying to find it again...")
-		map_editor_screen = get_tree().get_root().find_node("MapEditor", true, false)
-		if not map_editor_screen:
-			print("🛠️ Map Editor not found. Instantiating a new one...")
-			var map_editor_scene = preload("res://scenes/MapEditor.tscn")  # Adjust if needed
-			map_editor_screen = map_editor_scene.instantiate()
-			get_tree().get_root().add_child(map_editor_screen)
-			print("✅ Map Editor Created and Added to Scene!")
-			return
 
 # Load saved maps from files
 func load_maps_from_files():
@@ -560,7 +400,7 @@ func load_maps_from_files():
 				
 			map_list.append(map_entry)  # Append the map entry to the list
 			
-		print("✅ Maps loaded:", map_list)
+	print("✅ Maps loaded:", map_list)
 
 
 func clear_map_cache():

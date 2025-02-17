@@ -579,26 +579,25 @@ func _duplicate_map(original_name: String, new_name: String):
 			print("✅ Thumbnail duplicated for:", new_name)
 			
 	print("✅ Map duplication complete.")
-	
-
-func _on_map_name_input_text_changed(new_text: String) -> void:
-	if confirmation_label:
-		confirmation_label.hide()  # Hide any previous confirmation messages
-	if error_popup and error_message:
-		error_message.hide()  # Hide error message when the user types
 
 
-func _on_load_save_map_pop_up_close_requested() -> void:
-	if load_save_map_popup and load_save_map_popup.visible:
-		print("🛑 LoadSaveMapPopUp closed!")
-		load_save_map_popup.hide()
-	else:
-		print("✅ LoadSaveMapPopUp was already hidden, ignoring...")
-		
+#func _on_map_name_input_text_changed(new_text: String) -> void:
+	#if confirmation_label:
+		#confirmation_label.hide()  # Hide any previous confirmation messages
+	#if error_popup and error_message:
+		#error_message.hide()  # Hide error message when the user types
 
-func _on_map_selected(map_name: String, button):
-	selected_map_name = map_name  # ✅ Directly assign string
-	print("✅ Selected map:", selected_map_name)
+#func _on_load_save_map_pop_up_close_requested() -> void:
+	#if load_save_map_popup and load_save_map_popup.visible:
+		#print("🛑 LoadSaveMapPopUp closed!")
+		#load_save_map_popup.hide()
+	#else:
+		#print("✅ LoadSaveMapPopUp was already hidden, ignoring...")
+
+
+#func _on_map_selected(map_name: String, button):
+	#selected_map_name = map_name  # ✅ Directly assign string
+	#print("✅ Selected map:", selected_map_name)
 
 
 func _on_confirmation_popup_ok_button_pressed() -> void:

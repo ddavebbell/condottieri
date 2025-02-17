@@ -1,6 +1,7 @@
 extends Control
 
-@onready var tile_selector: TileSelector = null
+@onready var tile_selector = get_node_or_null("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/TileSelectionCustomNode")
+
 @onready var cause_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/CauseDropdown
 @onready var area_type_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/AreaTypeDropdown
 @onready var effect_list_container = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer
@@ -13,16 +14,17 @@ extends Control
 var triggers: Array = []  # ✅ Stores all added triggers
 var current_trigger: Trigger = null  # ✅ Stores the active trigger
 
+# declared but not used yet WARNING 
 signal trigger_saved(trigger)
 signal trigger_added(trigger)
 
 func _ready():
 	await get_tree().process_frame  # ✅ Wait to ensure all nodes are loaded
-	tile_selector = get_node_or_null("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/TileSelectionCustomNode") as TileSelector
 	
-	print("🔎 Searching for TileSelector in Scene Tree...")
-	for node in get_tree().get_root().get_children():
-		print("📌 Node in tree:", node.name)
+	# Initialize a new trigger when the pop-up is ready to be displayed.
+	if current_trigger == null:
+		current_trigger = Trigger.new()
+		print("✅ New trigger created for pop-up.")
 	
 	if not tile_selector:
 		print("❌ ERROR: `tile_selector` is NULL at startup!")
@@ -31,7 +33,6 @@ func _ready():
 	else:
 		print("✅ TileSelector Found:", tile_selector.name, "| Type:", tile_selector.get_class())
 	
-	print("🎛️ Initializing Trigger Editor Panel...")
 	_setup_panel_position()
 	_populate_dropdowns()
 	_connect_signals()
@@ -40,7 +41,7 @@ func _ready():
 	z_index = 100
 	visible = true
 
-# ✅ Ensures the panel is correctly positioned
+
 func _setup_panel_position():
 	if get_parent():
 		self.set_size(Vector2(1400, 750))  
@@ -51,7 +52,7 @@ func _setup_panel_position():
 	else:
 		print("❌ ERROR: TriggerEditorPanel has no parent UI!")
 
-# ✅ Populates the dropdowns
+
 func _populate_dropdowns():
 	print("🎛️ Populating Dropdowns...")
 	
@@ -70,21 +71,17 @@ func _populate_dropdowns():
 	sound_effect_dropdown.add_item("Victory Fanfare")
 	sound_effect_dropdown.add_item("Trap Activated")
 
-	print("📌 Cause Dropdown Items:", cause_dropdown.get_item_count())
-	print("📌 Area Type Dropdown Items:", area_type_dropdown.get_item_count())
-	print("📌 Sound Effect Dropdown Items:", sound_effect_dropdown.get_item_count())
-
 	cause_dropdown.selected = 0
 	area_type_dropdown.selected = 0
 	sound_effect_dropdown.selected = 0
 
 	print("✅ Dropdowns Loaded!")
 
-# ✅ Connects UI signals
-func _connect_signals():
+
+func _connect_signals(): # ✅ Connects UI signals
 	add_trigger_button.connect("pressed", Callable(self, "_on_add_trigger_pressed"))
 	save_button.connect("pressed", Callable(self, "_save_trigger"))
-	cause_dropdown.connect("item_selected", Callable(self, "_on_cause_dropdown_item_selected"))
+	#cause_dropdown.connect("item_selected", Callable(self, "_on_cause_dropdown_item_selected"))
 	print("✅ Signals Connected!")
 
 # ✅ Adds a trigger to the UI list
@@ -136,36 +133,69 @@ func _create_trigger_ui(trigger: Trigger):
 	return hbox
 
 
-# Inside TriggerEditorPanel.gd (Trigger Editor)
+func _update_trigger(trigger_id: int, trigger):
+	print("🔄 Updating trigger with ID:", trigger_id, "Trigger:", trigger)
+
+
+func _remove_trigger(trigger, hbox):
+	print("🗑️ Removing Trigger:", trigger.cause)
+
+	# ✅ Remove from memory
+	for i in range(triggers.size()):
+		if triggers[i] == trigger:
+			triggers.remove_at(i)
+			break  # ✅ Stop loop after deleting
+
+	# ✅ Remove from UI
+	hbox.queue_free()  # ✅ Deletes the button container
+
+	print("✅ Trigger Removed Successfully!")
+
+
+# this is called when you press save trigger button in trigger editor panel
 func _save_trigger():
 	print("💾 Saving Trigger...")
-
-	# ✅ Ensure a cause is selected
-	var selected_index = cause_dropdown.selected
-	if selected_index < 0:
+	
+		
+	if cause_dropdown.selected < 0:
 		_show_error_popup("❌ ERROR: Please select a trigger cause before saving.")
 		return
 
-	# ✅ Ensure a trigger exists
-	if not current_trigger:
-		print("❌ ERROR: No trigger to save!")
-		_show_error_popup("❌ ERROR: Cannot save an empty trigger.")
-		return
-
-	# ✅ Ensure at least one effect exists before saving
-	if not current_trigger.effects or current_trigger.effects.size() == 0:
-		print("❌ ERROR: At least one effect is required!")
+	if effect_list_container.get_child_count() == 0:
 		_show_error_popup("❌ ERROR: You must add at least one effect before saving.")
 		return
 
-	# ✅ Assign cause
-	current_trigger.cause = cause_dropdown.get_item_text(selected_index)
+	# Update trigger details
+	current_trigger.cause = cause_dropdown.get_item_text(cause_dropdown.selected)
+	current_trigger.trigger_area_type = (
+		Trigger.AreaType.LOCAL if area_type_dropdown.selected == 0 else Trigger.AreaType.GLOBAL
+	)
+	current_trigger.trigger_tiles = tile_selector.get_selected_tiles() if tile_selector else []
+	current_trigger.sound_effect = sound_effect_dropdown.get_item_text(sound_effect_dropdown.selected)
 
-	# ✅ Emit `trigger_saved` Signal
+	
+	if current_trigger.effects.is_empty():
+		print("current_trigger.effects.is_empty()")
+	
+	var effect_ui_nodes = get_tree().get_nodes_in_group("effect_ui")
+	
+	print("current_trigger.effects ",current_trigger.effects)
+
+	# Ensure the trigger is stored correctly #
+	var found = false
+	for i in range(triggers.size()):
+		if triggers[i] == current_trigger:
+			triggers[i] = current_trigger  # ✅ Update existing trigger
+			found = true
+			break
+
+	if not found:
+		triggers.append(current_trigger)  # ✅ Add new trigger if it doesn't exist
+
+	# ✅ EMIT SIGNAL TO UPDATE UI
 	emit_signal("trigger_saved", current_trigger)
-
 	print("📡 Emitting `trigger_saved` SIGNAL for:", current_trigger.cause)
-	queue_free()  # ✅ Close the trigger editor after saving
+	queue_free()  # ✅ Close trigger editor
 
 
 func _show_error_popup(message: String):
@@ -184,47 +214,40 @@ func setup_trigger(trigger: Trigger = null):
 		print("➕ Creating a New Trigger")
 		current_trigger = Trigger.new()
 
-	# ✅ Ensure UI reflects current trigger
-	_populate_trigger_list()
-
+	_populate_trigger_list() # ✅ Ensure UI reflects current trigger
 
 
 func _populate_existing_trigger(trigger: Trigger):
 	if not trigger:
 		print("❌ ERROR: No trigger passed to _populate_existing_trigger()!")
 		return
-	
+
 	print("🔄 Populating Existing Trigger:", trigger.cause)
 
-	# ✅ Find the correct index for the trigger cause
+	## ✅ Populate Cause Dropdown ##
 	var cause_index = -1
 	for i in range(cause_dropdown.get_item_count()):
 		if cause_dropdown.get_item_text(i) == trigger.cause:
 			cause_index = i
 			break
 
-	# ✅ Only set the dropdown if the cause exists
 	if cause_index != -1:
 		cause_dropdown.selected = cause_index
 	else:
 		print("❌ ERROR: Cause not found in dropdown:", trigger.cause)
 
-	
-	if cause_index != -1:
-		cause_dropdown.selected = cause_index
-	else:
-		print("❌ ERROR: Cause not found in dropdown:", trigger.cause)
+	## ✅ Set Area Type ##
+	area_type_dropdown.selected = (
+		0 if trigger.trigger_area_type == Trigger.AreaType.LOCAL else 1
+	)
 
-	# ✅ Ensure area type is set
-	area_type_dropdown.selected = 0 if trigger.trigger_area_type == Trigger.AreaType.LOCAL else 1
-
-	# ✅ Ensure tile selection is applied
+	## ✅ Set Tile Selection ##
 	if tile_selector and tile_selector.has_method("set_selected_tiles"):
 		tile_selector.set_selected_tiles(trigger.trigger_tiles)
 	else:
 		print("❌ ERROR: TileSelector is missing or `set_selected_tiles()` is undefined!")
 
-	# ✅ Ensure sound effect is set
+	## ✅ Set Sound Effect ##
 	var sound_index = -1
 	for i in range(sound_effect_dropdown.get_item_count()):
 		if sound_effect_dropdown.get_item_text(i) == trigger.sound_effect:
@@ -236,28 +259,39 @@ func _populate_existing_trigger(trigger: Trigger):
 	else:
 		print("❌ ERROR: Sound effect not found in dropdown:", trigger.sound_effect)
 
+	## ✅ Clear previous effects ##
+	for child in effect_list_container.get_children():
+		child.queue_free()  # ✅ Properly remove effect UI elements
 
-	# ✅ Repopulate Effects List
-	var left_column = effect_list_container.get_node("HBoxContainer/LeftColumn")
-	var right_column = effect_list_container.get_node("HBoxContainer/RightColumn")
-
-	# ✅ Clear previous UI
-	for child in left_column.get_children():
-		child.queue_free()
-	for child in right_column.get_children():
-		child.queue_free()
-
-	# ✅ Add effects back to UI
-	for i in range(trigger.effects.size()):
-		var effect_ui = _create_effect_ui(trigger.effects[i])
-		if i % 2 == 0:
-			left_column.add_child(effect_ui)
-		else:
-			right_column.add_child(effect_ui)
+	## ✅ Add Effects Back to UI ##
+	for effect_data in trigger.effects:
+		var effect_ui = _create_effect_ui(effect_data)
+		effect_list_container.add_child(effect_ui)
 
 	print("✅ Trigger Repopulated Successfully!")
 
 
+
+
+func _format_trigger_button_text(trigger) -> String:
+	if not trigger:
+		return "❌ ERROR: Missing Trigger Data"
+	
+	# ✅ Extract effect names 
+	var effect_names = []
+	for e in trigger.effects:
+		print("🔍 Effect Found:", e)
+		if "effect_type" in e:
+			effect_names.append(Effect.EffectType.keys()[e.effect_type])
+
+	if effect_names.is_empty():
+		effect_names.append("No Effects")
+
+	var effect_summary = "\n".join(effect_names)
+	var trigger_type_icon = "🌍 Global" if trigger.trigger_area_type == Trigger.AreaType.GLOBAL else "📍 Local"
+	var trigger_name = trigger.cause if trigger.cause else "Unnamed Trigger"
+
+	return "Triggers: %s\n%s\n🔽 Effects:\n%s" % [trigger_name, trigger_type_icon, "\n".join(effect_names)]
 
 # ✅ Populates the trigger list when editor opens
 func _populate_trigger_list():
@@ -276,26 +310,25 @@ func _populate_trigger_list():
 
 	print("✅ Trigger List Populated!")
 
+
 func _add_effect():
 	print("➕ Adding New Effect...")
 
-	# ✅ Ensure `current_trigger` exists
-	if current_trigger == null:
-		print("❌ ERROR: current_trigger is NULL! Creating new trigger...")
-		current_trigger = Trigger.new()
-
 	# ✅ Create a new Effect instance
 	var effect = Effect.new()
-	effect.effect_type = Effect.EffectType.SPAWN_REINFORCEMENTS  # Default effect type
+	effect.effect_type = Effect.EffectType.SPAWN_REINFORCEMENTS  ## Default effect type
 
 	# ✅ Create UI elements for the effect
 	var effect_ui = _create_effect_ui(effect)
-	
+	print("_add_effect_ effect_ui",effect_ui)
 	# ✅ Add UI to the Effect List
 	effect_list_container.add_child(effect_ui)
+	print("AA effect_list_container children", effect_list_container.get_children())
+	effect_ui.add_to_group("effect_ui")
 
 	# ✅ Store effect in current trigger
 	current_trigger.effects.append(effect)
+	print("current_trigger.effects", current_trigger.effects)
 	print("✅ Effect Added to List:", effect.effect_type)
 
 
@@ -328,9 +361,9 @@ func _create_effect_ui(effect: Effect):
 		dropdown.connect("item_selected", Callable(self, "_update_effect").bind(effect))
 	else:
 		print("❌ ERROR: `_update_effect` function not found!")
-
+	
 	hbox.add_child(dropdown)
-
+	
 	var remove_button = Button.new()
 	remove_button.text = "X"
 
@@ -355,39 +388,23 @@ func _remove_effect(effect, hbox):
 	hbox.queue_free()  # ✅ Remove from UI
 
 
-func _update_effect(effect: Effect, selected_index: int):
-	print("🔄 Updating Effect:", effect, "to", selected_index)
+func _update_effect(index, effect):
+	print("🔄 Updating Effect with Index:", index)
 
-	# ✅ Create a mapping from dropdown selection to `EffectType`
-	var effect_types = [
-		Effect.EffectType.SPAWN_REINFORCEMENTS,
-		Effect.EffectType.UPGRADE_PIECE,
-		Effect.EffectType.REMOVE_PIECE,
-		Effect.EffectType.ACTIVATE_TRAP,
-		Effect.EffectType.REVEAL_HIDDEN_TILES,
-		Effect.EffectType.CHANGE_TILE_TYPE,
-		Effect.EffectType.ADD_TIME_BONUS,
-		Effect.EffectType.REDUCE_TIME,
-		Effect.EffectType.INCREASE_SCORE,
-		Effect.EffectType.DECREASE_SCORE,
-		Effect.EffectType.AI_AGGRESSION,
-		Effect.EffectType.SPAWN_ENEMIES,
-		Effect.EffectType.END_LEVEL
-	]
+	# ✅ Ensure index is valid
+	if index < 0 or index >= Effect.EffectType.keys().size():
+		print("❌ ERROR: Invalid index selected!")
+		return
 
-	if selected_index >= 0 and selected_index < effect_types.size():
-		effect.effect_type = effect_types[selected_index]  # ✅ Assign enum value instead of int
-		print("✅ Effect updated to:", effect.effect_type)
-	else:
-		print("❌ ERROR: Invalid Effect Type Selected:", selected_index)
-
-
-
-
+	# ✅ Set effect type based on selected index
+	effect.effect_type = index  # Directly use the index
+	print("✅ Effect updated to:", Effect.EffectType.keys()[index])
+	return effect
 
 func _on_close_button_pressed():
-	print("❌ Closing Trigger Editor...")
+	print("❌ Close button pressed. Closing without saving.")
 	queue_free()
+
 
 func _on_cancel_button_pressed():
 	print("🚫 Cancel Button Pressed. Closing without saving.")

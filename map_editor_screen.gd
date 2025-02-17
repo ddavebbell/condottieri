@@ -5,12 +5,12 @@ var selected_trigger = null  # Stores the currently selected trigger for editing
 var triggers: Array = []  # ✅ Store created triggers in memory
 
 @onready var first_selection_screen = null
+@onready var current_filename: String = ""  # Tracks the current map file name
 
 ## Confirmation Popup
 @onready var confirmation_label = $MapEditorPopUp/ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
 @onready var confirmation_popup = $MapEditorPopUp/ConfirmationPopUp
 
-@onready var current_filename: String = ""  # Tracks the current map file name
 
 ## Pop Up Components Referenced  ##
 @onready var load_save_map_popup_scene = $MapEditorPopUp  # Reference to the popup scene
@@ -18,9 +18,9 @@ var triggers: Array = []  # ✅ Store created triggers in memory
 @onready var load_save_map_popup_title = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/PopUpTitle
 	
 ## Menu Stuff ##
-@onready var map_name_input = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
 @onready var map_menu_panel = $MapMenuPanel  # Reference the panel
 @onready var toggle_menu_button = $ToggleMapMenuButton  # Reference the button
+@onready var map_name_input = $MapEditorPopUp/LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
 @onready var grid_container = $HSplitContainer/MarginContainer/MainMapDisplay/GridContainer  # Reference to GridContainer
 
 ## Trigger Variables ##
@@ -28,71 +28,82 @@ var triggers: Array = []  # ✅ Store created triggers in memory
 @onready var trigger_list = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/ScrollContainer/TriggerList
 @onready var create_trigger_button = $HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer/CreateTriggerButton
 
+## trigger editor panel ##
+@onready var trigger_editor_screen = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
+@onready var cause_dropdown = trigger_editor_screen.get_node("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/CauseDropdown")
+@onready var area_type_dropdown = trigger_editor_screen.get_node("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/AreaTypeDropdown")
+@onready var tile_selector = trigger_editor_screen.get_node("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/TileSelectionCustomNode")
+@onready var sound_effect_dropdown = trigger_editor_screen.get_node("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/SoundEffect/SoundEffectDropdown")
+@onready var effect_list_container = trigger_editor_screen.get_node("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer")
+
+
+
 @onready var trigger_manager_scene = preload("res://scenes/TriggerManager.tscn")  # ✅ Load the SCENE, not the script
 var trigger_manager = null  # ✅ Will store the actual instance
 
 
 func _ready():
-	add_to_group("MapEditor")  # ✅ Ensures MapEditor is in the correct group
-	print("🚀 MapEditor added to group 'MapEditor'!")  # ✅ Debug message
-	
+	add_to_group("MapEditor")  
+	print("🚀 MapEditor added to group 'MapEditor'!")
+
 	first_selection_screen = get_tree().get_root().get_node_or_null("FirstSelectionScreen")
-	
+
+	print("📌 Child Nodes in MapEditor:")
 	for child in get_children():
 		print("- ", child.name)
-		
+
+	# Varification checks
 	if grid_container:
 		print("✅ GridContainer found:", grid_container)
 	else:
 		print("❌ ERROR: GridContainer NOT FOUND in MapEditor!")
-	
-	
-	if has_signal("triggers_loaded"):
-		print("✅ `triggers_loaded` signal exists. Calling it manually...")
+
+	if first_selection_screen:
+		print("✅ FirstSelectionScreen Found:", first_selection_screen)
+	else:
+		print("❌ ERROR: Could not find FirstSelectionScreen in scene tree!")
+		
+	await get_tree().process_frame  # ✅ Allow nodes to load before proceeding
+	_ensure_ui_layer() 	# ✅ Ensure UI Layer exists
+	_connect_signals() 	# ✅ Connect signals
+	_setup_ui() # ✅ Ensure pop-ups and UI elements are set correctly
+
+	if grid_container and grid_container.has_signal("triggers_loaded"):
+		print("✅ `triggers_loaded` signal exists in grid_container. Calling it manually...")
 		_on_triggers_loaded([])
 	else:
-		print("❌ ERROR: `triggers_loaded` signal is missing!")
-	# ✅ Check if GridContainer Exists
-	if has_node("GridContainer"):
-		print("✅ GridContainer FOUND inside MapEditor:", get_node("GridContainer"))
-	else:
-		print("❌ ERROR: GridContainer NOT FOUND inside MapEditor!")
+		print("❌ ERROR: `triggers_loaded` signal is missing in grid_container!")
 
-	
-	if not first_selection_screen:
-		print("❌ ERROR: Could not find FirstSelectionScreen in scene tree!")
-	else:
-		print("✅ FirstSelectionScreen Found:", first_selection_screen)
-	
-	var ui_layers = get_tree().get_nodes_in_group("UI")
-	if ui_layers.size() == 0:
+		print("📂 Current filename:", current_filename)
+
+
+func _ensure_ui_layer(): # ensure UI layer exists
+	if get_tree().get_nodes_in_group("UI").size() == 0:
 		print("❌ ERROR: UI Layer missing! Creating one now...")
 		var ui_layer = Control.new()
 		ui_layer.name = "UI"
 		get_tree().get_root().add_child(ui_layer)
 		ui_layer.add_to_group("UI")
 		print("✅ UI Layer created in MapEditor")
-	
-	## load map and triggers
-	if grid_container.has_signal("map_loaded"):
-		grid_container.connect("map_loaded", Callable(self, "_on_map_loaded"))
-		
-	if grid_container:
-		grid_container.connect("triggers_loaded", Callable(self, "_on_triggers_loaded"))
-		print("✅ Connected `triggers_loaded` signal from GridContainer.")
-	
-	await get_tree().process_frame  # Wait to ensure nodes are loaded
 
+func _connect_signals():
+	if grid_container:
+		grid_container.connect("map_loaded", Callable(self, "_on_map_loaded"))
+		grid_container.connect("triggers_loaded", Callable(self, "_on_triggers_loaded"))
+		print("✅ Connected `triggers_loaded` and maploaded signal from GridContainer.")
+	else:
+		print("❌ ERROR: GridContainer is NULL, cannot connect signals!")
+
+func _setup_ui():
 	if load_save_map_popup_scene and grid_container:
-		load_save_map_popup_scene.set_grid_container(grid_container)  # ✅ Pass grid_container reference
+		load_save_map_popup_scene.set_grid_container(grid_container)
 	else:
 		print("❌ ERROR: Could not find MapEditorPopUp or grid container")
-	
-	print("current filename is..... ",current_filename)
-	
-	load_save_map_popup_scene.visible = false  # Ensure the pop-up is hidden initially
-	map_menu_panel.visible = false  # Hide the menu by default
-	map_menu_panel.position = Vector2(7, 900)  # Move below the screen
+
+	load_save_map_popup_scene.visible = false  
+	map_menu_panel.visible = false  
+	map_menu_panel.position = Vector2(7, 900)  
+
 
 
 		##     ##       ##     ##
@@ -100,43 +111,18 @@ func _ready():
 		##     ##       ##     ##
 
 
-func _load_triggers(trigger_data: Array):
-	print("🔄 Loading Triggers...")
-
-	triggers.clear()
-
-	for data in trigger_data:
-		var new_trigger = Trigger.new()
-		new_trigger.cause = data["cause"]
-		new_trigger.trigger_area_type = data["trigger_area_type"]
-
-		# ✅ Ensure trigger_tiles is an Array before assigning
-		new_trigger.trigger_tiles = data.get("trigger_tiles", []) if data.get("trigger_tiles", []) is Array else []
-		
-		new_trigger.sound_effect = data.get("sound_effect", "")
-		new_trigger.effects = _deserialize_effects(data.get("effects"))
-
-		triggers.append(new_trigger)  ## ✅ Add to memory
-
-	print("✅ All triggers loaded into memory:", triggers.size())
-
-
-func _deserialize_effects(effect_data: Array) -> Array:
-	var effects = []
-	for data in effect_data:
-		var effect = Effect.new()
-		effect.effect_type = data["effect_type"]
-		effect.effect_parameters = data["effect_parameters"]
-		effects.append(effect)
-	return effects
-
 func _on_triggers_loaded(trigger_data: Array):
 	print("📥 Receiving Triggers from GridContainer:", trigger_data.size())
 
-	for trigger in trigger_data:
-		_on_trigger_saved(trigger)  # ✅ Add to UI
+	triggers.clear()  # ✅ Clear existing triggers before loading new ones
 
-	print("✅ All triggers added to the menu!")
+	for trigger in trigger_data:
+		triggers.append(trigger)  # ✅ Load triggers into memory
+		_update_or_add_trigger_button(trigger)  # ✅ Update UI without saving
+		
+	print("✅ All triggers added to the menu! Total:", triggers.size())
+# 🔍 Debug - Check if buttons were added
+	print("📌 Total buttons in Trigger List:", trigger_list.get_child_count())
 
 
 
@@ -190,36 +176,28 @@ func _on_trigger_added(button):
 	print("✅ Trigger Added to Menu:", trigger.cause)
 
 
-
 func _on_edit_trigger_pressed(button: Button):
-	# ✅ Ensure button is valid
 	if button == null or not button is Button:
 		print("❌ ERROR: Expected a Button, but got:", button)
 		return
 
 	print("🔍 Button Clicked:", button.text)
 
-	# ✅ Check if button has trigger metadata
 	if not button.has_meta("trigger_data"):
 		print("❌ ERROR: Button has NO trigger metadata!")
 		return
-	
-	# ✅ Retrieve the stored trigger
 	selected_trigger = button.get_meta("trigger_data")
 
-	# 🔍 DEBUG: Ensure selected trigger is valid
 	if selected_trigger == null:
 		print("❌ ERROR: Extracted Trigger is NULL!")
 		return
 
 	print("✅ Extracted Trigger:", selected_trigger, "| Cause:", selected_trigger.cause)
 
-	# ✅ Open Trigger Editor with the selected trigger
 	var trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
 	add_child(trigger_editor)
 	trigger_editor.setup_trigger(selected_trigger)
 	trigger_editor.connect("trigger_saved", Callable(self, "_on_trigger_saved"))
-	print("✅ Trigger Editor Opened for Editing")
 
 
 func _open_trigger_editor(trigger: Trigger = null):
@@ -238,56 +216,85 @@ func _open_trigger_editor(trigger: Trigger = null):
 func _toggle_trigger_menu():
 	trigger_menu.visible = !trigger_menu.visible  # ✅ Show or hide trigger menu
 
-func _on_trigger_saved(trigger):
-	if not trigger:
-		print("❌ ERROR: Trigger is NULL!")
-		return
-	
-	if trigger not in triggers:
-		triggers.append(trigger)  # ✅ Store trigger in memory
-		print("✅ Trigger Stored in Memory:", trigger.cause)
-	else:
-		print("⚠️ Trigger Already Exists:", trigger.cause)
-	
-	# ✅ Gather effect names
-	var effect_names = []
-	for e in trigger.effects:
-		effect_names.append(Effect.EffectType.keys()[e.effect_type])
-	
-	# ✅ Format effect summary properly for multiple lines
-	var effect_summary = "\n".join(effect_names) if effect_names.size() > 0 else "No Effects"
 
-	# ✅ Define trigger name and type
-	var trigger_type_icon = "🌍 Global" if trigger.trigger_area_type == Trigger.AreaType.GLOBAL else "📍 Local"
-	var trigger_name = trigger.cause if trigger.cause else "Unnamed Trigger"
+func _on_trigger_saved(trigger: Trigger):
+	print("✅ Trigger Saved:", trigger.cause)
+	_update_or_add_trigger_button(trigger)
 
-	# ✅ Format button text for multiple lines
-	var button_text = "Triggers: %s\n%s\n🔽 Effects:\n%s" % [trigger_name, trigger_type_icon, effect_summary]
 
-	# ✅ Create a Button for the New Trigger
+func _update_or_add_trigger_button(trigger):
+	## ✅ Check if a button for this trigger already exists
+	for button in trigger_list.get_children():
+		if button.has_meta("trigger_data") and button.get_meta("trigger_data") == trigger:
+			button.text = _format_trigger_button_text(trigger)
+			print("✅ Updated Existing Trigger UI:", trigger.cause)
+			return  # ✅ Stop here, no need to create a new button
+
+	## ✅ If no existing button was found, create a new one
 	var button = Button.new()
-	button.text = button_text
 	button.set_meta("trigger_data", trigger)
-
-	# ✅ Enable text wrapping so it doesn’t get cut off
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD  # Allow word wrapping
-	button.clip_text = false  # Prevent text from being clipped
-
-	# ✅ Connect button to edit function
+	
+	## DEBUG
+	var trigger_resource = button.get_meta("trigger_data")
+	if trigger_resource:
+		print("trigger button properties: ")
+		for prop in trigger_resource.get_property_list():
+			var prop_name = prop["name"]
+			print("%s: %s" % [prop_name, trigger_resource.get(prop_name)])
+		
+		# If you specifically want to see effect data (assuming it's inside an array of effects)
+		if trigger_resource.effects.size() > 0:
+			for effect in trigger_resource.effects:
+				print("Effect type: ", effect.effect_type)
+				print("Effect parameters: ", effect.effect_parameters)
+	else:
+		print("No trigger data found on the button.")
+	## DEBUG
+	
+	button.text = _format_trigger_button_text(trigger)
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD 
+	button.clip_text = false 
 	button.connect("pressed", Callable(self, "_on_edit_trigger_pressed").bind(button))
 
-	# ✅ Add the button to the trigger list UI
 	trigger_list.add_child(button)
+	print("✅ New Trigger Button Added:", button.text)
+	return button
 
-	print("✅ Trigger Added to Menu:", button.text)
+
+
+func _format_trigger_button_text(trigger) -> String:
+	print("_format_trigger_button_text function. trigger = ", trigger)
+	if not trigger:
+		return "❌ ERROR: Missing Trigger Data"
+	
+	# ✅ Extract effect names using a proper for-loop
+	var effect_names = []
+	for e in trigger.effects:
+		if "effect_type" in e:
+			effect_names.append(Effect.EffectType.keys()[e.effect_type])
+
+	# ✅ Fallback for no effects
+	var effect_summary = "\n".join(effect_names) if effect_names else "No Effects"
+
+
+	# ✅ Fallback if no effects are found
+	if effect_names.is_empty():
+		effect_names.append("No Effects")
+
+	var trigger_type_icon = "🌍 Global" if trigger.trigger_area_type == Trigger.AreaType.GLOBAL else "📍 Local"
+
+	var trigger_name = trigger.cause if trigger.cause else "Unnamed Trigger"
+	var trigger_return = "Triggers: %s\n%s\n🔽 Effects:\n%s" % [trigger_name, trigger_type_icon, "\n".join(effect_names)]
+	
+	return trigger_return
 
 
 func _on_select_trigger(button):
 	selected_trigger = button.get_meta("trigger_data")  # Retrieve stored trigger data
 
 func _on_map_loaded(map_name):
-	print("📂 Map Editor Screen - Current filename set to:", current_filename)
 	current_filename = map_name  # ✅ Update map filename
+	print("📂 Map Editor Screen - Current filename set to:", current_filename)
 
 
 func _on_toggle_map_menu_button_pressed():
@@ -303,7 +310,8 @@ func _on_toggle_map_menu_button_pressed():
 		map_menu_panel.visible = true
 		map_menu_panel.position = Vector2(7, 900)  # Ensure it starts at the bottom
 		tween.tween_property(map_menu_panel, "position", Vector2(7, 674), 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)  # Slide up
-		
+
+
 func _on_save_as_button_pressed() -> void:
 	print("📝 Save As button pressed")
 	load_save_map_popup_scene.open_as_save()
@@ -363,7 +371,6 @@ func _serialize_triggers() -> Array:
 	return serialized_triggers
 
 
-
 func open_save_as_popup(title_text: String):
 	if load_save_map_popup_menu and map_name_input:
 		map_name_input.text = current_filename if current_filename != "" else ""
@@ -384,28 +391,22 @@ func set_map_data(data):
 	
 	if grid_container:
 		grid_container.load_map_data(map_data)
-		
+
+
 func _on_load_map_button_pressed() -> void:
 	print("📂 Load Map button pressed")
 
-	# ✅ Ensure no previous map is auto-selected
 	load_save_map_popup_scene.selected_map_name = ""  # Reset selection before opening
 	load_save_map_popup_scene.selected_map_button = null  
-	
 	load_save_map_popup_scene.open_as_load()
 	open_load_map_popup("Load Map")
 
-	
-	await get_tree().process_frame # ✅ Wait for the user to interact
+	await get_tree().process_frame 
 
-	# ✅ Retrieve user-selected map from the pop-up AFTER user interaction
-	var selected_map_name = load_save_map_popup_scene.get_user_selected_map()
-	
+	var selected_map_name = load_save_map_popup_scene.get_user_selected_map() # ✅ Retrieve user-selected map from pop-up AFTER user interaction
 	if selected_map_name.is_empty():
 		print("⚠️ No map selected! Waiting for user selection.")
 		return  # ✅ Stop execution if no map is selected
-
-	# ✅ Load the selected map
 	print("✅ Selected map:", selected_map_name)
 
 	if grid_container:
@@ -423,13 +424,11 @@ func _on_load_map_button_pressed() -> void:
 		print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
 		load_save_map_popup_scene.display_error("Please select a map before loading.")
 
+
 func _on_back_to_main_pressed() -> void:
 	print("🔙 Returning to Main Screen...")
-	
-	# Load the main screen scene
 	var main_screen_scene = load("res://scenes/FirstSelectionScreen.tscn").instantiate()
 	
-	# Switch to the main screen
 	get_tree().root.add_child(main_screen_scene)
 	get_tree().current_scene.queue_free()  # Remove current scene
 	get_tree().current_scene = main_screen_scene  # Set new scene
@@ -437,6 +436,7 @@ func _on_back_to_main_pressed() -> void:
 
 func open_load_map_popup(title_text: String):
 	load_save_map_popup_scene.user_selected_map = false  # ✅ Reset selection status
+	
 	if load_save_map_popup_menu and load_save_map_popup_title:
 		load_save_map_popup_scene.set_popup_title(title_text)
 		load_save_map_popup_menu.popup_centered()

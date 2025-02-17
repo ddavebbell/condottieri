@@ -160,19 +160,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.0
-
-[node name="LeftColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="RightColumn" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/ScrollContainer/EffectListContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-
 [node name="AddEffectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
