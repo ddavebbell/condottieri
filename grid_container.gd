@@ -1,5 +1,6 @@
 extends Control
 
+
 const GRID_SIZE = 48
 const GRID_WIDTH = 14
 const GRID_HEIGHT = 14
@@ -98,16 +99,13 @@ func update_tile_positions():
 
 
 
-#	# # # # GRID NAVIGATION FUNCTIONALITY # # # #
+		## # # # GRID NAVIGATION FUNCTIONALITY # # # ##
 
 func calculate_grid_offset():
 	var parent = get_parent() # Get the parent MainMapDisplay
 	
 	if parent:
-		#var grid_total_size = Vector2(GRID_WIDTH * GRID_SIZE, GRID_HEIGHT * GRID_SIZE) # Get MainMapDisplay's actual size
-		
-		# Calculate the centered position within the parent container
-		position = grid_offset 
+		position = grid_offset # Calculate the centered position within the parent container
 		
 		update_tile_positions()
 		queue_redraw()
@@ -232,7 +230,7 @@ func load_map(map_name: String):
 
 
 func _load_triggers(trigger_data: Array):
-	print("🔄 Loading Triggers...")
+	print("🔄 Loading Triggers from Map Data:", trigger_data)
 
 	triggers.clear()
 
@@ -247,6 +245,7 @@ func _load_triggers(trigger_data: Array):
 			
 		var new_trigger = create_new_trigger(data)
 		triggers.append(new_trigger)  ## ✅ Add to memory
+		print("✅ Loaded Trigger:", new_trigger.cause, "| Effects:", new_trigger.effects)
 
 	print("✅ Successfully loaded", triggers.size(), "triggers into memory.")
 
@@ -327,26 +326,19 @@ func _load_thumbnail_for_map(map_data): # Load thumbnail if it exists in map dat
 
 
 func save_map(map_name: String, map_data: Dictionary) -> String: # Save map and capture thumbnail
-	print("Saving....", map_name, "  with  ",map_data)
+	print("💾 Saving map:", map_name, " with Data:", JSON.stringify(map_data, "\t"))
 
-	# ✅ Initialize base map data
-	var map_data_map_data = {
-		"name": map_name,
-		"tiles": {},
-		"triggers": trigger_manager.get_all_triggers() if trigger_manager else []
-	}
-
-	# ✅ Merge existing map_data (ensuring it contains "tiles" and "triggers")
-	if map_data.has("tiles"):
-		map_data_map_data["tiles"] = map_data["tiles"]
+	# ✅ Ensure `map_data` contains required fields without overriding it
+	if not map_data.has("tiles"):
+		map_data["tiles"] = {}
 	
-	if map_data.has("triggers"):
-		map_data_map_data["triggers"] = map_data["triggers"]
+	#if not map_data.has("triggers"):
+		#map_data["triggers"] = trigger_manager.get_all_triggers() if trigger_manager else []
 
 	# ✅ Ensure tiles are stored properly
 	for grid_pos in placed_tiles.keys():
-		var tile_node = placed_tiles[grid_pos]  # ✅ TextureRect node
-		var tile_texture = tile_node.texture  # ✅ Extract actual texture
+		var tile_node = placed_tiles[grid_pos] 
+		var tile_texture = tile_node.texture 
 
 		var tile_data = {}
 
@@ -363,17 +355,17 @@ func save_map(map_name: String, map_data: Dictionary) -> String: # Save map and 
 		else:
 			tile_data = { "texture": tile_texture.resource_path }
 		
-		map_data_map_data["tiles"][str(grid_pos.x) + "," + str(grid_pos.y)] = tile_data
+		map_data["tiles"][str(grid_pos.x) + "," + str(grid_pos.y)] = tile_data
 		print("✅ Saved Tile at:", grid_pos, "→", tile_data)
 
 	# ✅ Save JSON
 	var file_path = "user://maps/" + map_name.to_lower() + ".json"
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
-	file.store_string(JSON.stringify(map_data_map_data, "\t"))
+	file.store_string(JSON.stringify(map_data, "\t"))
 	file.close()
 
 	# ✅ Capture thumbnail
-	await capture_screenshot(map_name, map_data_map_data)  # ✅ Pass updated map data
+	await capture_screenshot(map_name, map_data)  # ✅ Pass updated map data
 	load_save_map_popup.show_confirmation_popup("✅ Map saved successfully!")
 	print("✅ Map saved successfully:", file_path)
 
@@ -391,7 +383,7 @@ func capture_screenshot(map_name: String, map_data: Dictionary):
 		await RenderingServer.frame_post_draw  # ✅ Ensure UI fully updates before capture
 		
 	# 🔹 NEW: Delay the screenshot by 0.1 seconds to fully hide the menu
-	await get_tree().create_timer(0.1).timeout  
+	await get_tree().create_timer(0.2).timeout  
 	
 	# ✅ Capture the Grid Only (Avoid Side Menu)
 	var viewport_texture = get_viewport().get_texture()

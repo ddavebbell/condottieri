@@ -11,13 +11,13 @@ config_version=5
 [application]
 
 config/name="Condottieri"
-run/main_scene="res://scenes/FirstSelectionScreen.tscn"
+run/main_scene="res://scenes/MapListScreen.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://Images/icon.svg"
 
 [autoload]
 
-GlobalData="*res://global_data.gd"
+GlobalData="*res://scripts/core/global_data.gd"
 
 [display]
 
@@ -28,6 +28,10 @@ window/size/viewport_height=720
 
 version_control/plugin_name="GitPlugin"
 version_control/autoload_on_startup=true
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 [rendering]
 

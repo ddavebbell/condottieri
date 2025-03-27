@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/triggers_and_effects/trigger_editor_panel.gd" id="1_ycgt3"]
 [ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="2_di8q0"]
-[ext_resource type="Script" path="res://scripts/tile_selector.gd" id="3_dyxfi"]
+[ext_resource type="Script" path="res://scripts/ui/tile_selector.gd" id="3_dyxfi"]
 
 [sub_resource type="Theme" id="Theme_mswss"]
 
@@ -21,38 +21,50 @@ corner_radius_bottom_left = 8
 
 [node name="TriggerEditorPanel" type="Control"]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_left = 0.586
+anchor_top = 0.128
+anchor_right = 0.936
+anchor_bottom = 0.866
+offset_left = -750.08
+offset_top = -92.16
+offset_right = 81.9199
+offset_bottom = 96.48
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+focus_mode = 2
+mouse_filter = 2
 theme = SubResource("Theme_mswss")
 script = ExtResource("1_ycgt3")
 
 [node name="Popups" type="Control" parent="."]
-custom_minimum_size = Vector2(500, 500)
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_left = 0.592
+anchor_top = 0.13
+anchor_right = 0.932
+anchor_bottom = 0.852
+offset_left = -757.76
+offset_top = -93.6
+offset_right = 87.0399
+offset_bottom = 106.56
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
 [node name="BackgroundPanel" type="PanelContainer" parent="Popups"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 748.0
-offset_top = 84.0
-offset_right = -79.0
-offset_bottom = -91.0
+anchors_preset = -1
+anchor_left = 0.584
+anchor_top = 0.117
+anchor_right = 0.938
+anchor_bottom = 0.874
+offset_left = 0.479919
+offset_top = -0.240005
+offset_right = 0.359985
+offset_bottom = -0.280029
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_j71jd")
 
 [node name="Padding" type="MarginContainer" parent="Popups/BackgroundPanel"]
@@ -123,10 +135,11 @@ size_flags_horizontal = 3
 size_flags_vertical = 0
 size_flags_stretch_ratio = 10.0
 
-[node name="SelectTrigger" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer"]
+[node name="AddTrigger" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer"]
+z_index = 100
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-size_flags_horizontal = 10
+size_flags_horizontal = 8
 size_flags_vertical = 0
 text = "Add Trigger"
 
@@ -163,7 +176,7 @@ mouse_filter = 0
 [node name="AddEffectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 6
 size_flags_vertical = 0
 text = "Add Effect"
 
@@ -176,22 +189,6 @@ size_flags_stretch_ratio = 0.25
 layout_mode = 2
 size_flags_stretch_ratio = 0.5
 theme_override_constants/separation = 8
-
-[node name="TriggerAreaLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-theme_override_fonts/font = ExtResource("2_di8q0")
-theme_override_font_sizes/font_size = 20
-text = "Trigger Area"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="AreaTypeDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 0
 
 [node name="TileSelectionCustomNode" type="Node2D" parent="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection"]
 script = ExtResource("3_dyxfi")
@@ -233,5 +230,6 @@ layout_mode = 2
 text = "Save Trigger"
 
 [connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/HeaderContainer/CloseButton" to="." method="_on_close_button_pressed"]
-[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/AddEffectButton" to="." method="_add_effect"]
+[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/AddTrigger" to="." method="_on_add_trigger_pressed"]
+[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/EffectSelection/AddEffectButton" to="." method="_on_add_effect_button_pressed"]
 [connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/Buttons/CancelButton" to="." method="_on_cancel_button_pressed"]

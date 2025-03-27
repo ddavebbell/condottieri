@@ -1,12 +1,19 @@
-[gd_scene load_steps=11 format=3 uid="uid://drfqmivyn38xg"]
+[gd_scene load_steps=14 format=3 uid="uid://drfqmivyn38xg"]
 
-[ext_resource type="Script" path="res://map_editor_screen.gd" id="1_7dofb"]
-[ext_resource type="Script" path="res://grid_container.gd" id="2_bmgir"]
+[ext_resource type="Script" path="res://scripts/ui/map_editor_screen.gd" id="1_7dofb"]
+[ext_resource type="Script" path="res://scripts/map/grid_manager.gd" id="2_7k5no"]
+[ext_resource type="Script" path="res://scripts/map/tile_layer.gd" id="3_souqc"]
 [ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="3_t6ewt"]
-[ext_resource type="Texture2D" uid="uid://bxurxurdtxxo4" path="res://Condoterri - ATLAS TEXTURE - map tiles.png" id="4_no1ap"]
-[ext_resource type="Script" path="res://tile.gd" id="5_dnico"]
-[ext_resource type="Script" path="res://divider_script.gd" id="6_17ol6"]
+[ext_resource type="Texture2D" uid="uid://bxurxurdtxxo4" path="res://Images/Condoterri - ATLAS TEXTURE - map tiles.png" id="4_no1ap"]
+[ext_resource type="Script" path="res://scripts/map/tile.gd" id="5_dnico"]
+[ext_resource type="Script" path="res://scripts/ui/divider_script.gd" id="6_17ol6"]
 [ext_resource type="PackedScene" uid="uid://bxv0deocrf5tp" path="res://scenes/map_editor_pop_up.tscn" id="7_k0u05"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pymwu"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="TileSet" id="TileSet_owkkn"]
+tile_size = Vector2i(32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bkcn6"]
 atlas = ExtResource("4_no1ap")
@@ -27,12 +34,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+focus_mode = 2
 script = ExtResource("1_7dofb")
 
 [node name="UI" type="Control" parent="."]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
 
 [node name="HSplitContainer" type="HSplitContainer" parent="."]
 layout_mode = 1
@@ -56,12 +68,24 @@ layout_mode = 2
 
 [node name="GridContainer" type="Panel" parent="HSplitContainer/MarginContainer/MainMapDisplay"]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_bottom = 0.942
+offset_left = 25.0
+offset_top = 24.0
+offset_bottom = 0.0639648
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_bmgir")
+theme_override_styles/panel = SubResource("StyleBoxFlat_pymwu")
+
+[node name="GridManager" type="Node2D" parent="HSplitContainer/MarginContainer/MainMapDisplay/GridContainer"]
+script = ExtResource("2_7k5no")
+
+[node name="BaseGridLayer" type="TileMapLayer" parent="HSplitContainer/MarginContainer/MainMapDisplay/GridContainer/GridManager"]
+tile_set = SubResource("TileSet_owkkn")
+
+[node name="TileLayer" type="TileMapLayer" parent="HSplitContainer/MarginContainer/MainMapDisplay/GridContainer/GridManager"]
+script = ExtResource("3_souqc")
 
 [node name="SideMenu" type="Control" parent="HSplitContainer"]
 clip_contents = true
@@ -184,6 +208,7 @@ size_flags_vertical = 8
 
 [node name="CreateTriggerButton" type="Button" parent="HSplitContainer/SideMenu/TerrainMenuWrapper/MenuWrapper/TriggerMenu/MarginContainer/HBoxContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 8
 theme_override_fonts/font = ExtResource("3_t6ewt")
 theme_override_font_sizes/font_size = 16

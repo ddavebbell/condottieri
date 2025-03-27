@@ -1,36 +1,21 @@
 extends Node2D
 
-var triggers = {}
-var active_triggers = []  
+class_name TriggerManager
 
-@onready var ui_layer = null
+# TriggerManager is supposed to:
+# # Hold trigger data
+# # Add/remove/modify triggers
+# # Be unaware of the UI
 
-func _ready():
-	var ui_layers = get_tree().get_nodes_in_group("UI")  
-	if ui_layers.size() > 0:
-		ui_layer = ui_layers[0]  
-		print("✅ UI Layer Found:", ui_layer.name)
-	else:
-		print("❌ ERROR: UI Layer NOT found! Creating one manually...")
-		ui_layer = Control.new()
-		ui_layer.name = "UI"
-		get_tree().get_root().add_child(ui_layer)
-		ui_layer.add_to_group("UI")  
-		print("✅ New UI Layer Created:", ui_layer.name)
+var triggers: Array = []
+var active_triggers: Array = []
 
-func open_trigger_editor(): 
-	var trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
-	if ui_layer:
-		ui_layer.add_child(trigger_editor)
-		trigger_editor.visible = true
-		trigger_editor.z_index = 50  
-		trigger_editor.connect("trigger_added", Callable(get_parent(), "_on_trigger_added"))
-		print("✅ TriggerEditorPanel Successfully Added to UI!")
-	else:
-		print("❌ ERROR: UI container not found in MapEditor")
 
+
+#region Get Trigger Data
+#This needs fixing
 func get_all_triggers() -> Array:
-	# ✅ Ensure `triggers` array exists
+	# Ensure `triggers` array exists
 	if not "triggers" in self:
 		triggers = []
 	
@@ -50,7 +35,81 @@ func get_all_triggers() -> Array:
 	print("✅ Serialized Triggers for Save:", trigger_data)
 	return trigger_data
 
-# ✅ Helper function to serialize effects
+
+
+#endregion
+
+
+
+#region Set Trigger Data
+
+func add_trigger(trigger: Trigger):
+	triggers.append(trigger)
+	emit_signal("trigger_added", trigger)
+
+func set_triggers(new_triggers: Array):
+	triggers.clear()
+	for trigger in new_triggers:
+		if trigger is Trigger:
+			triggers.append(trigger)
+	emit_signal("triggers_loaded")
+
+#endregion
+
+
+
+#region Trigger & Effect Name Prettifying 
+
+func _format_trigger_button_text(trigger: Trigger) -> String:
+	if not trigger:
+		return "❌ ERROR: Missing Trigger Data"
+
+	var trigger_name = _get_trigger_name(trigger)
+	var effect_summary = _get_effect_summary(trigger.effects)
+
+	return "Triggers: %s\n%s\n🔽 Effects:\n%s" % [trigger_name, effect_summary]
+
+func _get_trigger_name(trigger: Trigger) -> String:
+	var cause_value_local = trigger.local_cause
+	var cause_value_global = trigger.global_cause
+	
+	if cause_value_local and not cause_value_global:
+		var formatted_cause_name_local = _format_enum_key(cause_value_local)
+		return formatted_cause_name_local
+
+	if cause_value_global and not cause_value_local:
+		var formatted_cause_name_global = _format_enum_key(cause_value_global)
+		return formatted_cause_name_global
+	
+	return "Unassigned Trigger"
+
+
+func _get_effect_summary(effects: Array) -> String:
+	var names := []
+
+	for e in effects:
+		if typeof(e) == TYPE_DICTIONARY and e.has("effect_type"):
+			var key = Effect.EffectType.keys()[e.effect_type]
+			names.append(_format_enum_key(key))
+		elif typeof(e) == TYPE_OBJECT and e is Effect:
+			var key = Effect.EffectType.keys()[e.effect_type]
+			names.append(_format_enum_key(key))
+
+	if names.is_empty():
+		names.append("No Effects")
+
+	return "\n".join(names)
+
+
+
+# Formatting Helper Functions #
+func _format_enum_key(key: String) -> String:
+	# Convert "LIKE_THIS" → "Like This"
+	var words = key.split("_")
+	for i in words.size():
+		words[i] = words[i].capitalize()
+	return " ".join(words)
+
 func _serialize_effects(effects: Array) -> Array:
 	var serialized_effects = []
 	for effect in effects:
@@ -59,3 +118,5 @@ func _serialize_effects(effects: Array) -> Array:
 			"effect_parameters": effect.effect_parameters
 		})
 	return serialized_effects
+
+#endregion
