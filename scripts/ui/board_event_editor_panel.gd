@@ -1,12 +1,12 @@
 extends Control
 
-class_name TriggerEditorPanel
+class_name BoardEventEditorScreen
 
-signal trigger_selected(trigger: Trigger)
+
 signal editor_closed_requested
 
 
-#region @onready references
+#region variables
 #@onready var tile_selector = get_node_or_null("Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/AreaAndSound/AreaSelection/TileSelectionCustomNode")
 
 @onready var cause_dropdown = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/CauseDropdown
@@ -17,10 +17,9 @@ signal editor_closed_requested
 @onready var save_button = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/Buttons/SaveTriggerButton
 @onready var add_trigger_button = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/VBoxContainer/AddTrigger
 @onready var trigger_list_container = $Popups/BackgroundPanel/Padding/MainLayout/ContentVBox/TriggerSettings/TriggerListContainer
-#endregion
 
-#region script variables
-var trigger_manager: TriggerManager
+# have to rename this to BoardEventsManager
+var board_event_manager: BoardEventManager
 var triggers_ref: Array = []  # Store reference to `triggers` array
 var current_trigger: Trigger = null  # Stores the active trigger
 
@@ -32,27 +31,20 @@ signal trigger_added(trigger)
 
 
 func _ready():
-	print("🧪 Focus Owner:", get_viewport().gui_get_focus_owner())
+	pass
 
 
-# Helper function to pass on triggers_array her from other script triggers_array
-func set_triggers_array(triggers_array: Array):
-	triggers_ref = triggers_array
-	print("✅ `triggers_ref` Received in TriggerEditorPanel:", triggers_ref)
+#region Life Cycle
 
-#region UI Setup
-
-#region Set Up UI : Phase 1
-
-func initialize(p_trigger_manager: TriggerManager):
-	trigger_manager = p_trigger_manager
+func initialize(p_board_event_manager: BoardEventManager):
+	board_event_manager = p_board_event_manager
 	_initialize_ui()  # 👈 Now run all logic here
 
 func _initialize_ui():
-	if not trigger_manager:
-		print("❌ trigger_manager is still null!")
+	if not board_event_manager:
+		print("❌ board_event_manager is still null!")
 	else:
-		print("✅ trigger_manager is available:", trigger_manager)
+		print("✅ board_event_manager is available:", board_event_manager)
 		
 	if current_trigger == null:
 		current_trigger = Trigger.new()
@@ -61,8 +53,13 @@ func _initialize_ui():
 	_populate_dropdowns()
 	_populate_trigger_list()
 
-	
+#endregion
 
+
+
+#region Factory
+
+# Factory
 func _create_trigger_ui(trigger: Trigger):
 	var hbox = HBoxContainer.new()
 	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL  
@@ -90,7 +87,7 @@ func _create_trigger_ui(trigger: Trigger):
 	hbox.add_child(remove_button)
 
 	return hbox
-
+# Factory
 func _create_effect_ui(effect: Effect):
 	var hbox = HBoxContainer.new()
 	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL  
@@ -125,6 +122,7 @@ func _create_effect_ui(effect: Effect):
 
 	return hbox
 
+# Utility
 func _humanize_enum_name(enum_name: String) -> String:
 	var words = enum_name.split("_")
 	for i in range(words.size()):
@@ -132,9 +130,97 @@ func _humanize_enum_name(enum_name: String) -> String:
 	var cleaned_name = " ".join(words)  # Use String.join()
 	return cleaned_name
 
+#endregion
 
-# resets trigger editor menu UI
-func clear(is_fresh: bool = false):
+
+#region Setters
+
+# SETTER: This should be in board event manager
+func _save_trigger():
+	print("💾 _save_trigger Saving Trigger...")
+	
+	# Varification
+	if not current_trigger:
+		print("❌ ERROR: No trigger to save!")
+		_show_error_popup("❌ ERROR: Cannot save an empty trigger.")
+		return
+		
+	# Ensure `triggers_ref` is valid
+	if triggers_ref == null:
+		print("❌ ERROR: `triggers_ref` is NULL! Cannot update triggers.")
+		return
+		
+	print("📌 `triggers_ref` BEFORE Save:", triggers_ref)
+		
+	if cause_dropdown.selected < 0:
+		_show_error_popup("❌ ERROR: Please select a trigger cause before saving.")
+		return
+
+	if effect_list_container.get_child_count() == 0:
+		_show_error_popup("❌ ERROR: You must add at least one effect before saving.")
+		return
+		
+	if current_trigger.effects.is_empty():
+		print("current_trigger.effects.is_empty()")
+		
+	# Update trigger details
+	current_trigger.cause = cause_dropdown.selected
+
+	#current_trigger.trigger_tiles = tile_selector.get_selected_tiles() if tile_selector else []
+	current_trigger.sound_effect = sound_effect_dropdown.get_item_text(sound_effect_dropdown.selected)
+	
+	# Check if trigger already exists, update or append
+	var found = false
+	for i in range(triggers_ref.size()):
+		if triggers_ref[i] == current_trigger:
+			print("🔄 Updating Existing Trigger:", Trigger.LocalCause.keys()[current_trigger.cause])
+			triggers_ref[i] = current_trigger  # ✅ Update existing trigger
+			found = true
+			break
+
+	if not found:
+		print("➕ Adding New Trigger:", Trigger.LocalCause.keys()[current_trigger.cause])
+		triggers_ref.append(current_trigger) # ✅ Add new trigger
+
+	print("📌 `triggers_ref` After Save:", triggers_ref)
+	
+	# Send Triggers back to MapEditorScreen
+	get_tree().get_nodes_in_group("MapEditorScreen")[0].update_triggers(triggers_ref)
+	
+	emit_signal("trigger_saved", current_trigger)
+	emit_signal("editor_closed_requested")
+	queue_free()  # Close trigger editor
+
+
+func reset_trigger_data():
+	current_trigger = Trigger.new()
+	cause_dropdown.select(0)
+	area_type_dropdown.select(0)
+	sound_effect_dropdown.select(0)
+
+	for child in effect_list_container.get_children():
+		child.queue_free()
+
+
+func _update_trigger(trigger_id: int, trigger): 	# NOT AN ACTUAL FUNCTION YET
+	print("🔄 Updating trigger with ID:", trigger_id, "Trigger:", trigger)
+
+
+func _update_effect(index, effect):
+	print("🔄 Updating Effect with Index:", index)
+
+	# ✅ Ensure index is valid
+	if index < 0 or index >= Effect.EffectType.keys().size():
+		print("❌ ERROR: Invalid index selected!")
+		return
+
+	# ✅ Set effect type based on selected index
+	effect.effect_type = index  # Directly use the index
+	print("✅ Effect updated to:", Effect.EffectType.keys()[index])
+	return effect
+
+
+func clear(is_fresh: bool = false): # resets board event editor menu UI
 	current_trigger = Trigger.new()
 	print("🧼 TriggerEditor cleared. New trigger created.")
 
@@ -153,20 +239,15 @@ func clear(is_fresh: bool = false):
 		for child in effect_list_container.get_children():
 			child.queue_free()
 
-
-
-func reset_trigger_data():
-	current_trigger = Trigger.new()
-	cause_dropdown.select(0)
-	area_type_dropdown.select(0)
-	sound_effect_dropdown.select(0)
-
-	for child in effect_list_container.get_children():
-		child.queue_free()
+# Setter: Helper function to pass on triggers_array her from other script triggers_array
+func set_triggers_array(triggers_array: Array):
+	triggers_ref = triggers_array
+	print("✅ `triggers_ref` Received in TriggerEditorPanel:", triggers_ref)
 
 #endregion
 
-#region Populate UI Menus: Phase 2
+
+#region Utility
 
 func _populate_dropdowns():
 	print("🎛️ Populating Dropdowns...")
@@ -207,7 +288,7 @@ func _populate_trigger_list():
 			continue
 		
 		var button = Button.new()
-		button.text = trigger_manager._format_trigger_button_text(trigger)
+		button.text = board_event_manager._format_trigger_button_text(trigger)
 		button.set_meta("trigger_data", trigger)
 		trigger_list_container.add_child(button)
 		button.connect("pressed", Callable(self, "_on_trigger_button_pressed").bind(trigger))
@@ -219,8 +300,8 @@ func _populate_trigger_list_validations():
 		print("❌ ERROR: trigger_list_container is NULL!")
 		return
 
-	if not trigger_manager:
-		print("❌ ERROR: trigger_manager is NULL!")
+	if not board_event_manager:
+		print("❌ ERROR: board_event_manager is NULL!")
 		return
 
 	for child in trigger_list_container.get_children():
@@ -230,19 +311,7 @@ func _populate_trigger_list_validations():
 		print("⚠️ No triggers to display.")
 		return
 
-func _show_error_popup(message: String):
-	var popup = AcceptDialog.new()
-	popup.dialog_text = message
-	add_child(popup)
-	popup.popup_centered()
-
-#endregion
-
-#endregion
-
-
-#region Trigger -> Setup, Update, Remove, Save
-
+# Logic
 # Edit existing trigger or create new if no Trigger exists
 func setup_trigger(trigger: Trigger = null):
 	if trigger:
@@ -254,6 +323,36 @@ func setup_trigger(trigger: Trigger = null):
 		current_trigger = Trigger.new()
 
 	_populate_trigger_list() # Refresh -> Ensure UI reflects current trigger
+
+#endregion
+
+
+#region Event Handlers
+
+# EventHandler
+func _remove_trigger(trigger, hbox):
+	print("🗑️ Removing Trigger:", trigger.cause)
+
+	# ✅ Remove from memory
+	for i in range(triggers_ref.size()):
+		if triggers_ref[i] == trigger:
+			triggers_ref.remove_at(i)
+			break  # ✅ Stop loop after deleting
+
+	# ✅ Remove from UI
+	hbox.queue_free()  # ✅ Deletes the button container
+
+	print("✅ Trigger Removed Successfully!")
+
+
+func _remove_effect(effect, hbox):
+	if current_trigger:
+		current_trigger.effects.erase(effect)
+		print("🗑️ Effect Removed:", effect.effect_type)
+	else:
+		print("❌ ERROR: No current trigger available to remove effect from!")
+
+	hbox.queue_free()  # ✅ Remove from UI
 
 
 func _edit_existing_trigger(trigger: Trigger):
@@ -306,135 +405,15 @@ func _edit_existing_trigger(trigger: Trigger):
 	print("✅ Trigger Repopulated Successfully!")
 
 
-func _update_trigger(trigger_id: int, trigger):
-	print("🔄 Updating trigger with ID:", trigger_id, "Trigger:", trigger)
-
-
-func _remove_trigger(trigger, hbox):
-	print("🗑️ Removing Trigger:", trigger.cause)
-
-	# ✅ Remove from memory
-	for i in range(triggers_ref.size()):
-		if triggers_ref[i] == trigger:
-			triggers_ref.remove_at(i)
-			break  # ✅ Stop loop after deleting
-
-	# ✅ Remove from UI
-	hbox.queue_free()  # ✅ Deletes the button container
-
-	print("✅ Trigger Removed Successfully!")
-
-#Save trigger button in trigger editor panel
-func _save_trigger():
-	print("💾 _save_trigger Saving Trigger...")
-	
-	# Varification
-	if not current_trigger:
-		print("❌ ERROR: No trigger to save!")
-		_show_error_popup("❌ ERROR: Cannot save an empty trigger.")
-		return
-		
-	# Ensure `triggers_ref` is valid
-	if triggers_ref == null:
-		print("❌ ERROR: `triggers_ref` is NULL! Cannot update triggers.")
-		return
-		
-	print("📌 `triggers_ref` BEFORE Save:", triggers_ref)
-		
-	if cause_dropdown.selected < 0:
-		_show_error_popup("❌ ERROR: Please select a trigger cause before saving.")
-		return
-
-	if effect_list_container.get_child_count() == 0:
-		_show_error_popup("❌ ERROR: You must add at least one effect before saving.")
-		return
-		
-	if current_trigger.effects.is_empty():
-		print("current_trigger.effects.is_empty()")
-		
-	# Update trigger details
-	current_trigger.cause = cause_dropdown.selected
-
-	#current_trigger.trigger_tiles = tile_selector.get_selected_tiles() if tile_selector else []
-	current_trigger.sound_effect = sound_effect_dropdown.get_item_text(sound_effect_dropdown.selected)
-	
-	# Check if trigger already exists, update or append
-	var found = false
-	for i in range(triggers_ref.size()):
-		if triggers_ref[i] == current_trigger:
-			print("🔄 Updating Existing Trigger:", Trigger.LocalCause.keys()[current_trigger.cause])
-			triggers_ref[i] = current_trigger  # ✅ Update existing trigger
-			found = true
-			break
-
-	if not found:
-		print("➕ Adding New Trigger:", Trigger.LocalCause.keys()[current_trigger.cause])
-		triggers_ref.append(current_trigger) # ✅ Add new trigger
-
-	print("📌 `triggers_ref` After Save:", triggers_ref)
-	
-	# Send Triggers back to MapEditorScreen
-	get_tree().get_nodes_in_group("MapEditor")[0].update_triggers(triggers_ref)
-	
-	emit_signal("trigger_saved", current_trigger)
-	emit_signal("editor_closed_requested")
-	queue_free()  # Close trigger editor
-
-#endregion
-
-
-#region EFFECTS
-
-func _on_add_effect_button_pressed():
-	print("➕ Adding New Effect...")
-
-	# Create a new Effect instance
-	var effect = Effect.new()
-	effect.effect_type = Effect.EffectType.SPAWN_REINFORCEMENTS  ## Default effect type
-
-	# Create UI elements for the effect
-	var effect_ui = _create_effect_ui(effect)
-	print("_add_effect_ effect_ui",effect_ui)
-	# Add UI to the Effect List
-	effect_list_container.add_child(effect_ui)
-	print("AA effect_list_container children", effect_list_container.get_children())
-	effect_ui.add_to_group("effect_ui")
-
-	# Store effect in current trigger
-	current_trigger.effects.append(effect)
-	print("current_trigger.effects", current_trigger.effects)
-	print("✅ Effect Added to List:", effect.effect_type)
-
-
-func _remove_effect(effect, hbox):
-	if current_trigger:
-		current_trigger.effects.erase(effect)
-		print("🗑️ Effect Removed:", effect.effect_type)
-	else:
-		print("❌ ERROR: No current trigger available to remove effect from!")
-
-	hbox.queue_free()  # ✅ Remove from UI
-
-
-func _update_effect(index, effect):
-	print("🔄 Updating Effect with Index:", index)
-
-	# ✅ Ensure index is valid
-	if index < 0 or index >= Effect.EffectType.keys().size():
-		print("❌ ERROR: Invalid index selected!")
-		return
-
-	# ✅ Set effect type based on selected index
-	effect.effect_type = index  # Directly use the index
-	print("✅ Effect updated to:", Effect.EffectType.keys()[index])
-	return effect
-
-#endregion
+func _show_error_popup(message: String):
+	var popup = AcceptDialog.new()
+	popup.dialog_text = message
+	add_child(popup)
+	popup.popup_centered()
 
 
 
-
-#region Button Pressed Functions
+## Button Pressed Section:
 
 func _on_close_button_pressed():
 	print("❌ Close button pressed. Closing without saving.")
@@ -466,6 +445,28 @@ func _on_add_trigger_pressed():
 
 func _on_trigger_button_pressed(trigger: Trigger) -> void:
 	emit_signal("trigger_selected", trigger)
+
+
+func _on_add_effect_button_pressed():
+	print("➕ Adding New Effect...")
+
+	# Create a new Effect instance
+	var effect = Effect.new()
+	effect.effect_type = Effect.EffectType.SPAWN_REINFORCEMENTS  ## Default effect type
+
+	# Create UI elements for the effect
+	var effect_ui = _create_effect_ui(effect)
+	print("_add_effect_ effect_ui",effect_ui)
+	# Add UI to the Effect List
+	effect_list_container.add_child(effect_ui)
+	print("AA effect_list_container children", effect_list_container.get_children())
+	effect_ui.add_to_group("effect_ui")
+
+	# Store effect in current trigger
+	current_trigger.effects.append(effect)
+	print("current_trigger.effects", current_trigger.effects)
+	print("✅ Effect Added to List:", effect.effect_type)
+
 
 
 #endregion

@@ -32,5 +32,4 @@ enum GlobalCause {
 @export var global_cause: GlobalCause = GlobalCause.TURN_COUNT_REACHED
 @export var local_cause: LocalCause = LocalCause.PIECE_SPAWNED
 @export var local_cause_area_tiles: Array = [] 
-@export var sound_effect: String = ""  
 @export var pop_up_text: String = ""  

@@ -12,7 +12,7 @@ anchors_preset = -1
 anchor_top = 0.069
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -49.68
+offset_top = 0.319996
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
@@ -25,20 +25,21 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 40.0
+offset_top = -13.0
+offset_bottom = 13.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 36
 theme_override_constants/margin_right = 36
 theme_override_constants/margin_bottom = 36
 
 [node name="MainVBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 30
 
 [node name="TitleLabel" type="Label" parent="Margin/MainVBox"]
 layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_5nyf0")
 theme_override_font_sizes/font_size = 61
 text = "Map List"
@@ -47,7 +48,6 @@ horizontal_alignment = 1
 [node name="UpperSection" type="HBoxContainer" parent="Margin/MainVBox"]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 6.0
 theme_override_constants/separation = 40
 
 [node name="LeftVBox" type="VBoxContainer" parent="Margin/MainVBox/UpperSection"]
@@ -76,54 +76,40 @@ text = "  Browse  "
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Margin/MainVBox/UpperSection/LeftVBox/MapListContainer"]
+[node name="MapListPanel" type="VBoxContainer" parent="Margin/MainVBox/UpperSection/LeftVBox/MapListContainer"]
+z_index = 1
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 0
 
-[node name="MapList" type="ItemList" parent="Margin/MainVBox/UpperSection/LeftVBox/MapListContainer/ScrollContainer"]
-z_index = 2
+[node name="Panel" type="Panel" parent="Margin/MainVBox/UpperSection/LeftVBox/MapListContainer/MapListPanel"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 2
 
 [node name="RightVBox" type="VBoxContainer" parent="Margin/MainVBox/UpperSection"]
 custom_minimum_size = Vector2(300, 200)
 layout_mode = 2
-
-[node name="MapName" type="Label" parent="Margin/MainVBox/UpperSection/RightVBox"]
-layout_mode = 2
-size_flags_vertical = 0
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 16
-text = "Map Name"
-
-[node name="MapNamePanel" type="RichTextLabel" parent="Margin/MainVBox/UpperSection/RightVBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.5
-mouse_filter = 2
+theme_override_constants/separation = 14
 
 [node name="Description" type="Label" parent="Margin/MainVBox/UpperSection/RightVBox"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 24
 text = "Description"
 
-[node name="DescriptionPanel" type="RichTextLabel" parent="Margin/MainVBox/UpperSection/RightVBox"]
+[node name="Panel" type="Panel" parent="Margin/MainVBox/UpperSection/RightVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.75
 mouse_filter = 2
 
 [node name="ThumbnailLabel" type="Label" parent="Margin/MainVBox/UpperSection/RightVBox"]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 24
 text = "Map Thumbnail"
 
 [node name="Thumbnail" type="TextureRect" parent="Margin/MainVBox/UpperSection/RightVBox"]
@@ -132,22 +118,9 @@ size_flags_vertical = 3
 expand_mode = 1
 stretch_mode = 2
 
-[node name="MapTagsLabel" type="Label" parent="Margin/MainVBox/UpperSection/RightVBox"]
-layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 16
-text = "Map Tags"
-
-[node name="MapTagsPanel" type="RichTextLabel" parent="Margin/MainVBox/UpperSection/RightVBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.35
-
 [node name="LowerSection" type="HBoxContainer" parent="Margin/MainVBox"]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.5
 theme_override_constants/separation = 35
 
 [node name="LowerSectionLeft" type="HBoxContainer" parent="Margin/MainVBox/LowerSection"]
@@ -158,7 +131,6 @@ theme_override_constants/separation = 35
 
 [node name="MapNameLabel" type="Label" parent="Margin/MainVBox/LowerSection/LowerSectionLeft"]
 layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 24
 text = "Map Name"
 
@@ -169,22 +141,22 @@ size_flags_stretch_ratio = 0.26
 theme_override_font_sizes/font_size = 24
 placeholder_text = "    input map name"
 
-[node name="MarginContainer" type="MarginContainer" parent="Margin/MainVBox/LowerSection/LowerSectionLeft"]
-custom_minimum_size = Vector2(305, 0)
+[node name="LowerSectionMarginContainerRight" type="MarginContainer" parent="Margin/MainVBox/LowerSection/LowerSectionLeft"]
 layout_mode = 2
+size_flags_horizontal = 8
+theme_override_constants/margin_left = 305
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="Margin/MainVBox"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 10
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="OKButton" type="Button" parent="Margin/MainVBox/ButtonsHBox"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-disabled = true
 text = "  OK  "
 
 [node name="CancelButton" type="Button" parent="Margin/MainVBox/ButtonsHBox"]
@@ -192,16 +164,3 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "  Cancel  "
-
-[node name="FileDialog" type="FileDialog" parent="."]
-title = "Open a Directory"
-position = Vector2i(225, 95)
-size = Vector2i(868, 605)
-always_on_top = true
-min_size = Vector2i(0, 0)
-ok_button_text = "Select Current Folder"
-file_mode = 2
-access = 1
-
-[connection signal="pressed" from="Margin/MainVBox/UpperSection/LeftVBox/MapFolderHBox/BrowseButton" to="." method="_on_browse_button_pressed"]
-[connection signal="item_selected" from="Margin/MainVBox/UpperSection/LeftVBox/MapListContainer/ScrollContainer/MapList" to="." method="_on_map_list_panel_item_selected"]

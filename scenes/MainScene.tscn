@@ -1,0 +1,41 @@
+[gd_scene load_steps=4 format=3 uid="uid://cyfju01qp2wbs"]
+
+[ext_resource type="Script" path="res://scripts/core/main_scene.gd" id="1_owhn1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oya27"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_01lr4"]
+
+[node name="MainScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+script = ExtResource("1_owhn1")
+
+[node name="PanelContainerTop" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.069
+offset_bottom = -9.68
+grow_horizontal = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxEmpty_oya27")
+
+[node name="PanelContainerBottom" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.069
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -9.68
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxEmpty_01lr4")

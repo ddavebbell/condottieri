@@ -11,13 +11,16 @@ config_version=5
 [application]
 
 config/name="Condottieri"
-run/main_scene="res://scenes/MapListScreen.tscn"
+run/main_scene="res://scenes/TitleScreen.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://Images/icon.svg"
 
 [autoload]
 
 GlobalData="*res://scripts/core/global_data.gd"
+MapManager="*res://scripts/core/map_manager.gd"
+BoardEventManager="*res://scripts/core/board_event_manager.gd"
+UiManager="*res://scripts/core/ui_manager.gd"
 
 [display]
 

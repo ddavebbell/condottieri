@@ -1,18 +1,18 @@
-extends Node2D
+extends Node
 
-class_name TriggerManager
+# Responsible for accepting button pressed functions (requests) from MapEditorScreenUI and MapListScreenUI
+# contains functions to process Trigger and Effects data: GET (load data), SET (save data), varify functions, helper functions
+# Transfers Trigger data --> is unaware of UI
 
-# TriggerManager is supposed to:
-# # Hold trigger data
-# # Add/remove/modify triggers
-# # Be unaware of the UI
 
 var triggers: Array = []
 var active_triggers: Array = []
 
 
 
-#region Get Trigger Data
+
+
+#region Getter
 #This needs fixing
 func get_all_triggers() -> Array:
 	# Ensure `triggers` array exists
@@ -35,13 +35,10 @@ func get_all_triggers() -> Array:
 	print("✅ Serialized Triggers for Save:", trigger_data)
 	return trigger_data
 
-
-
 #endregion
 
 
-
-#region Set Trigger Data
+#region Setter
 
 func add_trigger(trigger: Trigger):
 	triggers.append(trigger)
@@ -57,8 +54,7 @@ func set_triggers(new_triggers: Array):
 #endregion
 
 
-
-#region Trigger & Effect Name Prettifying 
+#region Utility
 
 func _format_trigger_button_text(trigger: Trigger) -> String:
 	if not trigger:
@@ -83,7 +79,6 @@ func _get_trigger_name(trigger: Trigger) -> String:
 	
 	return "Unassigned Trigger"
 
-
 func _get_effect_summary(effects: Array) -> String:
 	var names := []
 
@@ -100,9 +95,6 @@ func _get_effect_summary(effects: Array) -> String:
 
 	return "\n".join(names)
 
-
-
-# Formatting Helper Functions #
 func _format_enum_key(key: String) -> String:
 	# Convert "LIKE_THIS" → "Like This"
 	var words = key.split("_")
@@ -110,6 +102,7 @@ func _format_enum_key(key: String) -> String:
 		words[i] = words[i].capitalize()
 	return " ".join(words)
 
+# Logic
 func _serialize_effects(effects: Array) -> Array:
 	var serialized_effects = []
 	for effect in effects:

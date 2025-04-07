@@ -8,12 +8,12 @@ layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_umg5j")
 
-[node name="LoadSaveMapPopUp" type="Window" parent="."]
+[node name="MapPopUp" type="Window" parent="."]
 initial_position = 1
 size = Vector2i(400, 500)
 visible = false
 
-[node name="MarginContainer" type="MarginContainer" parent="LoadSaveMapPopUp"]
+[node name="MarginContainer" type="MarginContainer" parent="MapPopUp"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -26,10 +26,10 @@ theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 12
 
-[node name="VBoxContainer" type="VBoxContainer" parent="LoadSaveMapPopUp/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MapPopUp/MarginContainer"]
 layout_mode = 2
 
-[node name="PopUpTitle" type="Label" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+[node name="PopUpTitle" type="Label" parent="MapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
@@ -37,39 +37,39 @@ theme_override_fonts/font = ExtResource("2_38bw8")
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 
-[node name="ThumbnailView" type="TextureRect" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+[node name="ThumbnailView" type="TextureRect" parent="MapPopUp/MarginContainer/VBoxContainer"]
 visible = false
 custom_minimum_size = Vector2(256, 256)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="MapList" type="VBoxContainer" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer"]
+[node name="MapList" type="VBoxContainer" parent="MapPopUp/MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="MapNameInput" type="LineEdit" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+[node name="MapNameInput" type="LineEdit" parent="MapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 8
 
-[node name="HBoxContainer" type="HBoxContainer" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MapPopUp/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 8
 
-[node name="LoadButton" type="Button" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="LoadButton" type="Button" parent="MapPopUp/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Load Map"
 
-[node name="SaveButton" type="Button" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="SaveButton" type="Button" parent="MapPopUp/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Save Map"
 
-[node name="SaveAsButton" type="Button" parent="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="SaveAsButton" type="Button" parent="MapPopUp/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Save As"
 
@@ -132,9 +132,9 @@ layout_mode = 2
 size_flags_vertical = 10
 text = "OK"
 
-[connection signal="close_requested" from="LoadSaveMapPopUp" to="." method="_on_load_save_map_pop_up_close_requested"]
-[connection signal="text_changed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput" to="." method="_on_map_name_input_text_changed"]
-[connection signal="pressed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/LoadButton" to="." method="_on_load_button_pressed"]
-[connection signal="pressed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
-[connection signal="pressed" from="LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveAsButton" to="." method="_on_save_as_button_pressed"]
+[connection signal="close_requested" from="MapPopUp" to="." method="_on_load_save_map_pop_up_close_requested"]
+[connection signal="text_changed" from="MapPopUp/MarginContainer/VBoxContainer/MapNameInput" to="." method="_on_map_name_input_text_changed"]
+[connection signal="pressed" from="MapPopUp/MarginContainer/VBoxContainer/HBoxContainer/LoadButton" to="." method="_on_load_button_pressed"]
+[connection signal="pressed" from="MapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="MapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveAsButton" to="." method="_on_save_as_button_pressed"]
 [connection signal="pressed" from="ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationPopupOKButton" to="." method="_on_confirmation_popup_ok_button_pressed"]

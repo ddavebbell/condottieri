@@ -25,15 +25,16 @@ func get_tile_data() -> Dictionary:
 func clear_grid():
 	for cell: Vector2i in get_used_cells():  # ✅ Ensure `cell` is `Vector2i`
 		erase_cell(cell)  # ✅ Removes tile from the tilemap layer
-#
-#
+
+
 #func set_tile_layer(current_tile_layer: TileGrid):
 	#if current_tile_layer == null:
 		#print("❌ ERROR: Trying to set NULL TileLayer!")
 		#return
 	#tile_layer = current_tile_layer
 	#print("✅ TileLayer set:", tile_layer)
-#
+
+
 #func get_current_tile_data():
 	#if tile_layer == null:
 		#print("❌ ERROR: TileLayer is NULL")

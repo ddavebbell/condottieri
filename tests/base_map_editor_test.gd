@@ -3,19 +3,22 @@ extends Node
 class_name BaseMapEditorTest
 
 var map_editor_screen
-var trigger_manager
+var board_event_manager
 var trigger_editor
 
+
+
 func _setup_map_editor():
-	var scene := preload("res://scenes/MapEditor.tscn")
+	var scene = preload("res://scenes/MapEditorScreen.tscn")
 	map_editor_screen = scene.instantiate()
 	add_child(map_editor_screen)
 
 
-func _setup_trigger_manager():
-	var trigger_manager_scene = preload("res://scenes/TriggerManager.tscn")
-	trigger_manager = trigger_manager_scene.instantiate()
-	add_child(trigger_manager)
+# does this do anything
+func _setup_board_event_manager():
+	var board_event_manager_scene = preload("res://scenes/BoardEventManager.tscn")
+	board_event_manager = board_event_manager_scene.instantiate()
+	add_child(board_event_manager)
 
 
 func _setup_trigger_editor():

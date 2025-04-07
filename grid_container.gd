@@ -1,5 +1,15 @@
 extends Control
 
+class_name MapGridContainer
+
+
+# this all needs editing
+# this all needs editing
+# this all needs editing
+# this all needs editing
+# this all needs editing
+
+
 
 const GRID_SIZE = 48
 const GRID_WIDTH = 14
@@ -17,8 +27,8 @@ signal triggers_loaded(triggers)  # ✅ Define a signal
 
 
 @onready var load_save_map_popup = $/root/MapEditor/MapEditorPopUp
-@onready var trigger_manager = preload("res://scripts/triggers_and_effects/trigger_manager.gd").new()  # Load Trigger Manager
-@onready var map_editor_screen = preload("res://scenes/MapEditor.tscn")
+@onready var board_event_manager = preload("res://scripts/core/board_event_manager.gd").new()  # Load Trigger Manager
+@onready var map_editor_screen = preload("res://scenes/MapEditorScreen.tscn")
 
 
 func _ready():
@@ -28,87 +38,87 @@ func _ready():
 	connect("resized", Callable(self, "on_resized"))
 
 
-func _input(event): # Tracks the mouse input events of drag and drop
-	# Handle mouse motion (hovering over tiles)
-	if event is InputEventMouseMotion:
-		var local_pos = event.position - global_position  # Convert to local space
-		var adjusted_pos = local_pos - grid_offset
-		var grid_pos = snap_to_grid(adjusted_pos)
-		
-		if is_within_grid(grid_pos):
-			if is_tile_occupied(grid_pos):
-				if hovered_tile != placed_tiles[grid_pos]:
-					clear_highlight()  # Remove previous highlight
-					hovered_tile = placed_tiles[grid_pos]
-					highlight_tile(hovered_tile)
-					print("Tile being highlighted:", hovered_tile)
-			else:
-				if hovered_tile != null:
-					clear_highlight()  # Only clear if there's an active highlight
-					print("Tile highlight cleared")
-		else:
-			if hovered_tile != null:
-				clear_highlight()  # Only clear if there's an active highlight
-				print("Tile highlight cleared")
-				
-
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var local_pos = event.position - global_position
-		var adjusted_pos = local_pos - grid_offset
-		var grid_pos = snap_to_grid(adjusted_pos)
-	
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-		var local_pos = event.position - global_position
-		var adjusted_pos = local_pos - grid_offset
-		var grid_pos = snap_to_grid(adjusted_pos)
-		
-		if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
-			remove_tile(grid_pos)
-			clear_highlight()  # Clear highlight when a tile is deleted
+#func _input(event): # Tracks the mouse input events of drag and drop
+	## Handle mouse motion (hovering over tiles)
+	#if event is InputEventMouseMotion:
+		#var local_pos = event.position - global_position  # Convert to local space
+		#var adjusted_pos = local_pos - grid_offset
+		#var grid_pos = snap_to_grid(adjusted_pos)
+		#
+		#if is_within_grid(grid_pos):
+			#if is_tile_occupied(grid_pos):
+				#if hovered_tile != placed_tiles[grid_pos]:
+					#clear_highlight()  # Remove previous highlight
+					#hovered_tile = placed_tiles[grid_pos]
+					#highlight_tile(hovered_tile)
+					#print("Tile being highlighted:", hovered_tile)
+			#else:
+				#if hovered_tile != null:
+					#clear_highlight()  # Only clear if there's an active highlight
+					#print("Tile highlight cleared")
+		#else:
+			#if hovered_tile != null:
+				#clear_highlight()  # Only clear if there's an active highlight
+				#print("Tile highlight cleared")
+				#
+#
+	#if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		#var local_pos = event.position - global_position
+		#var adjusted_pos = local_pos - grid_offset
+		#var grid_pos = snap_to_grid(adjusted_pos)
+	#
+	#if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		#var local_pos = event.position - global_position
+		#var adjusted_pos = local_pos - grid_offset
+		#var grid_pos = snap_to_grid(adjusted_pos)
+		#
+		#if is_within_grid(grid_pos) and is_tile_occupied(grid_pos):
+			#remove_tile(grid_pos)
+			#clear_highlight()  # Clear highlight when a tile is deleted
 
 
 ## # CREATE GRID AND MAINTAIN IT # # # #
 
-func _draw():
-	var grid_color = Color(0.3, 0.3, 0.3, 0.8)
-	
-	for x in range(GRID_WIDTH + 1):
-		draw_line(
-			grid_offset + Vector2(x * GRID_SIZE, 0), 
-			grid_offset + Vector2(x * GRID_SIZE, GRID_HEIGHT * GRID_SIZE),
-			grid_color
-			)
-	for y in range(GRID_HEIGHT + 1):
-		draw_line(
-			grid_offset + Vector2(0, y * GRID_SIZE), 
-			grid_offset + Vector2(GRID_WIDTH * GRID_SIZE, y * GRID_SIZE), 
-			grid_color
-			)
-	if hovered_tile:
-		draw_rect(Rect2(hovered_tile.position, Vector2(GRID_SIZE, GRID_SIZE)), Color(0, 1, 0, 0.3), true)
-
-func _on_resized():
-	calculate_grid_offset() # Recalculate center position
-	update_tile_positions() # Adjust tiles
-	queue_redraw()
-
-func update_tile_positions():
-	for grid_pos in placed_tiles.keys():
-		var tile = placed_tiles[grid_pos]
-		tile.position = grid_to_pixel(grid_pos)
-
-
-
-		## # # # GRID NAVIGATION FUNCTIONALITY # # # ##
-
-func calculate_grid_offset():
-	var parent = get_parent() # Get the parent MainMapDisplay
-	
-	if parent:
-		position = grid_offset # Calculate the centered position within the parent container
-		
-		update_tile_positions()
-		queue_redraw()
+#func _draw():
+	#var grid_color = Color(0.3, 0.3, 0.3, 0.8)
+	#
+	#for x in range(GRID_WIDTH + 1):
+		#draw_line(
+			#grid_offset + Vector2(x * GRID_SIZE, 0), 
+			#grid_offset + Vector2(x * GRID_SIZE, GRID_HEIGHT * GRID_SIZE),
+			#grid_color
+			#)
+	#for y in range(GRID_HEIGHT + 1):
+		#draw_line(
+			#grid_offset + Vector2(0, y * GRID_SIZE), 
+			#grid_offset + Vector2(GRID_WIDTH * GRID_SIZE, y * GRID_SIZE), 
+			#grid_color
+			#)
+	#if hovered_tile:
+		#draw_rect(Rect2(hovered_tile.position, Vector2(GRID_SIZE, GRID_SIZE)), Color(0, 1, 0, 0.3), true)
+#
+#func _on_resized():
+	#calculate_grid_offset() # Recalculate center position
+	#update_tile_positions() # Adjust tiles
+	#queue_redraw()
+#
+#func update_tile_positions():
+	#for grid_pos in placed_tiles.keys():
+		#var tile = placed_tiles[grid_pos]
+		#tile.position = grid_to_pixel(grid_pos)
+#
+#
+#
+		### # # # GRID NAVIGATION FUNCTIONALITY # # # ##
+#
+#func calculate_grid_offset():
+	#var parent = get_parent() # Get the parent MainMapDisplay
+	#
+	#if parent:
+		#position = grid_offset # Calculate the centered position within the parent container
+		#
+		#update_tile_positions()
+		#queue_redraw()
 
 func highlight_tile(tile):
 	tile.modulate = Color(1.5, 1.5, 1.5, 1.0)  # Brighten the tile slightly
@@ -136,37 +146,35 @@ func remove_tile(grid_pos: Vector2):
 func _can_drop_data(_pos, _data) -> bool:
 	return true  # Allow all drops for now
 
-func _drop_data(pos: Vector2, data: Variant):
-	var local_pos = pos - global_position # convert to local space
-	var adjusted_pos = local_pos - grid_offset # Correct for grid offset
-	var grid_pos = snap_to_grid(adjusted_pos)
-	
-	
-	
-	if is_within_grid(grid_pos) and not is_tile_occupied(grid_pos):
-		place_tile(grid_pos, data["texture"])
-		print("Tile successfully placed at:", grid_pos, 
-			  "Actual pixel position:", grid_to_pixel(grid_pos))
-	else:
-		print("Invalid placement at:", grid_pos, "Adjusted Pos:", adjusted_pos)
-
-func snap_to_grid(pos: Vector2) -> Vector2:
-	var adjusted_pos = pos - grid_offset
-	
-	
-	return Vector2(
-		floor(adjusted_pos.x / GRID_SIZE),
-		floor(adjusted_pos.y / GRID_SIZE)
-		)
-
-func grid_to_pixel(grid_pos: Vector2) -> Vector2:
-	var pixel_pos = Vector2(
-		grid_pos.x * GRID_SIZE + grid_offset.x, 
-		grid_pos.y * GRID_SIZE + grid_offset.y
-	) + position
-	
-	
-	return pixel_pos
+#func _drop_data(pos: Vector2, data: Variant):
+	#var local_pos = pos - global_position # convert to local space
+	#var adjusted_pos = local_pos - grid_offset # Correct for grid offset
+	##var grid_pos = snap_to_grid(adjusted_pos)
+	#
+	#if is_within_grid(grid_pos) and not is_tile_occupied(grid_pos):
+		#place_tile(grid_pos, data["texture"])
+		#print("Tile successfully placed at:", grid_pos)
+			  ##"Actual pixel position:", grid_to_pixel(grid_pos))
+	#else:
+		#print("Invalid placement at:", grid_pos, "Adjusted Pos:", adjusted_pos)
+#
+#func snap_to_grid(pos: Vector2) -> Vector2:
+	#var adjusted_pos = pos - grid_offset
+	#
+	#
+	#return Vector2(
+		#floor(adjusted_pos.x / GRID_SIZE),
+		#floor(adjusted_pos.y / GRID_SIZE)
+		#)
+#
+#func grid_to_pixel(grid_pos: Vector2) -> Vector2:
+	#var pixel_pos = Vector2(
+		#grid_pos.x * GRID_SIZE + grid_offset.x, 
+		#grid_pos.y * GRID_SIZE + grid_offset.y
+	#) + position
+	#
+	#
+	#return pixel_pos
 
 func is_within_grid(grid_pos: Vector2) -> bool:
 	return grid_pos.x >= 0 and grid_pos.y >= 0 and \
@@ -187,7 +195,7 @@ func place_tile(grid_pos: Vector2, texture: Texture):
 	tile.expand = true
 	tile.size = Vector2(GRID_SIZE, GRID_SIZE) # Ensure tile fits exactly into one grid cell
 	tile.modulate = Color(1, 1, 1, 1)  # Ensure new tile starts with default color
-	tile.position = grid_to_pixel(grid_pos)
+	#tile.position = grid_to_pixel(grid_pos)
 	
 	add_child(tile)
 	placed_tiles[grid_pos] = tile
@@ -252,7 +260,6 @@ func _load_triggers(trigger_data: Array):
 func create_new_trigger(data):
 	var new_trigger = Trigger.new()
 	new_trigger.cause = data["cause"]
-	new_trigger.trigger_area_type = data.get("trigger_area_type", Trigger.AreaType.LOCAL)
 	new_trigger.trigger_tiles = data.get("trigger_tiles", []) if data.get("trigger_tiles") is Array else []
 	new_trigger.sound_effect = data.get("sound_effect", "")
 	new_trigger.effects = _deserialize_effects(data.get("effects", []))
@@ -332,8 +339,9 @@ func save_map(map_name: String, map_data: Dictionary) -> String: # Save map and 
 	if not map_data.has("tiles"):
 		map_data["tiles"] = {}
 	
-	#if not map_data.has("triggers"):
-		#map_data["triggers"] = trigger_manager.get_all_triggers() if trigger_manager else []
+	#change to boardevents
+	#if not map_data.has("board event"):
+		#map_data["board_events"] = board_event_manager.get_all_triggers() if board_event_manager else []
 
 	# ✅ Ensure tiles are stored properly
 	for grid_pos in placed_tiles.keys():

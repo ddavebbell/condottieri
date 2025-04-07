@@ -7,9 +7,10 @@ class_name Map
 @export var name: String = "New Map"
 @export var thumbnail: Texture2D
 
-@export var description: String = ""		# Future functionality
-@export var version: int = 1    			# Future functionality
-@export var tags: Array[String] = []		# Future functionality
+@export var description: String = ""
+@export var version: int = 1    
+@export var created_date: String = ""
+@export var tags: Array = []
 
 # === Core Data ===
 @export var tiles: Dictionary = {}        # From GridManager

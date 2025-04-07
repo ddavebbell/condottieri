@@ -5,7 +5,19 @@ class_name MapEditorPopUp
 #region @onready variables
 	## Map Editor Screen Info ##
 @onready var current_filename: String = ""  # Tracks the current map file name
+
+# what is this about #
 @onready var map_list_screen = get_tree().get_root().find_child("MapListScreen", true, false)
+
+	## Map Editor Pop Up VARIABLES ##
+@onready var map_popup = $MapPopUp
+@onready var title_label = $MapPopUp/MarginContainer/VBoxContainer/PopUpTitle
+@onready var thumbnail_view = $MapPopUp/MarginContainer/VBoxContainer/ThumbnailView
+@onready var map_list = $MapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
+@onready var map_name_input = $MapPopUp/MarginContainer/VBoxContainer/MapNameInput
+@onready var load_button = $MapPopUp/MarginContainer/VBoxContainer/HBoxContainer/LoadButton
+@onready var save_button = $MapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveButton
+@onready var save_as_button = $MapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveAsButton
 
 	## Error Pop Up VARIABLES ##
 @onready var error_popup = $ErrorPopUp
@@ -17,15 +29,7 @@ class_name MapEditorPopUp
 @onready var confirmation_label = $ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationMessage
 @onready var confirmation_ok_button = $ConfirmationPopUp/MarginContainer/VBoxContainer/ConfirmationPopupOKButton
 
-	## Map Editor Pop Up VARIABLES ##
-@onready var load_save_map_popup = $LoadSaveMapPopUp
-@onready var title_label = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/PopUpTitle
-@onready var thumbnail_view = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ThumbnailView
-@onready var map_list = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
-@onready var map_name_input = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/MapNameInput
-@onready var load_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/LoadButton
-@onready var save_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveButton
-@onready var save_as_button = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/HBoxContainer/SaveAsButton
+
 
 #endregion
 
@@ -140,47 +144,38 @@ func _ready():
 
 #region setting up_UI
 
+# changing to open as load context
 func open_as_load():
-	popup_mode = "load"
-	title_label.text = "Load Map"
-	map_name_input.hide()  
+	pass
+	#popup_mode = "load"
+	#title_label.text = "Load Map"
+	#map_name_input.hide()  
+#
+#
+	#if not save_button or not save_as_button or not load_button:
+		#print("❌ ERROR: One or more buttons were NOT found in LoadSaveMapPopUp!")
+		#return
+#
+	## ✅ Ensure proper button visibility
+	#save_button.visible = false
+	#save_as_button.visible = false
+	#load_button.visible = true  # Only Load should be visible
+	#print("✅ Button visibility updated for Load Map mode.")
+#
+	##populate_saveload_map_list()  # ✅ Populate the list
+#
+	#var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
+	#if map_list_panel:
+		#map_list_panel.visible = true  
+		#print("✅ Forced map_list_panel to be visible!")
+#
+	#load_save_map_popup.show()
 
-	# Print button node paths
-	#print("🔎 Debugging Buttons in LoadSaveMapPopUp")
-	#print("👉 save_button path:", save_button)
-	#print("👉 save_as_button path:", save_as_button)
-	#print("👉 load_button path:", load_button)
-
-	if not save_button or not save_as_button or not load_button:
-		print("❌ ERROR: One or more buttons were NOT found in LoadSaveMapPopUp!")
-		return
-
-	# ✅ Ensure proper button visibility
-	save_button.visible = false
-	save_as_button.visible = false
-	load_button.visible = true  # Only Load should be visible
-	print("✅ Button visibility updated for Load Map mode.")
-
-	#populate_saveload_map_list()  # ✅ Populate the list
-
-	var map_list_panel = $LoadSaveMapPopUp/MarginContainer/VBoxContainer/ScrollContainer/MapList
-	if map_list_panel:
-		map_list_panel.visible = true  
-		print("✅ Forced map_list_panel to be visible!")
-
-	load_save_map_popup.show()
-
-
+# context 
 func open_as_save():
 	popup_mode = "save"
 	title_label.text = "Save map as..."
 	map_name_input.show()
-
-	# Print button node paths
-	#print("🔎 Debugging Buttons in LoadSaveMapPopUp")
-	#print("👉 save_button path:", save_button)
-	#print("👉 save_as_button path:", save_as_button)
-	#print("👉 load_button path:", load_button)
 
 	if not save_button or not save_as_button or not load_button:
 		print("❌ ERROR: One or more buttons were NOT found in LoadSaveMapPopUp!")
@@ -198,7 +193,7 @@ func open_as_save():
 		map_list.visible = true  
 		print(" Forced map_list_panel to be visible!")
 
-	load_save_map_popup.show()
+	map_popup.show()
 
 
 #func _on_saveload_map_selected(map_name: String, button: Button):
@@ -246,7 +241,6 @@ func set_popup_title(title_text: String):
 		title_label.text = title_text
 
 
-
 #func show_confirmation_popup(message: String):
 	#if confirmation_popup and confirmation_label:
 		#print("✅ Confirmation label found:", confirmation_label.name)
@@ -263,11 +257,9 @@ func set_popup_title(title_text: String):
 		#print("❌ ERROR: ConfirmationPopup UI is missing!")
 
 
-
 #func set_grid_container(grid_ref):
 	#grid_container = grid_ref
 	#print("✅ grid_container reference set in pop-up:", grid_container)
-
 
 
 				## ## ## ## ## ## ## ## ##
@@ -320,7 +312,7 @@ func set_popup_title(title_text: String):
 		#map_data = { "tiles": {}, "triggers": [] }  # ✅ Create empty data
 	#
 		## ✅ Ensure `triggers` are included in `map_data`
-	#map_data["triggers"] = grid_container.trigger_manager.get_all_triggers() if grid_container.trigger_manager else []
+	#map_data["triggers"] = grid_container.board_event_manager.get_all_triggers() if grid_container.board_event_manager else []
 	#
 		## ✅ Save the map with the correct arguments
 	#grid_container.save_map(map_name, map_data)  # ✅ Now passes BOTH arguments
@@ -355,7 +347,6 @@ func set_popup_title(title_text: String):
 		#print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
 
 
-
 #func get_selected_map_button() -> Button:
 	## ✅ If a selected button exists, return it
 	#if selected_map_button:
@@ -374,14 +365,13 @@ func set_popup_title(title_text: String):
 	#return null
 
 
-
 	## Open Save Menu Functionality ##
 
 
 
 #func _on_confirm_save_map():
 	#var new_map_name = map_name_input.text.strip_edges()
-	#
+	
 	## ✅ Prevent saving an empty map name
 	#if new_map_name.is_empty():
 		#print("❌ Map name cannot be empty!")
@@ -461,8 +451,8 @@ func set_popup_title(title_text: String):
 #
 	## ✅ Show confirmation message after successful save
 	#show_confirmation_popup("✅ Map saved successfully!")
-#
-#
+
+
 ##func save_map(map_name):
 	##if grid_container:
 		##grid_container.save_map(map_name)  # ✅ Calls existing function in grid_container.gd
@@ -470,6 +460,17 @@ func set_popup_title(title_text: String):
 	##else:
 		##print("❌ ERROR: grid_container is not set in MapEditorPopUp!")
 
+
+#func show_confirmation_popup(message: String):
+	#if confirmation_popup and confirmation_label:
+		#print("✅ Confirmation label found:", confirmation_label.name)
+		#confirmation_label.text = message
+		#confirmation_label.show()
+		#confirmation_popup.popup_centered()
+		#print("✅ Confirmation popup displayed on top:", message)
+	#else:
+		#print("❌ ERROR: ConfirmationPopup UI is missing!")
+#
 
 
 #func _on_save_menu_input_changed(new_name):
@@ -484,7 +485,6 @@ func set_popup_title(title_text: String):
 					## ## ## ## ## ##
 					## Error Logic ##
 					## ## ## ## ## ## 
-
 
 
 #func _on_error_popup_ok_button_pressed() -> void:
@@ -514,7 +514,6 @@ func set_popup_title(title_text: String):
 		#error_popup.popup_centered()  # Show the popup
 	#else:
 		#print("❌ Error Popup UI is missing!")
-
 
 
 			##    ##   ##    ##    ##    ##   ##
@@ -622,9 +621,9 @@ func get_user_selected_map() -> String:
 
 
 func _on_load_save_map_pop_up_close_requested() -> void:
-	if load_save_map_popup and load_save_map_popup.visible:
+	if map_popup and map_popup.visible:
 		print("🛑 LoadSaveMapPopUp closed!")
-		load_save_map_popup.hide()
+		map_popup.hide()
 	else:
 		print("✅ LoadSaveMapPopUp was already hidden, ignoring...")
 
@@ -633,7 +632,7 @@ func _on_load_save_map_pop_up_close_requested() -> void:
 	#selected_map_name = map_name  # ✅ Directly assign string
 	#print("✅ Selected map:", selected_map_name)
 
-#
+
 #func _on_confirmation_popup_ok_button_pressed() -> void:
 	#if confirmation_popup:
 		#confirmation_popup.hide()

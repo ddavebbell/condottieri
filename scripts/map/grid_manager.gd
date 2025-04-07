@@ -17,7 +17,7 @@ const COLOR_2 = Color(0.25, 0.25, 0.25, 1.0)  # Dark grey
 func _ready():
 	create_grid(grid_size)
 
-
+# Factory
 func create_grid(size: Vector2):
 	grid_size = size  # Store the grid size
 	clear_grid()
@@ -36,7 +36,7 @@ func create_grid(size: Vector2):
 			cloned_rect.position = Vector2(x * CELL_SIZE, y * CELL_SIZE)
 			base_grid_layer.add_child(cloned_rect)
 
-
+# Setter
 func clear_grid():
 	# First, remove all children in the base grid layer
 	for child in base_grid_layer.get_children():
@@ -47,8 +47,7 @@ func clear_grid():
 		for cell in layer.get_used_cells():  # No arguments needed in Godot 4
 			layer.erase_cell(cell)  # Only needs `Vector2i` position
 
-
-# Retrieve tile data from TileLayer
+# GETTER / Retrieve tile data from TileLayer
 func get_current_map_data() -> Dictionary:
 	if not tile_layer:
 		print("❌ ERROR: `TileLayer` not found in `GridManager`!")
@@ -56,7 +55,7 @@ func get_current_map_data() -> Dictionary:
 
 	return tile_layer.get_tile_data()  # ✅ Fetches data from TileMap
 
-
+# Utility Logic
 func grid_manager_place_tile(grid_position: Vector2i, tile_type: int) -> void:
 	if tile_layer:
 		tile_layer.tile_layer_place_tile(grid_position, tile_type)  # ✅ Forward request
@@ -65,8 +64,7 @@ func grid_manager_place_tile(grid_position: Vector2i, tile_type: int) -> void:
 		print("❌ ERROR: TileLayer not found in GridManager!")
 
 
-# # # # Helper Function # # # # 
-
+# Factory
 func create_grey_colorrect(size: int = CELL_SIZE, color: Color = Color(0.7, 0.7, 0.7, 1.0)) -> ColorRect:
 	# Check for valid size
 	if size <= 0:

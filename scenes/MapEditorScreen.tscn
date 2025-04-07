@@ -1,0 +1,452 @@
+[gd_scene load_steps=18 format=3 uid="uid://drfqmivyn38xg"]
+
+[ext_resource type="Script" path="res://scripts/ui/map_editor_screen.gd" id="1_pv0xr"]
+[ext_resource type="Texture2D" uid="uid://dgvvrx0qys3fm" path="res://Images/UNDO-icon.png" id="2_2qcdl"]
+[ext_resource type="Script" path="res://scripts/map/grid_manager.gd" id="2_05vpw"]
+[ext_resource type="Texture2D" uid="uid://q43ien5w022" path="res://Images/REDO-icon.png" id="3_7rtkj"]
+[ext_resource type="Script" path="res://scripts/map/tile_layer.gd" id="3_8f75a"]
+[ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="4_qvgld"]
+[ext_resource type="Texture2D" uid="uid://bxurxurdtxxo4" path="res://Images/Condoterri - ATLAS TEXTURE - map tiles.png" id="5_iq2s5"]
+[ext_resource type="Script" path="res://scripts/map/tile.gd" id="6_q0006"]
+[ext_resource type="Script" path="res://scripts/ui/divider_script.gd" id="7_212uq"]
+[ext_resource type="PackedScene" uid="uid://bxv0deocrf5tp" path="res://scenes/map_editor_pop_up.tscn" id="8_p1581"]
+[ext_resource type="StyleBox" uid="uid://b7k8mc3jnlr43" path="res://scenes/PanelStyle1.tres" id="11_wvnfo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5vf8v"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pymwu"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="TileSet" id="TileSet_owkkn"]
+tile_size = Vector2i(32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bkcn6"]
+atlas = ExtResource("5_iq2s5")
+region = Rect2(3, 3, 94, 94)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j64dk"]
+atlas = ExtResource("5_iq2s5")
+region = Rect2(250, 221, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gqwlr"]
+atlas = ExtResource("5_iq2s5")
+region = Rect2(0, 336, 94, 94)
+
+[node name="MapEditorScreen" type="Control"]
+layout_mode = 3
+anchor_top = 0.069
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -9.68
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+script = ExtResource("1_pv0xr")
+
+[node name="ContextMenuContainer" type="HSplitContainer" parent="."]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ContextMenuContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_right = 0
+
+[node name="Panel" type="Panel" parent="ContextMenuContainer/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_5vf8v")
+
+[node name="EditMapInfoButton" type="Button" parent="ContextMenuContainer/MarginContainer/Panel"]
+z_index = 1
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.908
+anchor_top = 0.112
+anchor_right = 0.995
+anchor_bottom = 0.887
+offset_left = 0.207886
+offset_top = 0.02
+offset_right = 0.369873
+offset_bottom = 0.0200005
+grow_horizontal = 0
+grow_vertical = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+text = "Edit Map Info"
+
+[node name="MapNameLabel" type="RichTextLabel" parent="ContextMenuContainer/MarginContainer/Panel"]
+layout_mode = 2
+anchor_left = 0.023
+anchor_top = 0.2
+anchor_right = 0.315
+anchor_bottom = 0.825
+offset_left = -0.302002
+offset_right = -0.310028
+size_flags_horizontal = 4
+text = "Untitled Map"
+
+[node name="MapViewDropdown" type="OptionButton" parent="ContextMenuContainer/MarginContainer/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.358
+anchor_top = 0.15
+anchor_right = 0.512
+anchor_bottom = 0.825
+offset_left = -0.0920105
+offset_right = -0.288025
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UndoButton" type="Button" parent="ContextMenuContainer/MarginContainer/Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.853
+anchor_top = 0.15
+anchor_right = 0.875
+anchor_bottom = 0.856
+offset_left = -332.722
+offset_right = -250.75
+offset_bottom = 84.76
+grow_vertical = 2
+scale = Vector2(0.25, 0.25)
+disabled = true
+icon = ExtResource("2_2qcdl")
+
+[node name="RedoButton" type="Button" parent="ContextMenuContainer/MarginContainer/Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.88
+anchor_top = 0.15
+anchor_right = 0.903
+anchor_bottom = 0.856
+offset_left = -333.12
+offset_right = -246.422
+offset_bottom = 84.76
+grow_vertical = 2
+scale = Vector2(0.25, 0.25)
+disabled = true
+icon = ExtResource("3_7rtkj")
+
+[node name="HSplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.116118
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -39.96
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.15
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="GridContainer" type="Panel" parent="HSplitContainer/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pymwu")
+
+[node name="GridManager" type="Node2D" parent="HSplitContainer/MarginContainer/GridContainer"]
+script = ExtResource("2_05vpw")
+
+[node name="BaseGridLayer" type="TileMapLayer" parent="HSplitContainer/MarginContainer/GridContainer/GridManager"]
+tile_set = SubResource("TileSet_owkkn")
+
+[node name="TileLayer" type="TileMapLayer" parent="HSplitContainer/MarginContainer/GridContainer/GridManager"]
+script = ExtResource("3_8f75a")
+
+[node name="SideMenu" type="Control" parent="HSplitContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu"]
+clip_contents = true
+layout_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -1.0
+size_flags_stretch_ratio = 0.57
+theme_override_constants/margin_top = 6
+
+[node name="MenuWrapper" type="VBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer"]
+layout_mode = 2
+
+[node name="TileMenu" type="PanelContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_styles/panel = ExtResource("11_wvnfo")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="TilesLabel" type="Label" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/HBoxContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("4_qvgld")
+text = "Tiles"
+horizontal_alignment = 1
+
+[node name="DescriptionLabel" type="Label" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 0
+theme_override_colors/font_color = Color(0.356863, 0.356863, 0.356863, 1)
+theme_override_font_sizes/font_size = 10
+text = "Drag and drop to add"
+
+[node name="Tiles_Show_HideButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/HBoxContainer"]
+z_index = 3
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 12
+text = "Show"
+
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/HBoxContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="BoxContainer" type="HBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/MarginContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/MarginContainer/BoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TilesList" type="VBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/MarginContainer/BoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="MarbleTile_white" type="TextureRect" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/MarginContainer/BoxContainer/ScrollContainer/TilesList"]
+z_index = 1
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 0
+texture = SubResource("AtlasTexture_bkcn6")
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("6_q0006")
+
+[node name="MarbleTile_blck" type="TextureRect" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/MarginContainer/BoxContainer/ScrollContainer/TilesList"]
+z_index = 1
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 0
+texture = SubResource("AtlasTexture_j64dk")
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("6_q0006")
+
+[node name="GrassTile" type="TextureRect" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/MarginContainer/BoxContainer/ScrollContainer/TilesList"]
+z_index = 1
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 0
+texture = SubResource("AtlasTexture_gqwlr")
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("6_q0006")
+
+[node name="Divider" type="Panel" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+script = ExtResource("7_212uq")
+
+[node name="PiecesMenu" type="PanelContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper"]
+z_index = 2
+layout_mode = 2
+mouse_filter = 1
+theme_override_styles/panel = ExtResource("11_wvnfo")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu"]
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+
+[node name="PiecesLabel" type="Label" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("4_qvgld")
+text = "Pieces
+"
+
+[node name="DescriptionLabel" type="Label" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 0
+theme_override_colors/font_color = Color(0.356863, 0.356863, 0.356863, 1)
+theme_override_font_sizes/font_size = 10
+text = "Drag and drop to add"
+
+[node name="Pieces_Show_HideButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/HBoxContainer"]
+z_index = 3
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 12
+text = "Show"
+
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/HBoxContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/MarginContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+
+[node name="PiecesList" type="VBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Divider2" type="Panel" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+script = ExtResource("7_212uq")
+
+[node name="BoardEventMenu" type="PanelContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_styles/panel = ExtResource("11_wvnfo")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="BoardEventLabel" type="Label" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("4_qvgld")
+text = "Board Events"
+
+[node name="Show_HideButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/HBoxContainer"]
+z_index = 3
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 12
+text = "Show"
+
+[node name="MarginContainer2" type="MarginContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/HBoxContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 8
+
+[node name="CreateButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Create"
+
+[node name="EditButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Edit"
+
+[node name="DeleteButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Delete"
+
+[node name="OpenListButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Open List"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BoardEventList" type="VBoxContainer" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="MapEditorPopUp" parent="." instance=ExtResource("8_p1581")]
+visible = false
+
+[node name="BackingPanel" type="Panel" parent="."]
+visible = false
+z_index = -4
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("11_wvnfo")
+metadata/_edit_lock_ = true
+
+[connection signal="pressed" from="ContextMenuContainer/MarginContainer/Panel/EditMapInfoButton" to="." method="_on_edit_map_info_button_pressed"]
+[connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/HBoxContainer/Tiles_Show_HideButton" to="." method="_on_tile_show_hide_button_pressed"]
+[connection signal="mouse_entered" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider" to="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider" to="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider" method="_on_mouse_exited"]
+[connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/HBoxContainer/Pieces_Show_HideButton" to="." method="_on_pieces_show_hide_button_pressed"]
+[connection signal="mouse_entered" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider2" to="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider2" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider2" to="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/Divider2" method="_on_mouse_exited"]
+[connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/HBoxContainer/Show_HideButton" to="." method="_on_board_event_show_hide_button_pressed"]

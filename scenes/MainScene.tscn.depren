@@ -1,0 +1,41 @@
+[gd_scene load_steps=7 format=3 uid="uid://cyfju01qp2wbs"]
+
+[ext_resource type="Script" path="res://scripts/core/main_scene.gd" id="1_owhn1"]
+[ext_resource type="PackedScene" uid="uid://b3tlo2oegd6iv" path="res://scenes/TaskBar.tscn" id="2_2bn1i"]
+[ext_resource type="PackedScene" uid="uid://c2mtw6kv1v7w6" path="res://scenes/MapListScreen.tscn" id="3_bhflw"]
+[ext_resource type="PackedScene" uid="uid://drfqmivyn38xg" path="res://scenes/MapEditorScreen.tscn" id="4_nwh2b"]
+[ext_resource type="PackedScene" uid="uid://c62mac2dft62j" path="res://scenes/BoardEventEditorScreen.tscn" id="5_gptlg"]
+[ext_resource type="PackedScene" uid="uid://cu5glkwyclsbb" path="res://scenes/BoardEventsList.tscn" id="6_yci3p"]
+
+[node name="MainScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_owhn1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TaskBar" parent="VBoxContainer" instance=ExtResource("2_2bn1i")]
+layout_mode = 2
+
+[node name="MapListScreen" parent="VBoxContainer" instance=ExtResource("3_bhflw")]
+layout_mode = 2
+
+[node name="MapEditor" parent="VBoxContainer" instance=ExtResource("4_nwh2b")]
+visible = false
+layout_mode = 2
+
+[node name="TriggerEditorPanel" parent="VBoxContainer" instance=ExtResource("5_gptlg")]
+visible = false
+layout_mode = 2
+
+[node name="BoardEventsList" parent="VBoxContainer" instance=ExtResource("6_yci3p")]
+visible = false
+layout_mode = 2
