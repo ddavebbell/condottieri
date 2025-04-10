@@ -9,8 +9,8 @@ var map_editor_screen
 var map_editor_popup
 var load_save_map_popup_menu
 var load_save_map_popup_title
-var trigger_manager
-var generated_triggers = []
+var cause_manager
+var generated_causes = []
 
 #region Before & After
 
@@ -21,12 +21,12 @@ func before_each():
 	if not base_test.is_inside_tree():
 		add_child(base_test)
 
-	# Setup map editor and trigger manager
+	# Setup map editor and cause manager
 	await base_test._setup_map_editor()
-	await base_test._setup_trigger_manager()
+	await base_test._setup_cause_manager()
 
 	map_editor_screen = base_test.map_editor_screen
-	trigger_manager = base_test.trigger_manager
+	cause_manager = base_test.cause_manager
 
 	# Wait for TileLayer to exist using base_test helper
 	var tile_layer_path := "HSplitContainer/MarginContainer/MainMapDisplay/GridContainer/GridManager/TileLayer"
@@ -69,9 +69,9 @@ func after_each():
 			map_editor_screen.remove_child(child)
 			child.queue_free()
 
-		# Clear triggers
-		if map_editor_screen.triggers:
-			map_editor_screen.triggers.clear()
+		# Clear causes
+		if map_editor_screen.causes:
+			map_editor_screen.causes.clear()
 
 	# Free popup menu
 	if is_instance_valid(load_save_map_popup_menu):
@@ -85,17 +85,17 @@ func after_each():
 		map_editor_popup.queue_free()
 		map_editor_popup = null
 
-	# Clear generated mock triggers
-	generated_triggers.clear()
+	# Clear generated mock causes
+	generated_causes.clear()
 
 	# Final cleanup via base_test
 	if is_instance_valid(map_editor_screen):
 		await base_test._cleanup_node_and_children(map_editor_screen)
-	if is_instance_valid(trigger_manager):
-		await base_test._cleanup_node_and_children(trigger_manager)
+	if is_instance_valid(cause_manager):
+		await base_test._cleanup_node_and_children(cause_manager)
 
 	map_editor_screen = null
-	trigger_manager = null
+	cause_manager = null
 
 	print("🧹 Base cleanup starting...")
 	await get_tree().process_frame
@@ -162,7 +162,7 @@ func test_on_save_map_button_pressed():
 
 func test_on_load_map_button_pressed():
 	map_editor_screen._on_load_map_button_pressed()
-	print("✅ Load Map button should trigger pop-up.")
+	print("✅ Load Map button should cause pop-up.")
 
 
 func test_on_map_loaded():
@@ -174,115 +174,115 @@ func test_on_map_loaded():
 #endregion
 
 
-#region Trigger Related Logic
+#region cause Related Logic
 
-# func test_serialize_triggers():
-#     var serialized_triggers = map_editor_screen._serialize_triggers()
-#     assert_eq(serialized_triggers.size(), map_editor_screen.triggers.size(), "❌ ERROR: Serialized triggers mismatch!")
+# func test_serialize_causes():
+#     var serialized_causes = map_editor_screen._serialize_causes()
+#     assert_eq(serialized_causes.size(), map_editor_screen.causes.size(), "❌ ERROR: Serialized causes mismatch!")
 #     print("✅ Serialization works.")
 
 
-# func test_on_edit_trigger_pressed():
+# func test_on_edit_cause_pressed():
 #     var mock_button = Button.new()
-#     mock_button.set_meta("trigger_data", { "cause": "piece_captured" })
-#     map_editor_screen._on_edit_trigger_pressed(mock_button)
-#     print("✅ Edit Trigger button works.")
+#     mock_button.set_meta("cause_data", { "cause": "piece_captured" })
+#     map_editor_screen._on_edit_cause_pressed(mock_button)
+#     print("✅ Edit cause button works.")
 
-# func test_on_trigger_saved():
-#     var mock_trigger = Trigger.new()
-#     mock_trigger.cause = "piece_captured"
-#     map_editor_screen._on_trigger_saved(mock_trigger)
-#     print("✅ Trigger saved successfully.")
-
-
-func test_on_create_trigger_pressed():
-	map_editor_screen._on_create_trigger_pressed()
-	assert_not_null(map_editor_screen.trigger_manager, "❌ ERROR: TriggerManager was not created!")
-	print("✅ Trigger Manager created successfully.")
+# func test_on_cause_saved():
+#     var mock_cause = cause.new()
+#     mock_cause.cause = "piece_captured"
+#     map_editor_screen._on_cause_saved(mock_cause)
+#     print("✅ cause saved successfully.")
 
 
-func test_on_triggers_loaded():
-	var mock_trigger_data = generate_mock_triggers()
-	map_editor_screen._on_triggers_loaded(mock_trigger_data)
-	assert_eq(map_editor_screen.triggers.size(), generate_mock_triggers().size(), "❌ ERROR: Triggers not loaded correctly!")
-	print("✅ Triggers loaded successfully.")
+func test_on_create_cause_pressed():
+	map_editor_screen._on_create_cause_pressed()
+	assert_not_null(map_editor_screen.cause_manager, "❌ ERROR: causeManager was not created!")
+	print("✅ cause Manager created successfully.")
+
+
+func test_on_causes_loaded():
+	var mock_cause_data = generate_mock_causes()
+	map_editor_screen._on_causes_loaded(mock_cause_data)
+	assert_eq(map_editor_screen.causes.size(), generate_mock_causes().size(), "❌ ERROR: causes not loaded correctly!")
+	print("✅ causes loaded successfully.")
 	
 
-func test_on_triggers_loaded_with_valid_triggers():
-	print("🔬 Running: test_on_triggers_loaded_with_valid_triggers")
+func test_on_causes_loaded_with_valid_causes():
+	print("🔬 Running: test_on_causes_loaded_with_valid_causes")
 
-	# Create mock triggers
-	var mock_trigger1 = Trigger.new()
-	var mock_trigger2 = Trigger.new()
+	# Create mock causes
+	var mock_cause1 = cause.new()
+	var mock_cause2 = cause.new()
 
-	var trigger_data = [mock_trigger1, mock_trigger2]
+	var cause_data = [mock_cause1, mock_cause2]
 
 	# Call function
-	map_editor_screen._on_triggers_loaded(trigger_data)
+	map_editor_screen._on_causes_loaded(cause_data)
 
-	# Check if triggers list was updated
-	assert_eq(map_editor_screen.triggers.size(), 2, "❌ Triggers were not added correctly!")
+	# Check if causes list was updated
+	assert_eq(map_editor_screen.causes.size(), 2, "❌ causes were not added correctly!")
 
 	# Ensure UI buttons were updated
-	assert_eq(map_editor_screen.trigger_list.get_child_count(), 2, "❌ Trigger List UI buttons not updated!")
+	assert_eq(map_editor_screen.cause_list.get_child_count(), 2, "❌ cause List UI buttons not updated!")
 
-	print("✅ test_on_triggers_loaded_with_valid_triggers PASSED!")
+	print("✅ test_on_causes_loaded_with_valid_causes PASSED!")
 
 
-func test_on_triggers_loaded_with_invalid_data():
-	print("🔬 Running: test_on_triggers_loaded_with_invalid_data")
+func test_on_causes_loaded_with_invalid_data():
+	print("🔬 Running: test_on_causes_loaded_with_invalid_data")
 
 	# Create mixed invalid data
-	var invalid_trigger1 = { "cause": "Invalid", "effects": ["Effect1"] }  # ❌ Dictionary instead of Trigger
-	var invalid_trigger2 = 42  # ❌ Integer (completely invalid)
-	var invalid_trigger3 = "InvalidString"  # ❌ String (invalid)
-	var trigger_data = [invalid_trigger1, invalid_trigger2, invalid_trigger3]
+	var invalid_cause1 = { "cause": "Invalid", "effects": ["Effect1"] }  # ❌ Dictionary instead of cause
+	var invalid_cause2 = 42  # ❌ Integer (completely invalid)
+	var invalid_cause3 = "InvalidString"  # ❌ String (invalid)
+	var cause_data = [invalid_cause1, invalid_cause2, invalid_cause3]
 
 	# Call function
-	map_editor_screen._on_triggers_loaded(trigger_data)
+	map_editor_screen._on_causes_loaded(cause_data)
 
 	# Ensure no invalid data was added
-	assert_eq(map_editor_screen.triggers.size(), 0, "❌ Invalid triggers should not be added!")
+	assert_eq(map_editor_screen.causes.size(), 0, "❌ Invalid causes should not be added!")
 
-	print("✅ test_on_triggers_loaded_with_invalid_data PASSED!")
+	print("✅ test_on_causes_loaded_with_invalid_data PASSED!")
 
 
-func test_update_or_add_trigger_button():
-	print("🔬 Running: test_update_or_add_trigger_button")
+func test_update_or_add_cause_button():
+	print("🔬 Running: test_update_or_add_cause_button")
 
-	# Step 1: Ensure trigger_list is empty at start
-	assert_eq(map_editor_screen.trigger_list.get_child_count(), 0, "❌ Trigger List should be empty at start!")
+	# Step 1: Ensure cause_list is empty at start
+	assert_eq(map_editor_screen.cause_list.get_child_count(), 0, "❌ cause List should be empty at start!")
 
-	# Step 2: Create a mock trigger
-	var mock_trigger = Trigger.new()
-	mock_trigger.cause = "Piece Captured"
-	mock_trigger.effects = []
+	# Step 2: Create a mock cause
+	var mock_cause = cause.new()
+	mock_cause.cause = "Piece Captured"
+	mock_cause.effects = []
 
-	# Step 3: Call function to add the trigger button
-	var button = map_editor_screen._update_or_add_trigger_button(mock_trigger)
+	# Step 3: Call function to add the cause button
+	var button = map_editor_screen._update_or_add_cause_button(mock_cause)
 
 	# Step 4: Validate button was created
 	assert_true(button is Button, "❌ Function did not return a Button!")
-	assert_eq(map_editor_screen.trigger_list.get_child_count(), 1, "❌ Trigger List should contain 1 button after first addition!")
-	assert_eq(button.get_meta("trigger_data"), mock_trigger, "❌ Button metadata (trigger) does not match!")
+	assert_eq(map_editor_screen.cause_list.get_child_count(), 1, "❌ cause List should contain 1 button after first addition!")
+	assert_eq(button.get_meta("cause_data"), mock_cause, "❌ Button metadata (cause) does not match!")
 
-	# Step 5: Modify the trigger and update again
-	mock_trigger.cause = "Turn Count Reached"
-	map_editor_screen._update_or_add_trigger_button(mock_trigger)
+	# Step 5: Modify the cause and update again
+	mock_cause.cause = "Turn Count Reached"
+	map_editor_screen._update_or_add_cause_button(mock_cause)
 
 	# Step 6: Ensure button text was updated, not duplicated
-	assert_eq(map_editor_screen.trigger_list.get_child_count(), 1, "❌ No duplicate buttons should be added!")
-	assert_eq(button.text, trigger_manager._format_trigger_button_text(mock_trigger), "❌ Button text was not updated correctly!")
+	assert_eq(map_editor_screen.cause_list.get_child_count(), 1, "❌ No duplicate buttons should be added!")
+	assert_eq(button.text, cause_manager._format_cause_button_text(mock_cause), "❌ Button text was not updated correctly!")
 
-	# Step 7: Add another distinct trigger
-	var mock_trigger2 = Trigger.new()
-	mock_trigger2.cause = "Piece Enters Tile"
-	map_editor_screen._update_or_add_trigger_button(mock_trigger2)
+	# Step 7: Add another distinct cause
+	var mock_cause2 = cause.new()
+	mock_cause2.cause = "Piece Enters Tile"
+	map_editor_screen._update_or_add_cause_button(mock_cause2)
 
-	# Step 8: Validate the new trigger was added
-	assert_eq(map_editor_screen.trigger_list.get_child_count(), 2, "❌ Second trigger was not added!")
+	# Step 8: Validate the new cause was added
+	assert_eq(map_editor_screen.cause_list.get_child_count(), 2, "❌ Second cause was not added!")
 
-	print("✅ test_update_or_add_trigger_button PASSED!")
+	print("✅ test_update_or_add_cause_button PASSED!")
 
 
 #endregion
@@ -294,7 +294,7 @@ func test_update_or_add_trigger_button():
 func test_ui_elements_initialized():
 	assert_not_null(map_editor_screen.map_menu_panel, "❌ ERROR: MapMenuPanel missing!")
 	assert_not_null(map_editor_screen.toggle_menu_button, "❌ ERROR: ToggleMenuButton missing!")
-	assert_not_null(map_editor_screen.trigger_menu, "❌ ERROR: TriggerMenu missing!")
+	assert_not_null(map_editor_screen.cause_menu, "❌ ERROR: causeMenu missing!")
 	print("✅ UI Elements initialized successfully!")
 
 
@@ -320,25 +320,25 @@ func test_open_save_as_popup():
 
 #region Helper Functions
 
-func generate_mock_triggers() -> Array:
-	var mock_triggers = []
+func generate_mock_causes() -> Array:
+	var mock_causes = []
 	
-	for i in range(3):  # Create 3 mock triggers
-		var trigger = Trigger.new()
-		trigger.cause = "Test Cause %d" % i
-		trigger.trigger_area_type = Trigger.AreaType.GLOBAL if i % 2 == 0 else Trigger.AreaType.LOCAL
-		trigger.trigger_tiles = [Vector2(i, i)]
-		trigger.effects = []  # Empty list for now
-		trigger.effect_area_type = Trigger.AreaType.GLOBAL
-		trigger.effect_tiles = [Vector2(i + 1, i + 1)] as Array[Vector2]
-		trigger.sound_effect = "sound_%d.ogg" % i
-		trigger.pop_up_text = "Trigger %d Activated!" % i
+	for i in range(3):  # Create 3 mock causes
+		var cause = cause.new()
+		cause.cause = "Test Cause %d" % i
+		cause.cause_area_type = cause.AreaType.GLOBAL if i % 2 == 0 else cause.AreaType.LOCAL
+		cause.cause_tiles = [Vector2(i, i)]
+		cause.effects = []  # Empty list for now
+		cause.effect_area_type = cause.AreaType.GLOBAL
+		cause.effect_tiles = [Vector2(i + 1, i + 1)] as Array[Vector2]
+		cause.sound_effect = "sound_%d.ogg" % i
+		cause.pop_up_text = "cause %d Activated!" % i
 
-		mock_triggers.append(trigger)
-		generated_triggers.append(trigger)  # Store the created instance
+		mock_causes.append(cause)
+		generated_causes.append(cause)  # Store the created instance
 	
-	print("✅ Mock Trigger Data Generated:", mock_triggers)
-	return mock_triggers
+	print("✅ Mock cause Data Generated:", mock_causes)
+	return mock_causes
 
 
 func print_node_tree(node: Node, indent: int = 0):

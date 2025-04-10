@@ -6,6 +6,10 @@ signal board_event_edit_requested(board_event)
 signal spawn_map_info_screen
 
 #region NODE REFS
+
+@onready var map_name_label = $ContextMenuContainer/MarginContainer/Panel/MapNameLabel
+@onready var edit_map_info_button = $ContextMenuContainer/MarginContainer/Panel/EditMapInfoButton
+
 @onready var events_show_hide_button = $HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/HBoxContainer/Show_HideButton
 @onready var pieces_show_hide_button = $HSplitContainer/SideMenu/MarginContainer/MenuWrapper/PiecesMenu/HBoxContainer/Pieces_Show_HideButton
 @onready var tiles_show_hide_button = $HSplitContainer/SideMenu/MarginContainer/MenuWrapper/TileMenu/HBoxContainer/Tiles_Show_HideButton
@@ -28,32 +32,20 @@ var current_filename: String = ""
 #endregion
 
 
-#region LIFECYCLE
 func _ready():
 	_set_show_hide_button_text()
-	UiManager.register_ui("map_editor_screen", self)
+	UiManager.register_ui("MapEditorScreen", self)
 	
-	var map = MapManager.get_current_map()
-	if map:
-		MapManager.load_map(map)
-	else:
-		push_error("❌ No map loaded into MapManager")
-
-#endregion
+	_refresh_current_map()
 
 
-#region MAP MANAGER DELEGATION
+# Every time you come here from a different screen it needs to refresh current_map from MapManager
 
 
-
-# this function is not useful?
+# this function is not useful ? ? ?
 func _on_map_loaded(current_map):
 	current_filename = current_map["name"]
 	print("📂 Map Editor Screen - Loaded map:", current_filename)
-
-
-
-#endregion
 
 
 func set_context(context: Dictionary) -> void:
@@ -61,18 +53,23 @@ func set_context(context: Dictionary) -> void:
 	# Use this to change tabs, pre-select a map, etc.
 
 
-#region BOARD EVENT MANAGER DELEGATION
-
-# EVERYTHING HERE GOES TO TASK BAR 
-
-
-#endregion
+func _set_map_name():
+	if current_map:
+		map_name_label.text = current_map.name
 
 
 #region EVENT HANDLERS - FROM TASKBAR
+
 #  1. tell MainScene what scene to open
 #  2. tell manager the context the scene is opening
 #          - open as first time, as load map, as save map, 
+
+
+func _refresh_current_map():
+	current_map = MapManager.get_current_map()
+	print("current_map:   ", current_map)
+	_set_map_name()
+
 
 func open_popup():
 	pass
@@ -80,10 +77,6 @@ func open_popup():
 func open_with_first_time_context():
 	pass
 
-# open popup with load map context
-func open_with_load_map_context():
-	MapManager.set_open_context("load_map")
-	map_editor_popup.popup_centered()
 
 func open_with_save_as_context(map_name: String):
 	# Tell MapManager we're opening the save-as popup
@@ -96,10 +89,6 @@ func open_with_save_as_context(map_name: String):
 
 	# Open the popup, letting it pull data from MapManager internally
 	map_editor_popup.popup_centered()
-
-# need a function to get the map object from the map editor and set it to current_map
-# when you first instantiate map editor screen, create a new map
-# when you are loading a map, load the map
 
 
 func _set_show_hide_button_text():
@@ -146,10 +135,16 @@ func _on_pieces_show_hide_button_pressed():
 		pieces_show_hide_button.text = "Show"
 
 
+func _on_edit_map_info_button_pressed() -> void:
+	print("_on_edit_map_info_button_pressed")
+	# tell UImanager to spawn MapInfoScreen
+	emit_signal("spawn_map_info_screen")
+
+
 #endregion
 
 
-#region FACTORIES
+
 
 func _spawn_board_event_editor() -> BoardEventEditorScreen:
 	board_event_editor = load("res://scenes/BoardEventEditorScreen.tscn").instantiate()
@@ -159,10 +154,3 @@ func _spawn_board_event_editor() -> BoardEventEditorScreen:
 	board_event_editor.call_deferred("grab_focus")
 	add_child(board_event_editor)
 	return board_event_editor
-
-#endregion
-
-
-func _on_edit_map_info_button_pressed() -> void:
-	# tell UImanager to spawn MapInfoScreen
-	emit_signal("spawn_map_info_screen")

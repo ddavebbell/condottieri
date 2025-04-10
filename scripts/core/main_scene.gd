@@ -17,19 +17,30 @@ var board_event_editor_screen: Control = null
 var map_manager = MapManager
 var board_event_manager = BoardEventManager
 
-@onready var scene_container = $PanelContainerBottom
-
+@onready var top_Panel = $PanelContainerTop
+@onready var bottom_panel = $PanelContainerBottom
 
 
 
 func _ready():
-	pass
-	# Only run the Task Bar by default
+	print("main scene ready")
+	
 	
 	#this is getting moved
 	#var task_bar = task_bar_scene.instantiate()
 	#$PanelContainerTop.add_child(task_bar)
 	#task_bar.call_deferred("grab_focus")
+
+
+# This is for big screen swaps not modals or popups
+func load_screen(screen_path: String) -> void:
+	# Clear old screen
+	for child in bottom_panel.get_children():
+		child.queue_free()
+
+	# Load and add new screen
+	var new_screen = load(screen_path).instantiate()
+	bottom_panel.add_child(new_screen)
 
 
 # Then Spawn Appropriate UI
@@ -44,8 +55,6 @@ func on_open_map_list_screen_requested():
 
 	# Replace current scene with map list
 	map_list_screen.call_deferred("grab_focus")
-
-
 
 
 func on_open_map_editor_screen_requested():

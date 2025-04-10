@@ -4,7 +4,7 @@ class_name BaseMapEditorTest
 
 var map_editor_screen
 var board_event_manager
-var trigger_editor
+var cause_editor
 
 
 
@@ -21,9 +21,9 @@ func _setup_board_event_manager():
 	add_child(board_event_manager)
 
 
-func _setup_trigger_editor():
-	trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
-	add_child(trigger_editor)
+func _setup_cause_editor():
+	cause_editor = preload("res://scenes/causeEditorPanel.tscn").instantiate()
+	add_child(cause_editor)
 	await get_tree().process_frame
 
 

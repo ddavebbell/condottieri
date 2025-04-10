@@ -18,8 +18,6 @@ var _is_saved: bool = false
 #endregion
 
 
-
-
 func _on_new_map_requested():
 	create_map()
 
@@ -43,22 +41,14 @@ func create_map():
 	return current_map
 
 
-
-# this will need fixing
-func load_map(file_name: String):
-	var path := MAPS_DIR + file_name
-	
-	if not FileAccess.file_exists(path):
-		print("❌ Map file not found:", path)
+func load_selected_map(map: Map) -> void:
+	if map == null:
+		push_error("❌ No map passed to load_selected_map()")
 		return
 
-	var map_res = ResourceLoader.load(path)
-	if map_res is Map:
-		current_map = map_res
-		apply_map_resource(map_res)
-		print("✅ Map loaded:", file_name)
-	else:
-		print("❌ Failed to load Map resource:", file_name)
+	current_map = map
+	#apply_map_resource(map)  # Optional: do any setup/preprocessing here
+	print("✅ Map loaded into MapManager:", map.name)
 
 
 
@@ -190,7 +180,6 @@ func save_current_map_metadata_to_file(file_name: String, name: String, descript
 		#print("🗑️ Map deleted:", full_path)
 	#else:
 		#push_error("❌ Failed to delete map file: " + full_path)
-
 
 
 #region Debugging

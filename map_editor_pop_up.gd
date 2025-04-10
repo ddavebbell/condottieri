@@ -309,10 +309,10 @@ func set_popup_title(title_text: String):
 	#var map_data = grid_container.get_map_data() if grid_container.has_method("get_map_data") else {}
 	#if map_data.is_empty():
 		#print("⚠️ WARNING: No map data found! Creating new data...")
-		#map_data = { "tiles": {}, "triggers": [] }  # ✅ Create empty data
+		#map_data = { "tiles": {}, "causes": [] }  # ✅ Create empty data
 	#
-		## ✅ Ensure `triggers` are included in `map_data`
-	#map_data["triggers"] = grid_container.board_event_manager.get_all_triggers() if grid_container.board_event_manager else []
+		## ✅ Ensure `causes` are included in `map_data`
+	#map_data["causes"] = grid_container.board_event_manager.get_all_causes() if grid_container.board_event_manager else []
 	#
 		## ✅ Save the map with the correct arguments
 	#grid_container.save_map(map_name, map_data)  # ✅ Now passes BOTH arguments

@@ -11,6 +11,7 @@ class_name Map
 @export var version: int = 1    
 @export var created_date: String = ""
 @export var tags: Array = []
+@export var bg_music_filepath: String = ""
 
 # === Core Data ===
 @export var tiles: Dictionary = {}        # From GridManager

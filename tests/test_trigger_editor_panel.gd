@@ -1,27 +1,27 @@
 extends "res://addons/gut/test.gd"
 
-class_name TestTriggerEditorPanel
+class_name TestcauseEditorPanel
 
 var base_test := preload("res://tests/base_map_editor_test.gd").new()
 
-var trigger_editor
-var trigger_manager
+var cause_editor
+var cause_manager
 
 func before_each():
-	print("🔬 Setting up TriggerEditorPanel for testing...")
-	await base_test._setup_trigger_manager()
-	trigger_manager = base_test.trigger_manager
+	print("🔬 Setting up causeEditorPanel for testing...")
+	await base_test._setup_cause_manager()
+	cause_manager = base_test.cause_manager
 
-	trigger_editor = preload("res://scenes/TriggerEditorPanel.tscn").instantiate()
-	add_child(trigger_editor)
+	cause_editor = preload("res://scenes/causeEditorPanel.tscn").instantiate()
+	add_child(cause_editor)
 	await get_tree().process_frame
 
 func after_each():
-	print("🧹 Cleaning up TriggerEditorPanel test environment...")
+	print("🧹 Cleaning up causeEditorPanel test environment...")
 
 	# Clean up test nodes
-	await base_test._cleanup_node_and_children(trigger_editor)
-	await base_test._cleanup_node_and_children(trigger_manager)
+	await base_test._cleanup_node_and_children(cause_editor)
+	await base_test._cleanup_node_and_children(cause_manager)
 
 	# Clean UI layer in MapEditor if present
 	await base_test._cleanup_ui_children()
@@ -52,9 +52,9 @@ func _print_remaining_nodes():
 #func test_populate_dropdowns():
 	#print("🔬 Running: test_populate_dropdowns")
 #
-	#trigger_editor._populate_dropdowns()
+	#cause_editor._populate_dropdowns()
 #
-	#assert_eq(trigger_editor.cause_dropdown.get_item_count(), Trigger.CauseType.keys().size(), "❌ Cause dropdown does not contain correct number of items!")
+	#assert_eq(cause_editor.cause_dropdown.get_item_count(), cause.CauseType.keys().size(), "❌ Cause dropdown does not contain correct number of items!")
 
 	
 
@@ -65,11 +65,11 @@ func _print_remaining_nodes():
 func test_default_dropdown_selection():
 	print("🔬 Running: test_default_dropdown_selection")
 
-	trigger_editor._populate_dropdowns()
+	cause_editor._populate_dropdowns()
 
-	assert_eq(trigger_editor.cause_dropdown.selected, 0, "❌ Cause dropdown default selection should be 0!")
-	assert_eq(trigger_editor.area_type_dropdown.selected, 0, "❌ Area type dropdown default selection should be 0 (Local)!")
-	assert_eq(trigger_editor.sound_effect_dropdown.selected, 0, "❌ Sound effect dropdown default selection should be 0 (None)!")
+	assert_eq(cause_editor.cause_dropdown.selected, 0, "❌ Cause dropdown default selection should be 0!")
+	assert_eq(cause_editor.area_type_dropdown.selected, 0, "❌ Area type dropdown default selection should be 0 (Local)!")
+	assert_eq(cause_editor.sound_effect_dropdown.selected, 0, "❌ Sound effect dropdown default selection should be 0 (None)!")
 
 	print("✅ test_default_dropdown_selection PASSED!")
 	
@@ -79,17 +79,17 @@ func test_handle_missing_dropdowns():
 	print("🔬 Running: test_handle_missing_dropdowns")
 
 	# Simulate missing dropdowns
-	trigger_editor.cause_dropdown = null
-	trigger_editor.area_type_dropdown = null
-	trigger_editor.sound_effect_dropdown = null
+	cause_editor.cause_dropdown = null
+	cause_editor.area_type_dropdown = null
+	cause_editor.sound_effect_dropdown = null
 
 	# Call function
-	trigger_editor._populate_dropdowns()
+	cause_editor._populate_dropdowns()
 
 	# ✅ Assert dropdowns are still NULL after execution
-	assert_eq(trigger_editor.cause_dropdown, null, "❌ Cause dropdown should still be NULL!")
-	assert_eq(trigger_editor.area_type_dropdown, null, "❌ Area type dropdown should still be NULL!")
-	assert_eq(trigger_editor.sound_effect_dropdown, null, "❌ Sound effect dropdown should still be NULL!")
+	assert_eq(cause_editor.cause_dropdown, null, "❌ Cause dropdown should still be NULL!")
+	assert_eq(cause_editor.area_type_dropdown, null, "❌ Area type dropdown should still be NULL!")
+	assert_eq(cause_editor.sound_effect_dropdown, null, "❌ Sound effect dropdown should still be NULL!")
 
 	# ✅ Final assertion to prevent "Risky" status
 	assert_true(true, "✅ Function handled missing dropdowns without issue.")
@@ -97,72 +97,72 @@ func test_handle_missing_dropdowns():
 	print("✅ test_handle_missing_dropdowns PASSED (no crash, handled correctly)!")  
 
 
-## 🧪 TEST 4: Ensure `_populate_trigger_list()` Populates Correctly ##
+## 🧪 TEST 4: Ensure `_populate_cause_list()` Populates Correctly ##
 # FIX
-#func test_populate_trigger_list():
-	#print("🔬 Running: test_populate_trigger_list")
+#func test_populate_cause_list():
+	#print("🔬 Running: test_populate_cause_list")
 #
-	## 🔧 Inject a valid TriggerManager instance
-	#trigger_editor.trigger_manager = trigger_manager
+	## 🔧 Inject a valid causeManager instance
+	#cause_editor.cause_manager = cause_manager
 #
-	## Create mock triggers
-	#var mock_trigger1 = Trigger.new()
-	#mock_trigger1.cause = Trigger.CauseType.PIECE_CAPTURED
+	## Create mock causes
+	#var mock_cause1 = cause.new()
+	#mock_cause1.cause = cause.CauseType.PIECE_CAPTURED
 #
-	#var mock_trigger2 = Trigger.new()
-	#mock_trigger2.cause = Trigger.CauseType.TURN_COUNT_REACHED
+	#var mock_cause2 = cause.new()
+	#mock_cause2.cause = cause.CauseType.TURN_COUNT_REACHED
 #
-	#trigger_editor.triggers_ref = [mock_trigger1, mock_trigger2]
-	#trigger_editor._populate_trigger_list()
+	#cause_editor.causes_ref = [mock_cause1, mock_cause2]
+	#cause_editor._populate_cause_list()
 #
-	#assert_eq(trigger_editor.trigger_list_container.get_child_count(), 2, "❌ Trigger list did not populate correctly!")
+	#assert_eq(cause_editor.cause_list_container.get_child_count(), 2, "❌ cause list did not populate correctly!")
 #
-	#var button1 = trigger_editor.trigger_list_container.get_child(0)
-	#var button2 = trigger_editor.trigger_list_container.get_child(1)
+	#var button1 = cause_editor.cause_list_container.get_child(0)
+	#var button2 = cause_editor.cause_list_container.get_child(1)
 #
-	#var expected_label1 = trigger_manager._format_trigger_button_text(mock_trigger1)
-	#var expected_label2 = trigger_manager._format_trigger_button_text(mock_trigger2)
+	#var expected_label1 = cause_manager._format_cause_button_text(mock_cause1)
+	#var expected_label2 = cause_manager._format_cause_button_text(mock_cause2)
 #
-	#assert_eq(button1.text, expected_label1, "❌ First trigger button text is incorrect!")
-	#assert_eq(button2.text, expected_label2, "❌ Second trigger button text is incorrect!")
+	#assert_eq(button1.text, expected_label1, "❌ First cause button text is incorrect!")
+	#assert_eq(button2.text, expected_label2, "❌ Second cause button text is incorrect!")
 #
-	#print("✅ test_populate_trigger_list PASSED!")
+	#print("✅ test_populate_cause_list PASSED!")
 
 
 
 
-## 🧪 TEST 5: Ensure `_populate_trigger_list()` Handles No Triggers ##
-func test_trigger_list_resets_on_empty():
-	print("🔬 Running: test_trigger_list_resets_on_empty")
+## 🧪 TEST 5: Ensure `_populate_cause_list()` Handles No causes ##
+func test_cause_list_resets_on_empty():
+	print("🔬 Running: test_cause_list_resets_on_empty")
 
-	trigger_editor.triggers_ref = []
-	trigger_editor._populate_trigger_list()
+	cause_editor.causes_ref = []
+	cause_editor._populate_cause_list()
 
-	assert_eq(trigger_editor.trigger_list_container.get_child_count(), 0, "❌ Trigger list should be empty!")
+	assert_eq(cause_editor.cause_list_container.get_child_count(), 0, "❌ cause list should be empty!")
 
-	print("✅ test_trigger_list_resets_on_empty PASSED!")
+	print("✅ test_cause_list_resets_on_empty PASSED!")
 
 
 
 # # # # # # UI Tests # # # # # # # #
 
 
-func test_create_trigger_ui():
-	print("🔬 Running: test_create_trigger_ui")
+func test_create_cause_ui():
+	print("🔬 Running: test_create_cause_ui")
 
-	# Mock Trigger
-	var mock_trigger = Trigger.new()
-	mock_trigger.cause = "Piece Captured"
+	# Mock cause
+	var mock_cause = cause.new()
+	mock_cause.cause = "Piece Captured"
 
 	# Call function
-	var trigger_ui = trigger_editor._create_trigger_ui(mock_trigger)
+	var cause_ui = cause_editor._create_cause_ui(mock_cause)
 
 	# Validate UI Structure
-	assert_true(trigger_ui is HBoxContainer, "❌ _create_trigger_ui() should return an HBoxContainer!")
-	assert_eq(trigger_ui.get_child_count(), 2, "❌ HBox should contain exactly 2 children (Dropdown + Remove Button)!")
+	assert_true(cause_ui is HBoxContainer, "❌ _create_cause_ui() should return an HBoxContainer!")
+	assert_eq(cause_ui.get_child_count(), 2, "❌ HBox should contain exactly 2 children (Dropdown + Remove Button)!")
 
 	# Validate Dropdown
-	var dropdown = trigger_ui.get_child(0)
+	var dropdown = cause_ui.get_child(0)
 	assert_true(dropdown is OptionButton, "❌ First child should be an OptionButton!")
 	#assert_eq(dropdown.get_item_text(0), "Piece Captured", "❌ First dropdown option incorrect!")
 	#assert_eq(dropdown.get_item_text(1), "Piece Enters Tile", "❌ Second dropdown option incorrect!")
@@ -172,11 +172,11 @@ func test_create_trigger_ui():
 	assert_eq(dropdown.selected, 0, "❌ Dropdown should default to the correct cause!")
 
 	# Validate Remove Button
-	var remove_button = trigger_ui.get_child(1)
+	var remove_button = cause_ui.get_child(1)
 	assert_true(remove_button is Button, "❌ Second child should be a Button!")
 	assert_eq(remove_button.text, "X", "❌ Remove button text should be 'X'!")
 
-	print("✅ test_create_trigger_ui PASSED!")
+	print("✅ test_create_cause_ui PASSED!")
 
 
 func test_create_effect_ui():
@@ -187,7 +187,7 @@ func test_create_effect_ui():
 	mock_effect.effect_type = 0  # Assuming this corresponds to "Spawn Reinforcements"
 
 	# Call function
-	var effect_ui = trigger_editor._create_effect_ui(mock_effect)
+	var effect_ui = cause_editor._create_effect_ui(mock_effect)
 
 	# Validate UI Structure
 	assert_true(effect_ui is HBoxContainer, "❌ _create_effect_ui() should return an HBoxContainer!")

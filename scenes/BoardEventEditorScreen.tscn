@@ -8,14 +8,9 @@
 
 [node name="BoardEventEditorScreen" type="Control"]
 layout_mode = 3
-anchor_left = 0.586
-anchor_top = 0.128
-anchor_right = 0.936
-anchor_bottom = 0.866
-offset_left = -750.08
-offset_top = -92.16
-offset_right = 81.9199
-offset_bottom = 96.48
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
@@ -27,11 +22,11 @@ script = ExtResource("1_c24gb")
 
 [node name="Popups" type="Control" parent="."]
 layout_mode = 1
-anchor_top = 0.056
+anchor_top = 0.005
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -0.32
-offset_right = 0.00012207
+offset_top = -0.2
+offset_right = 0.000244141
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -63,13 +58,208 @@ size_flags_horizontal = 6
 size_flags_vertical = 2
 size_flags_stretch_ratio = 0.1
 theme_override_fonts/font = ExtResource("2_0xnik")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 36
 text = "Create A Board Event"
 horizontal_alignment = 2
 vertical_alignment = 1
 uppercase = true
 
+[node name="HBoxContainerB" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.8
+mouse_filter = 2
+
+[node name="HBoxContainerL" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.5
+
+[node name="CausePanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = ExtResource("3_lenqi")
+
+[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="VBoxContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="HBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CauseLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+theme_override_font_sizes/font_size = 14
+text = "Cause"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 12.11
+
+[node name="CauseListContainer" type="ItemList" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EffectPanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = ExtResource("3_lenqi")
+
+[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="EffectSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
+theme_override_constants/separation = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection"]
+layout_mode = 2
+
+[node name="EffectsLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection/VBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_vertical = 6
+theme_override_font_sizes/font_size = 14
+text = "Effects"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 12.11
+
+[node name="EffectListContainer" type="ItemList" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HBoxContainerR" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.58
+
+[node name="CauseAreaPanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = ExtResource("3_lenqi")
+
+[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="CauseLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+theme_override_font_sizes/font_size = 14
+text = "Area Of Cause"
+horizontal_alignment = 2
+
+[node name="PanelContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 2
+
+[node name="SelectCauseAreaButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer/VBoxContainer/PanelContainer"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "  Click to Select Area  "
+
+[node name="EffectAreaPanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = ExtResource("3_lenqi")
+
+[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="EffectsLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+theme_override_font_sizes/font_size = 14
+text = "Area Of Effect"
+horizontal_alignment = 2
+
+[node name="PanelContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 2
+
+[node name="SelectEffectAreaButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer/VBoxContainer/PanelContainer"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+text = "  Click to Select Area  "
+
 [node name="HBoxContainerT" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.25
@@ -106,7 +296,7 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 14
 text = "Name"
 horizontal_alignment = 2
 
@@ -115,7 +305,7 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 14
 text = "Description"
 horizontal_alignment = 2
 
@@ -129,19 +319,18 @@ theme_override_constants/separation = 8
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.309804, 0.309804, 0.309804, 1)
-text = "Type event name here..."
+placeholder_text = "Type event name here..."
 
 [node name="DescriptionInput" type="TextEdit" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/DescriptionInputPanel/MarginContainer/HBoxContainer/VBoxContainerR"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.310617, 0.310617, 0.310617, 1)
-text = "Type event description here..."
+placeholder_text = "Type event description here..."
 
 [node name="SoundEffectPanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.59
 theme_override_styles/panel = ExtResource("3_lenqi")
 
 [node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel"]
@@ -152,9 +341,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
+theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_bottom = 16
 
 [node name="SoundEffect" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer"]
 layout_mode = 2
@@ -162,262 +351,81 @@ size_flags_horizontal = 3
 mouse_filter = 2
 theme_override_constants/separation = 8
 
+[node name="SoundEffectLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "Sound
+Effect"
+horizontal_alignment = 2
+
 [node name="VBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="SoundEffectLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer"]
-custom_minimum_size = Vector2(100, 0)
+[node name="SoundEffectDropdown" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer"]
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-theme_override_font_sizes/font_size = 20
-text = "Sound Effect"
-horizontal_alignment = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="Button" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer"]
+[node name="SoundFXListContainer" type="ItemList" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer/SoundEffectDropdown"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SFXLineEdit" type="LineEdit" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+placeholder_text = "Click to browse and choose a folder to get sound effects from "
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect"]
+layout_mode = 2
+
+[node name="PreviewSFXButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer2"]
+custom_minimum_size = Vector2(80, 40)
+layout_mode = 2
+size_flags_vertical = 2
+text = "Preview
+Sound"
+
+[node name="BrowseButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer2"]
+custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
 size_flags_vertical = 10
-text = "Upload"
+text = "Browse"
 
-[node name="SoundEffectDropdown" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SoundFXListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/SoundEffectDropdown"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="HBoxContainerB" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.8
-mouse_filter = 2
-
-[node name="HBoxContainerL" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="CausePanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_styles/panel = ExtResource("3_lenqi")
-
-[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="VBoxContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.5
-mouse_filter = 2
-theme_override_constants/separation = 8
+size_flags_stretch_ratio = 0.05
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_bottom = 24
 
-[node name="HBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer"]
+[node name="Buttons" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-
-[node name="CauseLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-size_flags_horizontal = 6
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Cause"
-horizontal_alignment = 1
-
-[node name="SelectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 6
-text = "Select"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 12.11
+size_flags_stretch_ratio = 0.05
+theme_override_constants/separation = 20
 
-[node name="CauseListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="EffectPanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = ExtResource("3_lenqi")
-
-[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="EffectSelection" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.5
-theme_override_constants/separation = 8
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection"]
-layout_mode = 2
-
-[node name="EffectsLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection/VBoxContainer"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-size_flags_horizontal = 2
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Effects"
-horizontal_alignment = 1
-
-[node name="SelectButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 6
-text = "Select"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 12.11
-
-[node name="EffectListContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-mouse_filter = 0
-
-[node name="HBoxContainerR" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.58
-
-[node name="CauseAreaPanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = ExtResource("3_lenqi")
-
-[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer"]
-layout_mode = 2
-
-[node name="CauseLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-size_flags_horizontal = 6
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Area Of Effect"
-horizontal_alignment = 2
-
-[node name="PanelContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 2
-
-[node name="SelectCauseAreaTypeDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer/VBoxContainer/PanelContainer"]
-custom_minimum_size = Vector2(100, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-
-[node name="SelectCauseAreaButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/CauseAreaPanel/MarginContainer/VBoxContainer/PanelContainer"]
-custom_minimum_size = Vector2(100, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-text = "  Click to Select Area  "
-
-[node name="EffectAreaPanel" type="Panel" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = ExtResource("3_lenqi")
-
-[node name="MarginContainer" type="MarginContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer"]
-layout_mode = 2
-
-[node name="EffectsLabel" type="Label" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-size_flags_horizontal = 6
-size_flags_vertical = 6
-theme_override_font_sizes/font_size = 20
-text = "Area Of Effect"
-horizontal_alignment = 2
-
-[node name="PanelContainer" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 2
-
-[node name="SelectEffectAreaTypeDropdown" type="OptionButton" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer/VBoxContainer/PanelContainer"]
-custom_minimum_size = Vector2(100, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-
-[node name="SelectEffectAreaButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerR/EffectAreaPanel/MarginContainer/VBoxContainer/PanelContainer"]
-custom_minimum_size = Vector2(100, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-text = "  Click to Select Area  "
-
-[node name="Buttons" type="HBoxContainer" parent="Popups/BackgroundPanel/Padding/MainLayout"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 10
-size_flags_stretch_ratio = 0.1
-
-[node name="OKButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/Buttons"]
-custom_minimum_size = Vector2(130, 0)
+[node name="OKButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/MarginContainer/Buttons"]
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 text = "Save Event"
 
-[node name="CancelButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/Buttons"]
-custom_minimum_size = Vector2(130, 0)
+[node name="CancelButton" type="Button" parent="Popups/BackgroundPanel/Padding/MainLayout/MarginContainer/Buttons"]
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 text = "Cancel"
 
-[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/Buttons/CancelButton" to="." method="_on_cancel_button_pressed"]
+[node name="FileDialog" type="FileDialog" parent="."]
+size = Vector2i(883, 670)
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+visible = false
+position = Vector2(691, 904.756)
+
+[connection signal="pressed" from="Popups/BackgroundPanel/Padding/MainLayout/MarginContainer/Buttons/CancelButton" to="." method="_on_cancel_button_pressed"]

@@ -1,10 +1,8 @@
 extends Control
 class_name MapListScreen
 
+
 #region NODE REFS
-
-const MAPS_DIR = "user://maps/"
-
 @onready var folder_path_input = $Margin/MainVBox/UpperSection/LeftVBox/MapFolderHBox/FolderPath
 @onready var browse_button = $Margin/MainVBox/UpperSection/LeftVBox/MapFolderHBox/BrowseButton
 @onready var folder_picker_dialog = $FileDialog
@@ -31,10 +29,14 @@ var file_name_map: Array = []
 
 var selected_button: Button = null
 var _is_open_map_context: bool = true
+#endregion
+
+
+const MAPS_DIR = "user://maps/"
 
 signal map_selected(map: Map)
+signal popup_closed
 
-#endregion
 
 
 
@@ -54,18 +56,14 @@ func _ready():
 	map_name_input.text_changed.connect(_on_map_name_input_text_changed)
 	
 	_populate_map_list()
-	UiManager.register_ui("map_list_screen", self)
+	UiManager.register_ui("MapListScreen", self)
 	
 	
-	# debug
+	# debug create dummy maps
 	#if OS.has_feature("debug"):
 		#print("MapManager.create_test_maps()")
 		#MapManager.create_test_maps()
-	
-	# next new populate_map_list() function
-	# call Map Manager to load data from disk (from selected/default map directory) to populate the menus
-	# autoselect the first map in the list
-	# populate description, and thumbnail from the Map Resource
+
 
 
 func _setup_folder_browse():
@@ -109,6 +107,7 @@ func _populate_map_list():
 	ok_button.disabled = true
 	
 	map_files = MapManager.get_saved_map_files()
+	map_files.sort()
 	
 	## Populates Map List and Descriptions
 	for file_name in map_files:
@@ -189,17 +188,17 @@ func _on_ok_button_pressed():
 	
 	#apply_map_metadata_to_current_map()
 	
-	# LOAD MAP CONTEXT
-	# if is_open_map_context:
-	# tell map_manager --> to load selected_map
+	if is_open_map_context:
+		MapManager.load_selected_map(selected_map)
+		UiManager.open_map_editor_screen_with_selected_map()
 	
 	# SAVE MAP CONTEXT
-	# if not is_open_map_context:
-	# tell map_manager --> to save selected_map
+	#if not is_open_map_context:
+		#MapManager.save_map(selected_map)
+	UiManager.deregister_ui("MapListScreen")
 	
-	#then clear map list screen scene
+	emit_signal("popup_closed")
 	call_deferred("queue_free")
-	MapManager.save_map()
 
 
 # buttons pressed
@@ -217,6 +216,8 @@ func _on_cancel_button_pressed():
 	else:
 		print("_return_to_title_screen")
 		_return_to_title_screen()
+	
+	UiManager.deregister_ui("MapListScreen")
 
 
 func _return_to_title_screen():

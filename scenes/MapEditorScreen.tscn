@@ -365,7 +365,7 @@ theme_override_fonts/font = ExtResource("4_qvgld")
 text = "Board Events"
 
 [node name="Show_HideButton" type="Button" parent="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/HBoxContainer"]
-z_index = 3
+z_index = 2
 layout_mode = 2
 size_flags_horizontal = 10
 size_flags_vertical = 0

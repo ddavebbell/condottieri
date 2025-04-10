@@ -1,9 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://bwfv0cyhygghq"]
+[gd_scene load_steps=4 format=3 uid="uid://bwfv0cyhygghq"]
 
+[ext_resource type="Script" path="res://scenes/map_info_screen.gd" id="1_1ka6n"]
 [ext_resource type="FontFile" uid="uid://dvjpeiguvrck1" path="res://BLACKCASTLEMF.TTF" id="1_nm5ku"]
 [ext_resource type="StyleBox" uid="uid://b7k8mc3jnlr43" path="res://scenes/PanelStyle1.tres" id="2_3dk6o"]
 
 [node name="MapInfoScreen" type="Control"]
+z_index = 25
 layout_mode = 3
 anchor_top = 0.154
 anchor_right = 1.0
@@ -11,6 +13,7 @@ anchor_bottom = 1.0
 offset_top = 0.119987
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_1ka6n")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -29,12 +32,23 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 30
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
 size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("1_nm5ku")
 theme_override_font_sizes/font_size = 56
-text = "Map Info"
+text = "Map Info:  "
+horizontal_alignment = 1
+
+[node name="MapTitle" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 2
+theme_override_font_sizes/font_size = 36
+text = "Map Name"
 horizontal_alignment = 1
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
@@ -52,9 +66,10 @@ size_flags_horizontal = 0
 size_flags_vertical = 0
 text = "Map Description"
 
-[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/HBoxContainer3"]
+[node name="MapDescriptionPanel" type="TextEdit" parent="MarginContainer/VBoxContainer/HBoxContainer3"]
 layout_mode = 2
 size_flags_horizontal = 3
+placeholder_text = "Type your map description here"
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/HBoxContainer3"]
 custom_minimum_size = Vector2(200, 0)
@@ -74,11 +89,12 @@ size_flags_horizontal = 0
 size_flags_vertical = 10
 text = "Background Map Music"
 
-[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="BGMapMusicLineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
 size_flags_horizontal = 3
+placeholder_text = "click on browse button to find background map music in selected folder"
 
-[node name="Browse" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+[node name="BrowseButton" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
 text = "  Browse  "
 
@@ -114,4 +130,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_3dk6o")
+metadata/_edit_lock_ = true
+
+[node name="FileDialog" type="FileDialog" parent="."]
+size = Vector2i(500, 500)
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/HBoxContainer2/BrowseButton" to="." method="_on_browse_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ButtonsHBox/OKButton" to="." method="_on_ok_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ButtonsHBox/CancelButton" to="." method="_on_cancel_button_pressed"]

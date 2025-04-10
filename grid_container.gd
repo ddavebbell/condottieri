@@ -19,15 +19,15 @@ var placed_tiles = {}
 var grid_offset = Vector2.ZERO # store the centered position
 var hovered_tile = null  # Store currently hovered tile reference
 var current_filename: String = ""  # Tracks the current map file name
-var triggers: Array = []  
+var causes: Array = []  
 
 # WARNING these two are declared but not used
 signal map_loaded(map_name)  # ✅ New signal to notify when a map is loaded
-signal triggers_loaded(triggers)  # ✅ Define a signal
+signal causes_loaded(causes)  # ✅ Define a signal
 
 
 @onready var load_save_map_popup = $/root/MapEditor/MapEditorPopUp
-@onready var board_event_manager = preload("res://scripts/core/board_event_manager.gd").new()  # Load Trigger Manager
+@onready var board_event_manager = preload("res://scripts/core/board_event_manager.gd").new()  # Load cause Manager
 @onready var map_editor_screen = preload("res://scenes/MapEditorScreen.tscn")
 
 
@@ -221,11 +221,11 @@ func load_map(map_name: String):
 	## ✅ Place tiles on grid
 	_place_tiles_on_grid(map_data)
 	
-	## ✅ Load triggers from saved map data
-	if map_data.has("triggers"):
-		_load_triggers(map_data["triggers"])
+	## ✅ Load causes from saved map data
+	if map_data.has("causes"):
+		_load_causes(map_data["causes"])
 	else:
-		print("⚠️ WARNING: No triggers found in saved map.")
+		print("⚠️ WARNING: No causes found in saved map.")
 
 	## ✅ Load thumbnail if it exists
 	_load_thumbnail_for_map(map_data)
@@ -237,33 +237,33 @@ func load_map(map_name: String):
 	print("✅ Map Loaded Successfully:", current_filename)
 
 
-func _load_triggers(trigger_data: Array):
-	print("🔄 Loading Triggers from Map Data:", trigger_data)
+func _load_causes(cause_data: Array):
+	print("🔄 Loading causes from Map Data:", cause_data)
 
-	triggers.clear()
+	causes.clear()
 
-	if trigger_data.is_empty():
-		print("⚠️ WARNING: No triggers found to load!")
+	if cause_data.is_empty():
+		print("⚠️ WARNING: No causes found to load!")
 		return
 
-	for data in trigger_data:
+	for data in cause_data:
 		if not data.has("cause") or not data.has("effects"):
-			print("❌ ERROR: Missing required trigger fields! Skipping entry:", data)
-			continue  # Skip invalid trigger data
+			print("❌ ERROR: Missing required cause fields! Skipping entry:", data)
+			continue  # Skip invalid cause data
 			
-		var new_trigger = create_new_trigger(data)
-		triggers.append(new_trigger)  ## ✅ Add to memory
-		print("✅ Loaded Trigger:", new_trigger.cause, "| Effects:", new_trigger.effects)
+		var new_cause = create_new_cause(data)
+		causes.append(new_cause)  ## ✅ Add to memory
+		print("✅ Loaded cause:", new_cause.cause, "| Effects:", new_cause.effects)
 
-	print("✅ Successfully loaded", triggers.size(), "triggers into memory.")
+	print("✅ Successfully loaded", causes.size(), "causes into memory.")
 
-func create_new_trigger(data):
-	var new_trigger = Trigger.new()
-	new_trigger.cause = data["cause"]
-	new_trigger.trigger_tiles = data.get("trigger_tiles", []) if data.get("trigger_tiles") is Array else []
-	new_trigger.sound_effect = data.get("sound_effect", "")
-	new_trigger.effects = _deserialize_effects(data.get("effects", []))
-	return new_trigger
+func create_new_cause(data):
+	var new_cause = cause.new()
+	new_cause.cause = data["cause"]
+	new_cause.cause_tiles = data.get("cause_tiles", []) if data.get("cause_tiles") is Array else []
+	new_cause.sound_effect = data.get("sound_effect", "")
+	new_cause.effects = _deserialize_effects(data.get("effects", []))
+	return new_cause
 	
 
 func _deserialize_effects(effect_data: Array) -> Array:
@@ -341,7 +341,7 @@ func save_map(map_name: String, map_data: Dictionary) -> String: # Save map and 
 	
 	#change to boardevents
 	#if not map_data.has("board event"):
-		#map_data["board_events"] = board_event_manager.get_all_triggers() if board_event_manager else []
+		#map_data["board_events"] = board_event_manager.get_all_causes() if board_event_manager else []
 
 	# ✅ Ensure tiles are stored properly
 	for grid_pos in placed_tiles.keys():

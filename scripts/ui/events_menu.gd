@@ -1,7 +1,7 @@
 extends PanelContainer
 
 var events = [
-	{ "name": "Spawn Enemy", "description": "Spawns an enemy at the trigger location." },
+	{ "name": "Spawn Enemy", "description": "Spawns an enemy at the cause location." },
 	{ "name": "Open Door", "description": "Opens a specified door." }
 ]
 
@@ -27,7 +27,7 @@ func populate_event_menu() -> bool:
 	# Clear existing children in VBoxContainer
 	clear_children(events_container) # Clear previous children if needed
 	
-	for event in events: # Example: Reuse trigger data for events for now
+	for event in events: # Example: Reuse cause data for events for now
 		var event_item = create_event_item(event)
 		events_container.add_child(event_item)
 		

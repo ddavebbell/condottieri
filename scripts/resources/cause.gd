@@ -1,6 +1,5 @@
 extends Resource
-
-class_name Trigger
+class_name Cause
 
 
 enum LocalCause {
@@ -8,7 +7,7 @@ enum LocalCause {
 	PIECE_ENTERS_TILE,
 	PIECE_UPGRADED,
 	PIECE_SPAWNED,
-	TRAP_TRIGGERED,
+	TRAP_CAUSED,
 	TILE_REVEALED,
 	PIECE_REMOVED,
 	TILE_TYPE_CHANGED,
@@ -29,7 +28,7 @@ enum GlobalCause {
 }
 
 
-@export var global_cause: GlobalCause = GlobalCause.TURN_COUNT_REACHED
+@export var global_cause: GlobalCause = GlobalCause.ALL_ENEMIES_DEFEATED
 @export var local_cause: LocalCause = LocalCause.PIECE_SPAWNED
 @export var local_cause_area_tiles: Array = [] 
 @export var pop_up_text: String = ""  

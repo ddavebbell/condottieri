@@ -200,7 +200,7 @@
 		#"file_name": mock_map_name,
 		#"tile_data": { "0,0": 1, "1,1": 2 },
 		#"pieces": [{ "type": "knight", "position": "0,0" }],
-		#"triggers": [{ "event": "move", "effect": "capture" }]
+		#"causes": [{ "event": "move", "effect": "capture" }]
 	#}
 	#
 	#var current_map_name: String = "test_map"  # Tracks the loaded map name
@@ -215,7 +215,7 @@
 	#assert_eq(current_map_name, mock_map_name, "Map name should match")
 	##assert_eq(grid_manager.get_used_cells().size(), 2, "Grid should have 2 tiles")
 	##assert_eq(piece_manager.get_piece_count(), 1, "Should have 1 piece")
-	##assert_eq(trigger_manager.get_trigger_count(), 1, "Should have 1 trigger")
+	##assert_eq(cause_manager.get_cause_count(), 1, "Should have 1 cause")
 #
 	#print("✅ test_load_map passed successfully!")
 #
@@ -242,8 +242,8 @@
 	#var mock_pieces = [{"type": "knight", "position": Vector2(2, 2)}]  # Mock piece objects
 	#map_data["pieces"] = mock_pieces
 	#
-	#var mock_triggers_and_effects = [{"trigger": "on_step", "effect": "teleport"}]  # Mock effects
-	#map_data["triggers_and_effects"] = mock_triggers_and_effects
+	#var mock_causes_and_effects = [{"cause": "on_step", "effect": "teleport"}]  # Mock effects
+	#map_data["causes_and_effects"] = mock_causes_and_effects
 	#map_data["map_group"] = ""
 	## Act: Save the map
 #
@@ -254,7 +254,7 @@
 	#assert_eq(map_data.has("tile_data"), true, "❌ ERROR: 'tile_data' key missing!")
 	#assert_eq(map_data.has("thumbnail"), true, "❌ ERROR: 'thumbnail' key missing!")
 	#assert_eq(map_data.has("pieces"), true, "❌ ERROR: 'pieces' key missing!")
-	#assert_eq(map_data.has("triggers_and_effects"), true, "❌ ERROR: 'triggers_and_effects' key missing!")
+	#assert_eq(map_data.has("causes_and_effects"), true, "❌ ERROR: 'causes_and_effects' key missing!")
 	#assert_eq(map_data.has("map_group"), true, "❌ ERROR: 'map_group' key missing!")
 #
 	## Assert: Verify map values
@@ -262,7 +262,7 @@
 	#assert_eq(map_data["tile_data"], mock_tile_layer.get_tile_data, "❌ ERROR: Tile data incorrect!")
 	#assert_eq(typeof(map_data["thumbnail"]), TYPE_OBJECT, "❌ ERROR: Thumbnail is not an object!")
 	#assert_eq(map_data["pieces"], [{"type": "knight", "position": Vector2(2, 2)}], "❌ ERROR: Pieces data incorrect!")  # If pieces were not yet added
-	#assert_eq(map_data["triggers_and_effects"], [{"trigger": "on_step", "effect": "teleport"}], "❌ ERROR: Triggers and effects incorrect!")  # If no effects yet
+	#assert_eq(map_data["causes_and_effects"], [{"cause": "on_step", "effect": "teleport"}], "❌ ERROR: causes and effects incorrect!")  # If no effects yet
 	#assert_eq(map_data["map_group"], "", "❌ ERROR: Incorrect map group!")
 #
 	#print("📝 Captured Map Data:", JSON.stringify(map_data, "\t"))  # ✅ Debug output
@@ -366,7 +366,7 @@
 		#"tile_data": {},
 		#"thumbnail": null,  # Placeholder, actual thumbnail saved separately
 		#"pieces": [],  
-		#"triggers_and_effects": [],  # Retrieve triggers and effects
+		#"causes_and_effects": [],  # Retrieve causes and effects
 		#"map_group": ""  # Retrieve map grouping information
 	#}
 	#
@@ -392,8 +392,8 @@
 	#var mock_pieces = [{"type": "knight", "position": Vector2(2, 2)}]  # Mock piece objects
 	#map_data["pieces"] = mock_pieces
 	#
-	#var mock_triggers_and_effects = [{"trigger": "on_step", "effect": "teleport"}]  # Mock effects
-	#map_data["triggers_and_effects"] = mock_triggers_and_effects
+	#var mock_causes_and_effects = [{"cause": "on_step", "effect": "teleport"}]  # Mock effects
+	#map_data["causes_and_effects"] = mock_causes_and_effects
 	#map_data["map_group"] = ""
 	#
 	#return mock_map_data

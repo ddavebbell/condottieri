@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Trigger" load_steps=2 format=3 uid="uid://bub3p861dfkoy"]
 
-[ext_resource type="Script" path="res://scripts/resources/trigger.gd" id="1_r1y1m"]
+[ext_resource type="Script" path="res://scripts/resources/cause.gd" id="1_r1y1m"]
 
 [resource]
 script = ExtResource("1_r1y1m")

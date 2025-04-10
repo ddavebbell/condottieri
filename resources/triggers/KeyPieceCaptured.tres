@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Trigger" load_steps=3 format=3 uid="uid://ceu11nfw61gn1"]
 
 [ext_resource type="Resource" uid="uid://dvgrlepvwly7p" path="res://resources/effects/EndLevelVictory.tres" id="1_5nd2m"]
-[ext_resource type="Script" path="res://scripts/resources/trigger.gd" id="1_6bic8"]
+[ext_resource type="Script" path="res://scripts/resources/cause.gd" id="1_6bic8"]
 
 [resource]
 script = ExtResource("1_6bic8")
