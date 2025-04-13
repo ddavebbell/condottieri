@@ -38,11 +38,9 @@ func _on_save_map_button_pressed():
 
 
 func _on_open_map_button_pressed():
-	print("_on_open_map_button_pressed")
-	if not UiManager._ui_registry.has("map_list_screen"):
-		map_list_screen = load("res://scenes/MapListScreen.tscn").instantiate()
-		main_scene.PanelContainerBottom.add_child(map_list_screen)
+	print("📂 TaskBar: Open Map button pressed")
 
-		map_list_screen.is_open_map_context(true)
+	if not UiManager._ui_registry.has("MapListScreen"):
+		UiManager.show_map_list_screen(true)  # true = is_open_context
+
 		emit_signal("open_map_requested")
-# spawn Map list screen

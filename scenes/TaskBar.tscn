@@ -37,7 +37,7 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 18
 text = "New Map"
 
-[node name="LoadMapButton" type="Button" parent="MarginContainer/HBoxContainer"]
+[node name="OpenMapButton" type="Button" parent="MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -65,12 +65,14 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 1.0
+offset_right = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_iyxbd")
 
 [connection signal="pressed" from="MarginContainer/HBoxContainer/NewMapButton" to="." method="_on_load_map_button_pressed"]
-[connection signal="pressed" from="MarginContainer/HBoxContainer/LoadMapButton" to="." method="_on_load_map_button_pressed"]
+[connection signal="pressed" from="MarginContainer/HBoxContainer/OpenMapButton" to="." method="_on_load_map_button_pressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/SaveMapButton" to="." method="_on_save_map_button_pressed"]
 [connection signal="pressed" from="MarginContainer/HBoxContainer/OpenBoardEventListButton" to="." method="_on_open_board_event_list_pressed"]

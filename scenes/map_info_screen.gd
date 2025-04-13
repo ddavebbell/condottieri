@@ -13,7 +13,7 @@ const MUSIC_DIR = "user://map_music/"
 
 var current_map: Map = null
 
-signal popup_closed
+signal map_info_closed
 
 
 func _ready() -> void:
@@ -39,11 +39,10 @@ func _setup_music_file_dialog():
 func _populate_ui():
 	if current_map:
 		map_title.text = current_map.name
+		map_description_panel.text = current_map.description
 	else:
 		map_title.text = "Untitled Map"
-		
-	if map_description_panel.text:
-		map_description_panel.text = current_map.description
+	
 
 
 
@@ -52,9 +51,9 @@ func _populate_ui():
 
 func _on_cancel_button_pressed() -> void:
 	# go back to previous screen
-	UiManager.deregister_ui("MapInfoScreen")
-	emit_signal("popup_closed")
-	self.call_deferred("queue_free")
+	UiManager.close_ui("MapInfoScreen")
+	emit_signal("map_info_closed")
+	#self.call_deferred("queue_free")
 
 
 func _on_ok_button_pressed() -> void:

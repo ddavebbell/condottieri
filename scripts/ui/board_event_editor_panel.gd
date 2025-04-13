@@ -4,8 +4,9 @@ class_name BoardEventEditorScreen
 
 const SOUND_EFFECTS_DIR := "user://sound_effects"
 
-#region Variables
+signal board_event_editor_close_requested
 
+#region Variables
 @onready var effect_list_container = $Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection/ScrollContainer/EffectListContainer
 @onready var cause_list_container = $Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer/ScrollContainer/CauseListContainer
 
@@ -15,24 +16,45 @@ const SOUND_EFFECTS_DIR := "user://sound_effects"
 @onready var sound_fx_player = $AudioStreamPlayer2D
 @onready var sound_fx_preview_button = $Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/SoundEffectPanel/MarginContainer/SoundEffect/VBoxContainer2/PreviewSFXButton
 
-
 @onready var board_event_description = $Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/DescriptionInputPanel/MarginContainer/HBoxContainer/VBoxContainerR/DescriptionInput
 @onready var board_event_name = $Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerT/DescriptionInputPanel/MarginContainer/HBoxContainer/VBoxContainerR/NameInput
 @onready var file_dialog: FileDialog = $FileDialog
 
 
+var board_event: BoardEvent = null
+var board_events_array: Array = []  # Store reference to `board events` array
+var is_editing: bool = false
 
-var board_event_manager: BoardEventManager
-var causes_ref: Array = []  # Store reference to `causes` array
+# Do we even need these ?  You can probably grab selected from the ItemList
 var current_cause: Cause = null  # Stores the active cause
-
+var current_effect: Effect = null # Stores the active effect
 #endregion
+
+
+# ------------------------------------------------------------
+# 📌 BoardEventEditorScreen Setup Guide
+#
+# Use these setup methods when opening the BoardEventEditorScreen:
+#
+# ✅ To create a new board event:
+# var popup = main_scene.spawn_popup(main_scene.board_event_editor_screen_scene)
+# popup.setup_for_new_event(current_board_events)
+#
+# ✅ To edit an existing board event:
+# var popup = main_scene.spawn_popup(main_scene.board_event_editor_screen_scene)
+# popup.setup_for_edit_event(selected_event, current_board_events)
+#
+# This will ensure the popup loads the correct data,
+# sets the right mode (is_editing), and stores a reference
+# to the current working array of board events.
+# ------------------------------------------------------------
 
 
 func _ready():
 	_setup_sound_fx_browser()
 	_populate_cause_list_container()
 	_populate_effect_list_container()
+	_get_board_events_from_board_event_manager()
 	
 	sound_fx_container.item_selected.connect(_on_sound_fx_item_selected)
 	sound_fx_preview_button.pressed.connect(_on_sound_fx_preview_button_pressed)
@@ -40,11 +62,100 @@ func _ready():
 	sound_fx_browse_button.pressed.connect(func():
 		file_dialog.popup_centered()
 	)
+	connect("board_event_editor_close_requested", Callable(BoardEventManager, "_on_board_event_editor_close_requested"))
 	
-	
+	UiManager.register_ui("BoardEventEditorScreen", self)
 
 
 #region Set Up
+
+func setup_for_new_event(board_events_array_ref: Array):
+	print("🧱 setup_for_new_event() CALLED") 
+	is_editing = false
+	board_event = BoardEvent.new()
+	board_events_array = board_events_array_ref
+	_preselect_default_ui()
+
+
+func setup_for_edit_event(existing_event: BoardEvent, board_events_array_ref: Array):
+	print("🧱 setup_for_edit_event() CALLED") 
+	is_editing = true
+	board_event = existing_event
+	board_events_array = board_events_array_ref
+	_load_event_into_ui()
+
+
+func _preselect_default_ui():
+	# Select the first cause and effect by default
+	if cause_list_container.item_count > 0:
+		cause_list_container.select(0)
+
+	if effect_list_container.item_count > 0:
+		effect_list_container.select(0)
+
+	board_event_name.text = ""
+	board_event_description.text = ""
+	sound_fx_folder_browse_line.text = ""
+	sound_fx_container.select(0)
+
+
+func _load_event_into_ui():
+	# Load name and description
+	board_event_name.text = board_event.name
+	board_event_description.text = board_event.description
+
+	# Select matching cause (assumes cause is stored as string)
+	if not board_event.causes.is_empty():
+		var cause = str(board_event.causes[0])
+		for i in cause_list_container.item_count:
+			if cause_list_container.get_item_text(i) == cause:
+				cause_list_container.select(i)
+				break
+
+	# Select matching effect (same as cause)
+	if not board_event.effects.is_empty():
+		var effect = str(board_event.effects[0])
+		for i in effect_list_container.item_count:
+			if effect_list_container.get_item_text(i) == effect:
+				effect_list_container.select(i)
+				break
+
+	# Sound FX field (optional)
+	if not board_event.sound_effects.is_empty():
+		sound_fx_folder_browse_line.text = board_event.sound_effects[0]
+
+
+func set_board_event(event: BoardEvent):
+	board_event = event
+	_load_event_data()
+
+
+func _load_event_data():
+	if board_event == null:
+		return
+	
+	# Update your fields, e.g.:
+	board_event_name.text = board_event.name
+	board_event_description.text = board_event.description
+	effect_list_container = board_event.effects
+	# etc.
+
+
+func populate_effect_list():
+	effect_list_container.clear()
+
+	for effect in board_event.effects:
+		if effect is Effect:
+			var label = Effect.EffectType.keys()[effect.effect_type]  # Get enum name
+			effect_list_container.add_item(label)
+		else:
+			effect_list_container.add_item("Unknown Effect")
+
+
+
+func _get_board_events_from_board_event_manager():
+	board_events_array = BoardEventManager._set_board_events()
+
 
 func _populate_cause_list_container():
 	# Clear previous items
@@ -149,8 +260,6 @@ func _setup_sound_fx_browser():
 	file_dialog.dir_selected.connect(_on_sound_fx_directory_selected)
 
 
-
-
 # abbreviates the folder path for easier display
 func _abbreviate_path(full_path: String, folder_depth: int = 2) -> String:
 	var parts = full_path.split("/")
@@ -248,11 +357,61 @@ func _on_sound_fx_preview_button_pressed():
 			push_warning("Invalid sound file format.")
 
 
-func _on_cancel_button_pressed():
-	print("🚫 Cancel Button Pressed. Closing without saving.")
-	emit_signal("board_event_editor_close_requested")
-	self.queue_free()
+# Enabled for multiple selection in causes and effects
+func _on_ok_button_pressed() -> void:
+	print("✅ OK Button Pressed — saving board event.")
 
+	if board_event == null:
+		push_error("❌ board_event is null! Cannot save.")
+		return
+
+	# --- Get selected causes ---
+	var selected_cause_indices = cause_list_container.get_selected_items()
+	if selected_cause_indices.is_empty():
+		print("⚠️ No cause selected — selecting first by default.")
+		cause_list_container.select(0)
+		selected_cause_indices = [0]
+
+	board_event.causes.clear()
+	for index in selected_cause_indices:
+		var cause_text = cause_list_container.get_item_text(index)
+		board_event.causes.append(cause_text)
+
+	# --- Get selected effects ---
+	var selected_effect_indices = effect_list_container.get_selected_items()
+	if selected_effect_indices.is_empty():
+		print("⚠️ No effect selected — selecting first by default.")
+		effect_list_container.select(0)
+		selected_effect_indices = [0]
+
+	board_event.effects.clear()
+	for index in selected_effect_indices:
+		var effect_text = effect_list_container.get_item_text(index)
+		board_event.effects.append(effect_text)
+
+	# --- Assign other fields ---
+	board_event.name = board_event_name.text
+	board_event.description = board_event_description.text
+
+	# --- Save if NEW ---
+	if not is_editing:
+		print("✨ Adding new board event to manager and list")
+		BoardEventManager._add_board_event(board_event)
+		board_events_array.append(board_event)
+	else:
+		print("🛠️ Editing existing board event — updated in place")
+		# Do not re-add to the manager or array; it’s already there
+
+	# --- Notify and Close ---
+	emit_signal("board_event_editor_close_requested")
+	UiManager.close_ui("BoardEventEditorScreen")
+
+
+
+func _on_cancel_button_pressed():
+	print("🚫 Cancel Button Pressed. Closing without saving board_event.")
+	
+	UiManager.close_ui("BoardEventEditorScreen")
 
 
 #func _show_error_popup(message: String):

@@ -19,7 +19,7 @@ var _is_saved: bool = false
 
 
 func _on_new_map_requested():
-	create_map()
+	create_new_map()
 
 
 func _on_open_map_requested():
@@ -33,12 +33,6 @@ func _on_save_map_requested():
 func _on_save_as_map_requested():
 	# save map popup spawns
 	pass
-
-func create_map():
-	current_map = Map.new()
-	_is_saved = false
-	current_map["name"] = "Unsaved Map"
-	return current_map
 
 
 func load_selected_map(map: Map) -> void:
@@ -89,6 +83,15 @@ func get_saved_map_files() -> Array:
 
 #func map_exists(map_name: String) -> bool:
 	#return FileAccess.file_exists(get_map_path(map_name))
+
+
+func create_new_map():
+	var new_map = Map.new()  # Or load a blank template if you have one
+	new_map.name = "Untitled Map"
+	new_map.created_date = Time.get_datetime_string_from_system()
+	
+	set_current_map(new_map)
+	print("🆕 New map created and assigned:", new_map)
 
 
 func set_current_map(map: Map):

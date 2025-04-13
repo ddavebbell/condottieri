@@ -1,6 +1,7 @@
 extends Control
 class_name MapListScreen
 
+const MAPS_DIR = "user://maps/"
 
 #region NODE REFS
 @onready var folder_path_input = $Margin/MainVBox/UpperSection/LeftVBox/MapFolderHBox/FolderPath
@@ -32,11 +33,7 @@ var _is_open_map_context: bool = true
 #endregion
 
 
-const MAPS_DIR = "user://maps/"
-
-signal map_selected(map: Map)
-signal popup_closed
-
+signal map_list_closed
 
 
 
@@ -64,6 +61,9 @@ func _ready():
 		#print("MapManager.create_test_maps()")
 		#MapManager.create_test_maps()
 
+
+func set_context(value: bool) -> void:
+	_is_open_map_context = value
 
 
 func _setup_folder_browse():
@@ -99,8 +99,6 @@ func is_open_map_context(is_open: bool) -> void:
 		ok_button.text = "Save"
 		map_name_input_section.visible = true
 
-
-## Populate UIs
 
 func _populate_map_list():
 	_clear_map_list_ui(map_list_panel)
@@ -171,6 +169,8 @@ func _clear_map_list_ui(container: Node):
 #endregion
 
 
+
+
 #region Event Handlers
 
 # If there is not at least 4 characters in map name input, don't enable OK button
@@ -190,14 +190,14 @@ func _on_ok_button_pressed():
 	
 	if is_open_map_context:
 		MapManager.load_selected_map(selected_map)
-		UiManager.open_map_editor_screen_with_selected_map()
+		UiManager.open_map_editor_screen()
 	
 	# SAVE MAP CONTEXT
 	#if not is_open_map_context:
 		#MapManager.save_map(selected_map)
+		
 	UiManager.deregister_ui("MapListScreen")
-	
-	emit_signal("popup_closed")
+	emit_signal("map_list_closed")
 	call_deferred("queue_free")
 
 
@@ -209,21 +209,36 @@ func _on_browse_button_pressed():
 
 
 func _on_cancel_button_pressed():
-	# when coming here from MapEditorScreen you will be sent a selected_map object
-	if selected_map:
-		print("Coming to MapListScreen from MapEditorScreen")
-		call_deferred("queue_free") 
-	else:
-		print("_return_to_title_screen")
+	if is_open_map_context:
+		print("🧼 Returning to TitleScreen from MapListScreen (open map context)")
 		_return_to_title_screen()
-	
-	UiManager.deregister_ui("MapListScreen")
+	else:
+		print("🔙 Returning to MapEditorScreen from MapListScreen")
+		UiManager.close_ui("MapListScreen")
+
+
 
 
 func _return_to_title_screen():
+	print("🔄 Returning to Title Screen")
+
+	# Defer everything to the next frame to avoid tree modification errors
+	call_deferred("_deferred_return_to_title_screen")
+
+
+func _deferred_return_to_title_screen():
+	# Clean up MainScene
+	var main_scene = get_tree().root.get_node_or_null("MainScene")
+	if main_scene:
+		main_scene.queue_free()
+
+	# Spawn TitleScreen
 	var title_screen = load("res://scenes/TitleScreen.tscn").instantiate()
-	call_deferred("queue_free") 
+	title_screen.name = "TitleScreen"
 	get_tree().root.add_child(title_screen)
+
+	# Deregister the map list screen
+	UiManager.deregister_ui("MapListScreen")
 
 
 
