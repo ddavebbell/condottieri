@@ -4,6 +4,7 @@ class_name Effect
 
 
 enum EffectType {
+	NONE,
 	SPAWN_REINFORCEMENTS,
 	UPGRADE_PIECE,
 	REMOVE_PIECE,
@@ -21,6 +22,7 @@ enum EffectType {
 
 # Local vs Global Effect categorization
 const LocalEffects = [
+	EffectType.NONE,	# Default No effect type
 	EffectType.SPAWN_REINFORCEMENTS, # Adds extra pieces
 	EffectType.UPGRADE_PIECE,		# Promote Pawn → Queen
 	EffectType.REMOVE_PIECE,		# Kill a piece
@@ -31,6 +33,7 @@ const LocalEffects = [
 ]
 
 const GlobalEffects = [
+	EffectType.NONE,	# Default No effect type
 	EffectType.ADD_TIME_BONUS,		# Give extra time
 	EffectType.REDUCE_TIME,			# Decrease time left
 	EffectType.INCREASE_SCORE,		# Add to the player’s score
@@ -42,3 +45,7 @@ const GlobalEffects = [
 
 @export var effect_type: EffectType
 @export var effect_parameters: Dictionary = {}  # Parameters like piece type, location, etc.
+
+
+func get_display_name() -> String:
+	return Effect.EffectType.keys()[effect_type]

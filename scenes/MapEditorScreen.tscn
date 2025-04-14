@@ -451,5 +451,5 @@ metadata/_edit_lock_ = true
 [connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer/CreateEventButton" to="." method="_on_create_event_button_pressed"]
 [connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer/EditEventButton" to="." method="_on_edit_event_button_pressed"]
 [connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer/DeleteEventButton" to="." method="_on_delete_event_button_pressed"]
-[connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer/OpenListButton" to="." method="_on_open_list_button_pressed"]
 [connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer/OpenListButton" to="." method="_on_open_board_event_list_button_pressed"]
+[connection signal="pressed" from="HSplitContainer/SideMenu/MarginContainer/MenuWrapper/BoardEventMenu/MarginContainer/HBoxContainer/VBoxContainer/OpenListButton" to="." method="_on_open_list_button_pressed"]

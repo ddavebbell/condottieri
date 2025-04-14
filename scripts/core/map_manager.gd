@@ -141,9 +141,6 @@ func save_current_map_metadata_to_file(file_name: String, name: String, descript
 		push_error("❌ No current map loaded to save.")
 		return
 
-	if not file_name.ends_with(".condomap"):
-		file_name += ".condomap"
-
 	# Update current_map's metadata from UI
 	current_map.name = name
 	current_map.description = description

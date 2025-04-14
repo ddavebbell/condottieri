@@ -110,8 +110,9 @@ layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 6
 theme_override_font_sizes/font_size = 14
-text = "Cause"
-horizontal_alignment = 1
+text = "Select A 
+Cause"
+horizontal_alignment = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/CausePanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -157,8 +158,9 @@ layout_mode = 2
 size_flags_horizontal = 2
 size_flags_vertical = 6
 theme_override_font_sizes/font_size = 14
-text = "Effects"
-horizontal_alignment = 1
+text = "Select An 
+Effect"
+horizontal_alignment = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Popups/BackgroundPanel/Padding/MainLayout/HBoxContainerB/HBoxContainerL/EffectPanel/MarginContainer/EffectSelection"]
 layout_mode = 2

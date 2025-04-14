@@ -1,26 +1,28 @@
 extends Resource
-
 class_name BoardEvent
 
 
 @export var name: String = ""
 @export var description: String = ""
 
-@export var causes: Array = []
-@export var effects: Array = []
+@export var cause: Cause = null
+@export var effect: Effect = null
 
-@export var sound_effects: Array = []
+@export var sound_effect: String = ""
 @export var map_name_event_belongs_to: String = ""
 
 
-#this formats the Board Event for display
+# this formats the Board Event for display
 func get_display_name() -> String:
-	var cause_str = "None"
-	if not causes.is_empty():
-		cause_str = str(causes[0])
+	var cause_str := "None"
+	if cause is Cause:
+		if cause.local_cause != Cause.LocalCause.NONE:
+			cause_str = Cause.LocalCause.keys()[cause.local_cause]
+		elif cause.global_cause != Cause.GlobalCause.NONE:
+			cause_str = Cause.GlobalCause.keys()[cause.global_cause]
 
-	var effect_str = "None"
-	if not effects.is_empty():
-		effect_str = str(effects[0])
+	var effect_str := "None"
+	if effect is Effect and effect.effect_type != Effect.EffectType.NONE:
+		effect_str = Effect.EffectType.keys()[effect.effect_type]
 
 	return "%s  |  Cause: %s  |  Effect: %s" % [name, cause_str, effect_str]

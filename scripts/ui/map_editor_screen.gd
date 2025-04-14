@@ -1,9 +1,9 @@
 extends Control
-
 class_name MapEditorScreen
 
 signal board_event_edit_requested(board_event)
 signal open_map_info_screen
+signal setup_for_edit_event
 
 #region NODE REFS
 
@@ -27,24 +27,22 @@ signal open_map_info_screen
 @onready var map_editor_popup = $MapEditorPopUp
 @onready var map_list_screen = null
 
+#endregion
+
 # STATE
 var current_map: Map = null
 var current_filename: String = ""
-var current_board_events: Array = []
-# get the board events from the Map object and populate this array
 
-
-#endregion
 
 
 func _ready():
 	_set_show_hide_button_text()
 	UiManager.register_ui("MapEditorScreen", self)
-	_refresh_current_map()
-	_populate_item_list()
-	_generate_dummy_board_events()
 	BoardEventManager.connect("board_event_updated", Callable(self, "_on_board_event_updated"))
-
+	BoardEventManager.board_events.clear()
+	generate_dummy_board_events()
+	_refresh_current_map()
+	_populate_board_event_list()
 
 
 func _refresh_current_map():
@@ -55,29 +53,28 @@ func _refresh_current_map():
 
 func _on_board_event_updated():
 	print("🔁 Board events updated — refreshing UI")
-	_get_board_events_from_board_event_manager()
-	_populate_item_list()  # or whatever you call to redraw the list
+	#_get_board_events_from_board_event_manager()
+	_populate_board_event_list()  # or whatever you call to redraw the list
 
 
-func _get_board_events_from_board_event_manager():
-	current_board_events = BoardEventManager._set_board_events()
+#func _get_board_events_from_board_event_manager():
+	#current_board_events = BoardEventManager._set_board_events()
 
 
 # this merges both the current_map events, and the map's unsaved board events.
-func _populate_item_list():
-	board_event_list.clear()
 
+
+func _populate_board_event_list():
+	board_event_list.clear()
 	var seen := {}
 
-	# Add new unsaved board events first
-	for event in current_board_events:
-		var id := str(event)  # or use a unique property if you have one, like event.id
+	for event in BoardEventManager.board_events:
+		var id := str(event)
 		if not seen.has(id):
 			board_event_list.add_item(event.get_display_name())
 			seen[id] = true
 
-	# Add events already on the map, but only if not duplicated
-	if current_map.board_events:
+	if current_map and current_map.board_events:
 		for event in current_map.board_events:
 			var id := str(event)
 			if not seen.has(id):
@@ -102,7 +99,6 @@ func _set_map_name():
 
 
 #region EVENT HANDLERS - FROM TASKBAR
-
 
 
 func open_with_save_as_context(map_name: String):
@@ -137,29 +133,17 @@ func _set_show_hide_button_text():
 
 func _on_board_event_show_hide_button_pressed():
 	board_event_section.visible = !board_event_section.visible
-	
-	if board_event_section.visible:
-		events_show_hide_button.text = "Hide"
-	else:
-		events_show_hide_button.text = "Show"
+	_set_show_hide_button_text()
 
 
 func _on_tile_show_hide_button_pressed():
 	tiles_section.visible = !tiles_section.visible
-	
-	if tiles_section.visible:
-		tiles_show_hide_button.text = "Hide"
-	else:
-		tiles_show_hide_button.text = "Show"
+	_set_show_hide_button_text()
 
 
 func _on_pieces_show_hide_button_pressed():
 	pieces_section.visible = !pieces_section.visible
-	
-	if pieces_section.visible:
-		pieces_show_hide_button.text = "Hide"
-	else:
-		pieces_show_hide_button.text = "Show"
+	_set_show_hide_button_text()
 
 
 func _on_edit_map_info_button_pressed() -> void:
@@ -170,7 +154,10 @@ func _on_edit_map_info_button_pressed() -> void:
 
 #endregion
 
-# FIX THIS # FIX THIS # FIX THIS #
+
+#region UI Actions
+
+
 func _on_open_board_event_list_button_pressed() -> void:
 	print("📂 Open Board Event List pressed")
 	if UiManager._ui_registry.has("BoardEventEditorScreen"):
@@ -183,84 +170,86 @@ func _on_open_board_event_list_button_pressed() -> void:
 
 
 func _on_create_event_button_pressed() -> void:
-	print("📂 Create Board Event Button pressed")
 	if UiManager._ui_registry.has("BoardEventEditorScreen"):
 		print("🟡 BoardEventEditorScreen already exists — debug why it wasn't queue freed before.")
 		return
-
-	var main_scene = get_tree().root.get_node("MainScene")
-	var popup = main_scene.spawn_popup(main_scene.board_event_editor_screen_scene)
-
-	# 🧠 Call the setup method to initialize board_event
-	# ✅ Step 2 debug prints
-	print("⏳ Waiting for popup to be ready...")
-	await popup.ready
-	print("✅ Popup ready — calling setup_for_new_event")
-	
-	popup.setup_for_new_event(current_board_events)
+	var popup = get_tree().root.get_node("MainScene").spawn_popup(get_tree().root.get_node("MainScene").board_event_editor_screen_scene)
+	popup.setup_for_new_event(BoardEventManager.board_events)
 
 
-
-# pass on the Board Event object
 func _on_edit_event_button_pressed() -> void:
-	# Check if the editor screen is already open
 	if UiManager._ui_registry.has("BoardEventEditorScreen"):
 		print("🟡 BoardEventEditorScreen already exists — debug why it wasn't queue freed before.")
 		return
-
-	# Get selected index from ItemList
 	var selected_items = board_event_list.get_selected_items()
 	if selected_items.is_empty():
 		print("⚠️ No board event selected for editing.")
 		return
-
-	var selected_index = selected_items[0]
-
-	if selected_index >= current_board_events.size():
-		push_error("❌ Selected index is out of bounds for current_board_events.")
+	var index = selected_items[0]
+	if index >= BoardEventManager.board_events.size():
+		push_error("❌ Selected index is out of bounds.")
 		return
-
-	# Get the selected board event
-	var selected_event: BoardEvent = current_board_events[selected_index]
-
-	# Spawn the BoardEventEditorScreen
-	var main_scene = get_tree().root.get_node("MainScene")
-	var popup = main_scene.spawn_popup(main_scene.board_event_editor_screen_scene)
-
-	# Send the event to the popup
-	await popup.ready
-	popup.setup_for_edit_event(selected_event, current_board_events)
+	var selected_event = BoardEventManager.board_events[index]
+	var popup = get_tree().root.get_node("MainScene").spawn_popup(get_tree().root.get_node("MainScene").board_event_editor_screen_scene)
+	popup.call_deferred("setup_for_edit_event", selected_event, BoardEventManager.board_events)
 
 
-
-func _on_delete_event_button_pressed(board_event: BoardEvent) -> void:
-	if board_event_list.get_selected_items().is_empty():
-		print("⚠️ No item selected to delete.")
+func _on_delete_event_button_pressed() -> void:
+	var selected_items = board_event_list.get_selected_items()
+	if selected_items.is_empty():
+		print("⚠️ No board event selected to delete.")
 		return
+	var index = selected_items[0]
+	if index >= BoardEventManager.board_events.size():
+		push_error("❌ Selected index out of range.")
+		return
+	var event = BoardEventManager.board_events[index]
+	BoardEventManager.remove_board_event(event)
+	_populate_board_event_list()
 
-	var selected_idx = board_event_list.get_selected_items()
-	
-	var index = board_event_list.get_selected_items()[0]
-	current_board_events.remove_at(index)
-
-	pass # Replace with function body.
-
-
+#endregion
 
 # dummy testing functions
 
-func _generate_dummy_board_events(count: int = 5):
-	current_board_events.clear()
+func generate_dummy_board_events():
+	var evt1 = BoardEvent.new()
+	evt1.name = "Enemy Ambush"
+	evt1.description = "Triggers when enemies enter the trap zone."
+	var cause1 = Cause.new()
+	cause1.local_cause = Cause.LocalCause.PIECE_ENTERS_TILE
+	cause1.pop_up_text = "An enemy has entered the trap zone!"
+	evt1.cause = cause1
+	var eff1 = Effect.new()
+	eff1.effect_type = Effect.EffectType.ACTIVATE_TRAP
+	eff1.effect_parameters = {"tile": Vector2(3, 2), "damage": 25}
+	evt1.effect = eff1
+	evt1.sound_effect = "trap_triggered.wav"
+	evt1.map_name_event_belongs_to = "DesertMap"
+	BoardEventManager.add_board_event(evt1)
 
-	for i in count:
-		var event := preload("res://scripts/resources/board_event.gd").new()
-		event.name = "Dummy Event %d" % i
-		event.description = "This is a fake event used for testing (#%d)" % i
+	var evt2 = BoardEvent.new()
+	evt2.name = "Reinforcements Arrive"
+	evt2.description = "Adds reinforcements after turn 5."
+	var cause2 = Cause.new()
+	cause2.global_cause = Cause.GlobalCause.TURN_COUNT_REACHED
+	cause2.pop_up_text = "Turn 5 reached. Reinforcements inbound!"
+	evt2.cause = cause2
+	var eff2 = Effect.new()
+	eff2.effect_type = Effect.EffectType.SPAWN_REINFORCEMENTS
+	eff2.effect_parameters = {"position": Vector2(0, 0), "unit_type": "Archer", "count": 2}
+	evt2.effect = eff2
+	evt2.sound_effect = "reinforcements_arrive.wav"
+	evt2.map_name_event_belongs_to = "MountainPass"
+	BoardEventManager.add_board_event(evt2)
 
-		event.causes = ["Turn %d" % (i + 1)]
-		event.effects = ["Effect Type %d" % (i + 1)]
-		event.sound_effects = ["sound_%d.wav" % (i + 1)]
-
-		current_board_events.append(event)
-
-	print("🐛 Generated %d dummy board events for debugging" % count)
+	print("\n📦 2 Dummy Board Events Created")
+	for i in BoardEventManager.board_events.size():
+		var evt = BoardEventManager.board_events[i]
+		print("🔹 [%d] %s" % [i, evt.name])
+		print("   ↪ Description: %s" % evt.description)
+		print("   🧩 Cause: %s" % (evt.cause.local_cause if evt.cause.local_cause != Cause.LocalCause.NONE else evt.cause.global_cause))
+		print("   ⚡ Effect: %s" % str(evt.effect.effect_type))
+		print("      ▶ Params: %s" % str(evt.effect.effect_parameters))
+		print("   🎧 Sound Effect: %s" % (evt.sound_effect if evt.sound_effect != "" else "None"))
+		print("   📍 Map: %s\n" % evt.map_name_event_belongs_to)
+	print("✅ Done printing dummy board events.")
