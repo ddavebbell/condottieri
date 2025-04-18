@@ -17,6 +17,20 @@ func set_board_events(new_events: Array[BoardEvent]) -> void:
 # === ADD/REMOVE ===
 
 func add_board_event(board_event: BoardEvent) -> void:
+		# Check if an identical event already exists based on key fields
+	for existing_event in board_events:
+		if (
+			existing_event.cause == board_event.cause
+			and existing_event.effect == board_event.effect
+			and existing_event.sound_effect == board_event.sound_effect
+		):
+			print("⚠️ Duplicate board event detected based on content. Skipping add:", board_event.name)
+			return
+
+	if board_events.has(board_event):
+		print("⚠️ Board event already exists. Skipping add:", board_event.name)
+		return
+	
 	board_events.append(board_event)
 	emit_signal("board_event_updated")
 	print("➕ Added board event:", board_event.name)

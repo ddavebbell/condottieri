@@ -258,7 +258,7 @@ func _load_causes(cause_data: Array):
 	print("✅ Successfully loaded", causes.size(), "causes into memory.")
 
 func create_new_cause(data):
-	var new_cause = cause.new()
+	var new_cause = Cause.new()
 	new_cause.cause = data["cause"]
 	new_cause.cause_tiles = data.get("cause_tiles", []) if data.get("cause_tiles") is Array else []
 	new_cause.sound_effect = data.get("sound_effect", "")

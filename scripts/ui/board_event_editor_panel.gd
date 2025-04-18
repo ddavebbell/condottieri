@@ -189,11 +189,6 @@ func _load_event_into_ui():
 
 
 
-
-
-
-
-
 func _get_board_events_from_board_event_manager():
 	board_events_array = BoardEventManager.get_board_events()
 
@@ -418,22 +413,24 @@ func _on_ok_button_pressed() -> void:
 		return
 
 	# === SINGLE CAUSE ===
-	var selected_cause_index = cause_list_container.get_selected_items().front()
-	if selected_cause_index == null:
+	var selected_indices = cause_list_container.get_selected_items()
+	if selected_indices.is_empty():
 		print("⚠️ No cause selected — selecting first by default.")
-		selected_cause_index = 0
 		cause_list_container.select(0)
-
+		selected_indices  = [0]
+		
+	var selected_cause_index = selected_indices[0]
 	board_event.cause = cause_list_container.get_item_metadata(selected_cause_index)
 	print("🎯 Cause selected →", board_event.cause)
 
 	# === SINGLE EFFECT ===
-	var selected_effect_index = effect_list_container.get_selected_items().front()
-	if selected_effect_index == null:
+	var selected_effect_indices = effect_list_container.get_selected_items()
+	if selected_effect_indices == null:
 		print("⚠️ No effect selected — selecting first by default.")
-		selected_effect_index = 0
 		effect_list_container.select(0)
-
+		selected_effect_indices = [0]
+	
+	var selected_effect_index = selected_effect_indices[0]
 	board_event.effect = effect_list_container.get_item_metadata(selected_effect_index)
 	print("⚡ Effect selected →", board_event.effect)
 
@@ -444,9 +441,9 @@ func _on_ok_button_pressed() -> void:
 
 	# === SAVE ===
 	if not is_editing:
-		print("✨ Adding new board event to manager and list")
-		BoardEventManager._add_board_event(board_event)
-		board_events_array.append(board_event)
+		print("✨ Adding new board event to manager")
+		BoardEventManager.add_board_event(board_event)
+		# 🟡 Removed: board_events_array.append(board_event) ← now redundant
 	else:
 		print("🛠️ Editing existing board event — updated in place")
 
