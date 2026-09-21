@@ -251,8 +251,19 @@ function fanteMoves(piece) {
   return moves;
 }
 
+/*  The Condottiero commands; he does not duel.
+
+    He keeps every square of his reach for moving and for anchoring — he
+    still shelters all eight tiles around him, which is the whole of his
+    worth — but he may not take a man. Losing him still fails the contract.
+
+    Before this, the solver finished The Bridge on turn two of eighteen and
+    took six of ten on the Ambush with this one piece, ignoring every rule
+    the maps were built to teach. A sixteen-direction slider that kills for
+    free has no answer when nothing on their side is ever sheltered.      */
 function legalMoves(piece) {
-  return removeBraced(piece, rawMoves(piece));
+  const ms = removeBraced(piece, rawMoves(piece));
+  return piece.type === 'condottiero' ? ms.filter(m => !m.capture) : ms;
 }
 
 /*  WADING

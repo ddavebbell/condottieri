@@ -314,7 +314,7 @@ const CASES = [
   { rows: ['.....','.....','..L..','.....','.....'], show:'cover', from:[2,2],
     text:'<b>Lanciere.</b> Four corners. A man standing square beside him gets nothing.' },
   { rows: ['.....','.....','..Q..','.....','.....'], show:'cover', from:[2,2],
-    text:'<b>Condottiero.</b> All eight. Your best anchor — which is a reason to put him in the line and a reason not to.' },
+    text:'<b>Condottiero.</b> All eight, and he takes no man. He commands and he anchors — that is his whole worth, and losing him still ends the contract.' },
   { rows: ['.....','.....','..B..','.....','.....'], show:'cover', from:[2,2],
     text:'<b>Balestriere.</b> Nothing. He is the piece that goes through a formation, so he cannot be the thing holding one up.' },
 

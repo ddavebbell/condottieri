@@ -83,3 +83,53 @@ My recommendation is **(1)**. It is one line, it is the most thematic, and it tu
 - The Villa Gate has not been solved yet — the search was still going at turn 12 when I stopped it. It is the hardest of the three, which is a good sign.
 - Steps 4–6 of the plan are untouched: exact search, the rules-exercised report, and wiring the solver into the test suite.
 - `tools/lib.js` holds the heuristic. It is the crudest part of what I built and the easiest thing to improve.
+
+---
+
+# Addendum — the Condottiero disarmed
+
+**Change made:** the Condottiero may move and anchor as before, but may not capture. One filter in `legalMoves`; he keeps every square of his reach for movement and still shelters all eight tiles around him. Losing him still fails the contract.
+
+## Before and after
+
+| Map | Before | After |
+|---|---|---|
+| Ambush | won t7, **1 lost**, captain takes 6 of 10 | won **t6, 0 lost**, kills spread across Lanciere ×3, Cavaliere ×4, Fanti ×2 |
+| The Bridge | won t2, 0 lost, captain kills the bridge guard | won t2, 1 lost — **still trivial, see below** |
+| The Villa Gate | unsolved | unsolved at turn 15, stuck at 4 enemies and 1 man in the courtyard |
+
+**The Ambush is fixed.** Nobody dies, it takes six turns, and no single piece carries it. The captain moves only to position and shelter — which is exactly what he is for.
+
+## Two things the change did not fix
+
+### The Bridge is a map problem, not a rules problem
+
+```
+t1  Lanciere 6,6 to 4,4        (onto the planks; the hold counts at turn end)
+    ...their crossbowman shoots him
+t2  Condottiero 4,6 to 4,4     (steps onto the empty square; hold reaches 2)
+```
+
+Two turns of eighteen. Throw one man onto the bridge to bank the first count, walk a second man on to bank the second. The crossbowman, the river, the flanking wade — none of it is needed.
+
+The causes are all in the map, not the rules:
+
+- **Hold is only 2 turns**, and the bridge is two tiles from your starting line.
+- **The count banks even if the man dies afterwards**, so a body is enough.
+- **Eighteen turns is nine times what the map needs.**
+
+Worth trying, in order: raise the hold to 4 or 5 turns; move the muster line back two rows; and consider whether a hold should count only if the man is *still standing* at the start of your next turn, which would make the sacrifice trick fail.
+
+### The Villa Gate may be unwinnable
+
+Fifteen turns, four enemies still standing, and never more than **one** man inside the courtyard against a target of three. The suspects:
+
+- The gate is one tile wide and sighted by a crossbowman who kills for free.
+- Killing him turns the household out — two more footmen spawn **inside the courtyard**, in the very tiles you are trying to muster into.
+- Muster is checked at a moment in time, so all three must be in there at once.
+
+This needs the exact solver to settle, or a deliberate loosening: a wider gate, muster of 2, or the household spawning outside the walls rather than in them.
+
+## Where that leaves it
+
+One rules change fixed one map and proved the other two have design problems of their own — which is the solver doing its job. The next moves are map edits, not rules edits, and each one can be re-measured in about two minutes.

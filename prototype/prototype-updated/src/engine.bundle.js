@@ -1,3 +1,4 @@
+/* Condottieri — the rules. One implementation, shared by the game and the solver. */
 
 /* ============================================================
    TERRAIN
@@ -92,7 +93,156 @@ function rect(x1, y1, x2, y2) {
    the MVP places fixed companies — see GDD §20 / story E2.
    ============================================================ */
 
-/* MAPS are injected by the build */
+const MAPS = [
+{
+  name: 'Ambush in the Countryside',
+  brief: 'The company is drawn up on the road. They are already in the hills on either side.',
+  problem: 'You start in good order and they do not — but they hold both flanks in small knots, and their horse is loose at the head of the pass.',
+  solution: 'Keep the rank together as it advances so the Condottiero holds the men beside him. Break one knot at a time; do not let the horse catch a man out on his own. Two more footmen come up the road on turn four — and cutting down their captain will bring his reserve over the ridge.',
+  teaches: 'You begin in order. Staying in order while you move is the work.',
+  width: 9, height: 9,
+  commands: { rosso:3, azzurro:2 },
+  turnLimit: 16,
+  objective: { type:'clear' },
+  deployment: { region: rect(1,7,7,7), floor: 4 },
+  terrain: [
+    '  .....  ',
+    ' ....... ',
+    '.........',
+    '..f...f..',
+    '...#.#...',
+    '..f...f..',
+    '.........',
+    ' ....... ',
+    '  .....  '
+  ],
+  reinforcements: [
+    { turn: 4, pieces: [ { type:'fante', side:'rosso', x:3, y:8 },
+                         { type:'fante', side:'rosso', x:5, y:8 } ] },
+    { turn: 7, text: 'More of them come down the pass',
+      pieces: [ { type:'fante', side:'azzurro', x:4, y:0, behaviour:'charge', alert:4 } ] },
+    { whenKilled: 'capo', text: 'Their captain is down — his reserve comes over the ridge',
+      pieces: [ { type:'fante', side:'azzurro', x:3, y:0, behaviour:'charge', alert:5 },
+                { type:'fante', side:'azzurro', x:5, y:0, behaviour:'charge', alert:5 } ] }
+  ],
+  pieces: [
+    { type:'fante',       side:'rosso', x:1, y:7 },
+    { type:'cavaliere',   side:'rosso', x:2, y:7 },
+    { type:'fante',       side:'rosso', x:3, y:7 },
+    { type:'condottiero', side:'rosso', x:4, y:7 },
+    { type:'fante',       side:'rosso', x:5, y:7 },
+    { type:'lanciere',    side:'rosso', x:6, y:7 },
+    { type:'balestriere', side:'rosso', x:7, y:7 },
+
+    { type:'balestriere', side:'azzurro', x:2, y:2, behaviour:'guard' },
+    { type:'fante',       side:'azzurro', x:3, y:2, behaviour:'charge', alert:3 },
+    { type:'lanciere',    side:'azzurro', x:6, y:2, behaviour:'charge', alert:4, key:'capo' },
+    { type:'fante',       side:'azzurro', x:6, y:3, behaviour:'guard' },
+    { type:'fante',       side:'azzurro', x:4, y:4, behaviour:'charge', alert:3 },
+    { type:'fante',       side:'azzurro', x:1, y:3, behaviour:'charge', alert:3 },
+    { type:'cavaliere',   side:'azzurro', x:4, y:1, behaviour:'charge', alert:4 }
+  ]
+},
+{
+  name: 'The Bridge',
+  brief: 'Drawn up short of the river. The crossing has to be held.',
+  problem: 'A crossbowman covers the planks with a footman at his shoulder, and there is a knot on each bank flank.',
+  solution: 'Advance the rank to the water in good order. Wade on a flank where their bolts do not reach and put the crossbowman down — but know that a rider is sent for the moment he falls. Have the bridge held and the Lanciere on the corner before that.',
+  teaches: 'Water costs two turns. A man mid-river can answer nothing.',
+  width: 9, height: 9,
+  commands: { rosso:3, azzurro:2 },
+  turnLimit: 18,
+  objective: { type:'hold', tiles:[[4,4]], turns:2 },
+  deployment: { region: rect(1,6,7,6), floor: 4 },
+  terrain: [
+    '  .....  ',
+    ' ....... ',
+    '.........',
+    '..f...f..',
+    '~~~~=~~~~',
+    '..f...f..',
+    '.........',
+    ' ....... ',
+    '  .....  '
+  ],
+  reinforcements: [
+    { turn: 4, pieces: [ { type:'fante', side:'rosso', x:3, y:8 },
+                         { type:'fante', side:'rosso', x:5, y:8 } ] },
+    { whenKilled: 'bridgeguard', text: 'The crossbowman is down — a rider is sent for',
+      pieces: [ { type:'cavaliere', side:'azzurro', x:4, y:0, behaviour:'charge', alert:5 } ] },
+    { turn: 8, text: 'Another party reaches the far bank',
+      pieces: [ { type:'fante', side:'azzurro', x:2, y:0, behaviour:'charge', alert:4 },
+                { type:'fante', side:'azzurro', x:6, y:0, behaviour:'charge', alert:4 } ] }
+  ],
+  pieces: [
+    { type:'fante',       side:'rosso', x:1, y:6 },
+    { type:'cavaliere',   side:'rosso', x:2, y:6 },
+    { type:'fante',       side:'rosso', x:3, y:6 },
+    { type:'condottiero', side:'rosso', x:4, y:6 },
+    { type:'fante',       side:'rosso', x:5, y:6 },
+    { type:'lanciere',    side:'rosso', x:6, y:6 },
+    { type:'balestriere', side:'rosso', x:7, y:6 },
+
+    { type:'balestriere', side:'azzurro', x:4, y:3, behaviour:'guard', key:'bridgeguard' },
+    { type:'fante',       side:'azzurro', x:3, y:3, behaviour:'guard' },
+    { type:'fante',       side:'azzurro', x:1, y:2, behaviour:'charge', alert:3 },
+    { type:'lanciere',    side:'azzurro', x:2, y:2, behaviour:'charge', alert:4 },
+    { type:'fante',       side:'azzurro', x:7, y:2, behaviour:'charge', alert:3 },
+    { type:'fante',       side:'azzurro', x:6, y:3, behaviour:'guard' },
+    { type:'cavaliere',   side:'azzurro', x:6, y:1, behaviour:'charge', alert:4 }
+  ]
+},
+{
+  name: 'The Villa Gate',
+  brief: 'Formed up on the lawn. Three men inside the courtyard and the house is yours.',
+  problem: 'One gate, with a knot of three behind it and a crossbowman in the middle of them. A second party is out on the lawn and their horse is loose on your flank.',
+  solution: 'Deal with the lawn party without breaking the rank, then bring a column to the gate. The first man through blocks the bolt for the second. Killing their crossbowman turns the household out, so time it.',
+  teaches: 'A column pushes a gate. A crowd does not.',
+  width: 9, height: 9,
+  commands: { rosso:3, azzurro:2 },
+  turnLimit: 16,
+  objective: { type:'muster', tiles: rect(2,1,6,3), count: 3 },
+  deployment: { region: rect(1,7,7,7), floor: 5 },
+  terrain: [
+    '.........',
+    '..mmmmm..',
+    '..mmmmm..',
+    '..mmmmm..',
+    '.........',
+    '..f...f..',
+    '.........',
+    ' ....... ',
+    '  .....  '
+  ],
+  walls: gateAt(wallRect(2,1,6,3), 4,3, 4,4),
+  reinforcements: [
+    { turn: 4, pieces: [ { type:'fante', side:'rosso', x:3, y:8 },
+                         { type:'fante', side:'rosso', x:5, y:8 } ] },
+    { whenKilled: 'gateguard', text: 'The gate is unwatched — the household turns out',
+      pieces: [ { type:'fante', side:'azzurro', x:2, y:1, behaviour:'guard' },
+                { type:'fante', side:'azzurro', x:6, y:1, behaviour:'guard' } ] },
+    { turn: 8, text: 'Riders reach the lawn',
+      pieces: [ { type:'cavaliere', side:'azzurro', x:8, y:6, behaviour:'charge', alert:5 } ] }
+  ],
+  pieces: [
+    { type:'fante',       side:'rosso', x:1, y:7 },
+    { type:'cavaliere',   side:'rosso', x:2, y:7 },
+    { type:'fante',       side:'rosso', x:3, y:7 },
+    { type:'condottiero', side:'rosso', x:4, y:7 },
+    { type:'fante',       side:'rosso', x:5, y:7 },
+    { type:'lanciere',    side:'rosso', x:6, y:7 },
+    { type:'balestriere', side:'rosso', x:7, y:7 },
+
+    { type:'balestriere', side:'azzurro', x:4, y:2, behaviour:'guard', key:'gateguard' },
+    { type:'fante',       side:'azzurro', x:3, y:2, behaviour:'guard' },
+    { type:'fante',       side:'azzurro', x:5, y:2, behaviour:'guard' },
+    { type:'fante',       side:'azzurro', x:3, y:5, behaviour:'charge', alert:3 },
+    { type:'lanciere',    side:'azzurro', x:4, y:5, behaviour:'charge', alert:4 },
+    { type:'fante',       side:'azzurro', x:5, y:5, behaviour:'charge', alert:3 },
+    { type:'cavaliere',   side:'azzurro', x:1, y:3, behaviour:'charge', alert:4 }
+  ]
+}
+];
 
 
 /* ============================================================
@@ -250,8 +400,19 @@ function fanteMoves(piece) {
   return moves;
 }
 
+/*  The Condottiero commands; he does not duel.
+
+    He keeps every square of his reach for moving and for anchoring — he
+    still shelters all eight tiles around him, which is the whole of his
+    worth — but he may not take a man. Losing him still fails the contract.
+
+    Before this, the solver finished The Bridge on turn two of eighteen and
+    took six of ten on the Ambush with this one piece, ignoring every rule
+    the maps were built to teach. A sixteen-direction slider that kills for
+    free has no answer when nothing on their side is ever sheltered.      */
 function legalMoves(piece) {
-  return removeBraced(piece, rawMoves(piece));
+  const ms = removeBraced(piece, rawMoves(piece));
+  return piece.type === 'condottiero' ? ms.filter(m => !m.capture) : ms;
 }
 
 /*  WADING
@@ -847,9 +1008,185 @@ function validateMap() {
     issues.push('Deployment zone is smaller than the force floor');
   }
 
-  const box = document.getElementById('issues-block');
-  document.getElementById('issues').innerHTML = issues.join('<br>');
-  box.style.display = issues.length ? 'block' : 'none';
-  if (issues.length) console.warn('Map problems:', issues);
+  if (typeof document !== 'undefined') {
+    const box = document.getElementById('issues-block');
+    if (box) {
+      document.getElementById('issues').innerHTML = issues.join('<br>');
+      box.style.display = issues.length ? 'block' : 'none';
+    }
+  }
+  return issues;
 }
 
+
+
+/* ============================================================
+   THE PURE INTERFACE
+
+   Everything above works on module-level `map`, `state` and `WALLS`,
+   because that is how the game itself runs. The solver cannot live like
+   that — it holds thousands of positions at once.
+
+   So the whole engine is wrapped: every call below takes a state, swaps
+   it in, runs the very same code the game runs, and hands back a fresh
+   one. Slower than a purpose-built search engine, and worth it: there is
+   exactly one implementation of the rules, so the solver can never drift
+   away from the game it is measuring.
+   ============================================================ */
+
+const clone2 = s => JSON.parse(JSON.stringify(s));
+
+function mount(m, st) { map = m; loadWalls(m.walls); state = st; }
+
+/* A fresh game, ready for the player's first command. */
+function initialState(m) {
+  map = m; loadWalls(m.walls);
+  state = newState();
+  arrivals();
+  return clone2(state);
+}
+
+/* Every command the side to move could spend right now. */
+function actions(m, st) {
+  mount(m, st);
+  const out = [];
+  for (const p of state.pieces) {
+    if (p.side !== state.turn || state.acted.includes(p.id)) continue;
+    for (const mv of legalMoves(p)) out.push({ id:p.id, kind:'move', x:mv.x, y:mv.y, leg:mv.leg });
+    for (const sh of shots(p))      out.push({ id:p.id, kind:'shot', x:sh.x, y:sh.y });
+  }
+  return out;
+}
+
+/* Resolve the enemy's whole turn the way the game does, without the clock. */
+function runEnemyTurn() {
+  let guard = 0;
+  movePatrols();
+  while (state.commands > 0 && guard++ < 40) {
+    const cands = enemyCandidates();
+    if (!cands.length) break;
+    const b = cands[0];
+    if (b.action.kind === 'shot') doShot(b.piece, b.action); else doMove(b.piece, b.action);
+    state.acted.push(b.piece.id);
+    state.commands--;
+    arrivals();
+    const fail = checkFailure();
+    if (fail) { finish('lost', fail); return; }
+  }
+  state.turnNumber++;
+  state.turn = PLAYER;
+  state.commands = map.commands[PLAYER];
+  state.acted = [];
+  arrivals();
+  const fail = checkFailure();
+  if (fail) finish('lost', fail);
+}
+
+/*  Spend one command. If that empties the turn — or leaves nobody able to
+    act — the turn resolves and the enemy takes theirs, so the state handed
+    back is always one the player may move in (or a finished game).       */
+function apply(m, st, action) {
+  mount(m, clone2(st));
+  const piece = state.pieces.find(p => p.id === action.id);
+  if (!piece) throw new Error('no such piece: ' + action.id);
+
+  if (action.kind === 'shot') doShot(piece, action); else doMove(piece, action);
+  state.acted.push(action.id);
+  state.commands--;
+  arrivals();
+
+  /*  Mirror playerAction exactly: a Clear or Muster is checked after every
+      command, but Hold is only ever counted once, at the end of the turn.
+      Checking it per command ticks the counter three times a turn and the
+      solver reports a one-turn win on a two-turn hold.                   */
+  if (!state.over) {
+    if (map.objective.type === 'muster' || map.objective.type === 'clear') {
+      if (checkObjective()) finish('won', 'The contract is fulfilled.');
+    }
+    if (!state.over) {
+      const fail = checkFailure();
+      if (fail) finish('lost', fail);
+    }
+  }
+  if (!state.over && (state.commands <= 0 || !sideHasAction(PLAYER))) {
+    if (checkObjective()) finish('won', 'The contract is fulfilled.');
+    if (!state.over) {
+      const fail = checkFailure();
+      if (fail) finish('lost', fail);
+    }
+    if (!state.over) {
+      state.turn = FOE;
+      state.commands = map.commands[FOE];
+      state.acted = [];
+      runEnemyTurn();
+    }
+  }
+  return clone2(state);
+}
+
+/* Pass the rest of the turn without spending it. */
+function pass(m, st) {
+  mount(m, clone2(st));
+  if (checkObjective()) { finish('won', 'The contract is fulfilled.'); return clone2(state); }
+  const fail = checkFailure();
+  if (fail) { finish('lost', fail); return clone2(state); }
+  state.turn = FOE;
+  state.commands = map.commands[FOE];
+  state.acted = [];
+  runEnemyTurn();
+  return clone2(state);
+}
+
+const outcome = st => st.over || 'playing';
+const lossCount = (st, side) => st.taken.filter(t => t.side === side).length;
+
+/*  Two positions are the same position if the same men stand in the same
+    places with the same orders, the same waves have come up and the same
+    objective progress has been made. Which command order got you there
+    does not matter — and that is what makes the search tractable.       */
+function hash(st) {
+  const men = st.pieces
+    .map(p => [p.type, p.side, p.x, p.y, p.behaviour || '-', p.awake ? 1 : 0,
+               p.routeStep || 0, p.key || '-'].join(':'))
+    .sort().join('|');
+  return [st.turnNumber, st.turn, st.commands,
+          st.acted.slice().sort().join(','), st.holdCount,
+          st.arrived.slice().sort().join(','), men].join('#');
+}
+
+/* Same, but ignoring how far through a turn we are — for end-of-turn work. */
+function turnHash(st) {
+  const men = st.pieces
+    .map(p => [p.type, p.side, p.x, p.y, p.behaviour || '-', p.awake ? 1 : 0,
+               p.routeStep || 0, p.key || '-'].join(':'))
+    .sort().join('|');
+  return [st.turnNumber, st.holdCount, st.arrived.slice().sort().join(','), men].join('#');
+}
+
+/* Read-only helpers the solver and the tests want. */
+function inspect(m, st) {
+  mount(m, st);
+  return {
+    immune:    state.pieces.filter(p => isImmune(p)).map(p => p.id),
+    danger:    [...threatTiles(FOE).keys()],
+    objective: objectiveProgress(),
+    wading:    state.pieces.filter(p => inMire(p)).map(p => p.id)
+  };
+}
+
+const ENGINE = {
+  MAPS: (typeof MAPS !== 'undefined' ? MAPS : []),
+  TERRAIN, PIECES, PLAYER, FOE, SIDE_NAME,
+  rect, wallRect, gateAt,
+  initialState, actions, apply, pass, outcome, lossCount,
+  hash, turnHash, inspect,
+  // for tests that want to poke the raw rules
+  _mount: mount,
+  _raw: () => ({ legalMoves, shots, arcOf, isImmune, attackSquares, defendersOf, wouldBeExposed,
+                 inMire, canBeTaken, checkObjective, checkFailure, enemyCandidates,
+                 movePatrols, doMove, doShot, validateMapData: validateMap,
+                 get state() { return state; }, get map() { return map; } })
+};
+
+if (typeof module !== 'undefined' && module.exports) module.exports = ENGINE;
+if (typeof window !== 'undefined') window.ENGINE = ENGINE;
