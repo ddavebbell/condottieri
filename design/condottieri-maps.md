@@ -1,68 +1,74 @@
-# Five against eight
+# The thirteen maps
 
-The company is **five men**: two footmen, the Cavaliere, the Lanciere and the
-Condottiero. Their forces are **eight**, on every map.
+In play order, easiest first. Five men against seven or eight, every map
+solvable and **every map winnable without losing anybody**.
 
-Thirteen maps, all solvable, all winnable without losing anybody.
-`node tools/grade.js 0 12 8` reproduces the table in about 80 seconds.
+`node tools/grade.js 0 12 8` reproduces this in about 70 seconds.
 
-**bands:** 4 easy · 6 medium · 3 hard · 0 brutal
-**W\* spread:** seven maps at 3, two at 6, four at 12
+**4 easy · 6 medium · 3 hard · 0 brutal**
 
-## Why the ratio is the lever
-
-Three earlier experiments all failed to make the game deeper, and it is worth
-recording what did not work:
-
-| Change | Effect on W\* |
-|---|---|
-| Two commands instead of three | unchanged on 11 of 13 maps |
-| Anchors must brace to shelter | **identical numbers to the baseline** |
-| Sliders capped at three tiles | unchanged, and broke one map |
-
-Each of those made maps longer or riskier without ever making the obvious move
-wrong. The instrumentation said why: your men were anchored almost every turn
-and *in danger* on one turn in six. The discipline was insuring against a
-danger that did not exist, which is why charging rent for it changed nothing.
-
-Outnumbering you is the thing that worked. At five against ten, W\* went to 24
-and 48 — real planning, not time pressure — but four maps turned brutal. Five
-against eight keeps the depth and loses the grind: **four maps now need a beam
-of 12, where before every map fell to a beam of 3.**
-
-## The play order
-
-| # | Map | Objective | d | Band | W* | Turns | Limit | Slack | Loss % |
+| # | Map | Objective | Band | d | W* | Turns | Limit | Slack | Loss % |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | The Villa Gate | muster | 2.07 | easy | 3 | 13 | 20 | 7 | 10 |
-| 2 | Skirmish on the Road | clear | 2.23 | easy | 3 | 6 | 16 | 10 | 13 |
-| 3 | The Bridge | hold | 2.25 | easy | 3 | 3 | 21 | 18 | 13 |
-| 4 | Horse Country | clear | 2.84 | easy | 3 | 13 | 19 | 6 | 25 |
-| 5 | The Treeline | clear | 3.38 | medium | 3 | 11 | 19 | 8 | 36 |
-| 6 | The Gauntlet | muster | 3.59 | medium | 6 | 3 | 21 | 18 | 20 |
-| 7 | The Long Hold | hold | 3.62 | medium | 3 | 4 | 21 | 17 | 41 |
-| 8 | The Ford | muster | 4.04 | medium | 3 | 8 | 18 | 10 | 49 |
-| 9 | Hold the Crossroads | hold | 4.38 | medium | 12 | 10 | 21 | 11 | 16 |
-| 10 | The Watchtower | clear | 4.50 | medium | 6 | 13 | 19 | 6 | 38 |
-| 11 | Two Knots | clear | 5.08 | hard | 12 | 8 | 17 | 9 | 30 |
-| 12 | Ambush in the Countryside | clear | 5.23 | hard | 12 | 8 | 19 | 11 | 33 |
-| 13 | The Courtyard | muster | 5.24 | hard | 12 | 13 | 19 | 6 | 33 |
+| 1 | Skirmish on the Road | clear | easy | 2.23 | 3 | 6 | 16 | 10 | 13 |
+| 2 | The Villa Gate | muster | easy | 2.07 | 3 | 13 | 20 | 7 | 10 |
+| 3 | The Bridge | hold | easy | 2.25 | 3 | 3 | 21 | 18 | 13 |
+| 4 | Horse Country | clear | easy | 2.84 | 3 | 13 | 19 | 6 | 25 |
+| 5 | The Treeline | clear | medium | 3.38 | 3 | 11 | 19 | 8 | 36 |
+| 6 | The Gauntlet | muster | medium | 3.59 | 6 | 3 | 21 | 18 | 20 |
+| 7 | The Long Hold | hold | medium | 3.62 | 3 | 4 | 21 | 17 | 41 |
+| 8 | The Ford | muster | medium | 4.04 | 3 | 8 | 18 | 10 | 49 |
+| 9 | Hold the Crossroads | hold | medium | 4.38 | 12 | 10 | 21 | 11 | 16 |
+| 10 | The Watchtower | clear | medium | 4.50 | 6 | 13 | 19 | 6 | 38 |
+| 11 | Two Knots | clear | hard | 5.08 | 12 | 8 | 17 | 9 | 30 |
+| 12 | Ambush in the Countryside | clear | hard | 5.23 | 12 | 8 | 19 | 11 | 33 |
+| 13 | The Courtyard | muster | hard | 5.24 | 12 | 13 | 19 | 6 | 33 |
 
-## What changed in the company
+Skirmish on the Road opens the campaign despite grading a hair above The Villa
+Gate — it is the map written as a first contract: four of them on open ground,
+no crossbow, nothing clever.
 
-Dropping from seven men to five cost the **Balestriere** his place. The audit
-had already shown him firing zero to two bolts a game, so he was the obvious
-one to leave behind — but that is a decision worth revisiting, because he is
-the only answer to a formation that cannot be approached. He may want to come
-back as a hired specialist rather than a standing member of the company.
+## How difficulty is measured
 
-The two anchors both stayed. With five men and two anchors the discipline is
-now a real budget: you cannot shelter everybody, and choosing who is covered
-while you advance is most of the game.
+    difficulty = log2(W*) + 0.8 x max(0, 6 - slack) + 5 x lossRate
 
-## Still open
+| | What it measures |
+|---|---|
+| **W\*** | the narrowest beam that still finds a win. 3 means a player taking the obvious move gets there; 12 means several pieces have to be planned together. |
+| **slack** | turn limit minus turns needed — room for error. |
+| **lossRate** | share of explored lines ending in defeat. |
 
-- W\* is 3 on seven maps. There is room to push further, and the ratio is the
-  dial that works.
-- Step 5 of the solver plan — checking that a winning line actually uses the
-  mechanic each map claims to teach — is still unbuilt.
+**easy** under 3 · **medium** under 5 · **hard** under 7 · **brutal** above
+
+## The two things the solver taught us
+
+**Difficulty is time, not enemy count.** The first draft of these maps graded
+easy across the board while carrying eight or ten spare turns, and adding more
+men barely moved the number. Cutting the limit moved it immediately.
+
+**Depth is the ratio.** Three attempts to add depth through rules — fewer
+commands, anchors that must brace, capped slider reach — all left W\* at 3.
+Outnumbering the player was the only change that moved it, because being
+outnumbered is what puts your men in danger, and danger is what turns a move
+into a decision.
+
+## What each map is for
+
+| # | Map | The thing it asks |
+|---|---|---|
+| 1 | Skirmish on the Road | men beside an anchor cannot be touched |
+| 2 | The Villa Gate | bodies stop bolts |
+| 3 | The Bridge | only foot wades |
+| 4 | Horse Country | hobbling — a body on the leg stops a charge |
+| 5 | The Treeline | rough ground ends a slider's move |
+| 6 | The Gauntlet | a column, with nowhere to flank |
+| 7 | The Long Hold | a long hold is a rotation, not a stand |
+| 8 | The Ford | water costs two turns |
+| 9 | Hold the Crossroads | the discipline is what lets you stand still |
+| 10 | The Watchtower | bolts go through the discipline; only the horse leaps rock |
+| 11 | Two Knots | order of killing — a trigger is a clock you start yourself |
+| 12 | Ambush in the Countryside | keep your men touching while you move |
+| 13 | The Courtyard | a wall costs no ground; a column pushes a gate |
+
+That last column is still a claim rather than a measurement. Step 5 of the
+solver plan — checking that a winning line actually uses the thing a map claims
+to teach — is the next tool worth building.
