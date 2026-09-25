@@ -16,7 +16,7 @@
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.1';
 
 /* ============================================================
    SAVING
@@ -63,6 +63,83 @@ function loadProfile() {
 function saveProfile() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
   catch (e) { /* no storage: the session still plays, it just will not keep */ }
+  pushSave();
+}
+
+/* ---------- the server ----------
+   Served by the Worker (worker/), a signed-in player's save also lives
+   on the server and every saveProfile() is pushed there. Opened as a
+   file there is no server, and none of this does anything. */
+
+const ONLINE = /^https?:$/.test(location.protocol);
+let account = null;   // { name } while signed in with Google
+
+/* Fold the server's copy into this device's: progress is the union,
+   a name or a setting from the server wins over a blank one here. */
+function mergeRemote(remote) {
+  if (!remote || typeof remote !== 'object') return;
+  if (remote.profile && typeof remote.profile.name === 'string' && remote.profile.name) save.profile.name = remote.profile.name;
+  if (remote.settings && typeof remote.settings === 'object') Object.assign(save.settings, remote.settings);
+  if (remote.progress && typeof remote.progress === 'object') {
+    for (const k of Object.keys(remote.progress)) {
+      const a = save.progress[k], b = remote.progress[k];
+      if (!b || typeof b !== 'object') continue;
+      if (!a) { save.progress[k] = b; continue; }
+      save.progress[k] = {
+        name: b.name || a.name,
+        won: !!(a.won || b.won),
+        flawless: !!(a.flawless || b.flawless),
+        bestTurns: (a.bestTurns && b.bestTurns) ? Math.min(a.bestTurns, b.bestTurns) : (a.bestTurns || b.bestTurns)
+      };
+    }
+  }
+  if (remote.company) save.company = remote.company;
+}
+
+async function fetchAccount() {
+  if (!ONLINE) return;
+  try {
+    const r = await fetch('/api/me', { credentials: 'same-origin' });
+    if (!r.ok) return;
+    const me = await r.json();
+    if (!me.signedIn) return;
+    account = { name: me.name || '' };
+    mergeRemote(me.save);
+    if (!save.profile.name) save.profile.name = account.name;
+    applySettings();
+    saveProfile();
+    /* Straight from Google's redirect: land on the campaign. Otherwise
+       just refresh the screen we are on, so Continue can appear. */
+    if (location.hash === '#signedin') {
+      window.history.replaceState(window.history.state, '', location.pathname);
+      go('campaign');
+    } else if (activeScreen === 'title' || activeScreen === 'signin' || activeScreen === 'campaign') {
+      ENTER[activeScreen]();
+    }
+  } catch (e) { /* offline, or no server: play as a guest */ }
+}
+
+let pushTimer = null;
+function pushSave() {
+  if (!ONLINE || !account) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    fetch('/api/save', {
+      method: 'PUT', credentials: 'same-origin', keepalive: true,
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify(save)
+    }).catch(() => {});
+  }, 300);
+}
+
+/* Signing out also clears this device's copy, so the next player on a
+   shared phone does not inherit the campaign. Settings stay. */
+async function signOut() {
+  try { await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
+  account = null;
+  const settings = save.settings;
+  save = freshSave();
+  save.settings = settings;
+  saveProfile();
 }
 
 /* A save worth continuing: the player has a name or has played. */
@@ -166,6 +243,10 @@ const ENTER = {
   },
   signin() {
     el('s-name').value = save.profile.name;
+    el('s-google').hidden = !ONLINE || !!account;
+    el('s-status').textContent = account ? 'Signed in with Google as ' + account.name + '.'
+      : ONLINE ? 'Sign in to keep your campaign across phones.'
+      : 'Signing in needs the online version of the game.';
   },
   campaign() {
     el('c-header').textContent =
@@ -203,7 +284,9 @@ const ENTER = {
     el('r-next').hidden = !(r.won && r.index < MAPS.length - 1);
     el('r-retry').hidden = r.won;
   },
-  settings() {}
+  settings() {
+    el('st-signout').hidden = !account;
+  }
 };
 
 /* ---------- into and out of the board ---------- */
@@ -241,6 +324,11 @@ el('s-guest').onclick = () => {
   saveProfile();
   go('campaign');
 };
+el('s-google').onclick = () => {
+  save.profile.name = el('s-name').value.trim();   // keep what they typed
+  saveProfile();
+  location.href = '/auth/google';
+};
 el('s-back').onclick = () => go('title');
 
 el('c-back').onclick = () => go('title');
@@ -263,6 +351,7 @@ el('r-next').onclick = () => go('briefing', lastResult.index + 1);
 el('r-retry').onclick = () => startBattle(lastResult.index);
 el('r-campaign').onclick = () => go('campaign');
 
+el('st-signout').onclick = async () => { await signOut(); go('title'); };
 el('st-back').onclick = () => go(settingsFrom);
 
 /* ---------- boot ---------- */
@@ -272,3 +361,4 @@ applySettings();
 el('version').textContent = 'v' + VERSION;
 try { window.history.replaceState({ screen: 'title' }, ''); } catch (e) {}
 go('title');
+fetchAccount();

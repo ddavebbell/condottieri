@@ -97,9 +97,9 @@ Shown on first launch, and reachable from Settings.
 - Build the screen fully, with a name field ("What do they call you,
   Captain?") and a **Continue as guest** button that works: it stores the name
   locally.
-- Include **Sign in** and **Create account** buttons shown as disabled with a
-  small "Coming later" label, so the layout is final and a backend can be
-  plugged in later without redesigning.
+- ~~Include **Sign in** and **Create account** buttons shown as disabled~~
+  **Changed 2026-09-25:** one **Sign in with Google** button, live when the page
+  is served by the Worker and hidden when opened as a file.
 - Put all save/load behind two functions (`loadProfile()`, `saveProfile()`), so
   swapping local storage for a server later touches one place.
 
@@ -238,7 +238,9 @@ Do these in order. Build, test and commit after each.
 
 ## Out of scope (do not build)
 
-- Real accounts, login servers or online sync
+- ~~Real accounts, login servers or online sync~~ **Changed 2026-09-25:** the game
+  is hosted on Cloudflare (`worker/`) with Google sign-in and a server copy of
+  the save. The page still plays as a guest, offline, with the local save.
 - The persistent company (`design/condottieri-company.md`). But keep the save
   format easy to extend with a `"company"` field later.
 - Sound files, music

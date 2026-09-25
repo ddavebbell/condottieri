@@ -1,0 +1,22 @@
+{
+  // Condottieri on Cloudflare: one Worker serves the game (a static asset)
+  // and answers /api/* and /auth/* for player profiles. See README.md.
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "condottieri",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-18",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/auth/*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "condottieri", "migrations_dir": "migrations" }
+  ],
+  "vars": {
+    // The Google OAuth client id is public. The secret is never here:
+    //   wrangler secret put GOOGLE_CLIENT_SECRET
+    "GOOGLE_CLIENT_ID": ""
+  },
+  "observability": { "enabled": true }
+}

@@ -507,11 +507,11 @@
   <h2>Sign in</h2>
   <p>What do they call you, Captain?</p>
   <input class="field" id="s-name" type="text" maxlength="24" autocomplete="nickname" placeholder="Your name">
+  <p class="dim" id="s-status"></p>
   <div class="grow"></div>
   <div class="stack">
     <button class="plaque primary" id="s-guest">Continue as guest</button>
-    <button class="plaque" disabled>Sign in <span class="later">Coming later</span></button>
-    <button class="plaque" disabled>Create account <span class="later">Coming later</span></button>
+    <button class="plaque" id="s-google">Sign in with Google</button>
     <button class="plaque" id="s-back">Back</button>
   </div>
 </section>
@@ -673,5 +673,8 @@
   <h2>Settings</h2>
   <p class="dim">Texture, threats, protection glow, sound and your name move here in milestone 6. For now they stay on the battle panel.</p>
   <div class="grow"></div>
-  <div class="stack"><button class="plaque" id="st-back">Back</button></div>
+  <div class="stack">
+    <button class="plaque" id="st-signout" hidden>Sign out</button>
+    <button class="plaque" id="st-back">Back</button>
+  </div>
 </section>
