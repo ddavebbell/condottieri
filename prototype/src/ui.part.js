@@ -1,7 +1,10 @@
 /* ---------- art ----------
-   Pieces with a drawing show it on a coloured base; the rest keep their glyph
-   until their art arrives. Marble picks one of nine slabs, fixed per square. */
-const ART = new Set(['fante', 'cavaliere', 'lanciere', 'balestriere', 'condottiero', 'carro']);
+   Every piece is drawn as its chess glyph. The carved figures are still
+   embedded in shell.head.html (.k-fante and friends, ~31 KB); list a type
+   here to show its figure instead. They came out harder to read than the
+   glyphs, so the list is empty (2026-09-25). Marble picks one of nine
+   slabs, fixed per square. */
+const ART = new Set([]);
 function pieceClass(type, side) {
   return 'piece p-' + side + (ART.has(type) ? ' art k-' + type : '');
 }
