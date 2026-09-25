@@ -6,7 +6,8 @@ Built overnight against the plan in `condottieri-solver-plan.md`.
 
     src/rules.part.js   the rules, cut out of the page
     src/maps.part.js    the three maps, on their own
-    src/ui.part.js      rendering and input
+    src/ui.part.js      the board: rendering and input
+    src/screens.part.js the shell around it: title, campaign, briefing, result, settings, router
     src/shell.*.html    the page around them
     src/engine.js       rules + a pure state-passing interface   <- the important one
     tools/build.js      stitches engine + maps + ui -> dist.html and engine.bundle.js

@@ -137,18 +137,55 @@ function render() {
 }
 
 /* ============================================================
-   OVERLAYS
+   MISSION START AND END
+
+   The shell (screens.part.js) owns everything around the board. It
+   starts a mission with startMission(index) and hears about the end
+   through onMissionEnd(result). The letter from the employer is shown
+   on the shell's Briefing screen before the board, not here.
    ============================================================ */
 
+/* The shell's way in. */
+function startMission(index) {
+  loadMap(index);
+}
+
+/* The engine calls this from loadMap() at the top of every mission, so
+   it is where a mission is armed. The old pre-mission overlay is gone. */
+let missionEnded = false;
 function showBriefing() {
-  el('ov-title').textContent = map.name;
-  el('ov-title').className = '';
-  el('ov-text').textContent = map.problem || map.brief;
-  el('ov-teaches').textContent = map.teaches;
-  el('ov-obj').textContent = objectiveText();
-  el('ov-btn').textContent = 'Begin';
-  el('ov-btn').onclick = () => el('overlay').classList.add('hidden');
+  missionEnded = false;
+  el('overlay').classList.add('hidden');
+}
+
+/* Whether the board should answer keys and taps. The shell narrows this
+   to "the battle screen is up and the pause menu is closed". */
+let boardActive = () => true;
+
+/* Called exactly once when a mission ends. The shell replaces this with
+   its Result screen; on its own it falls back to the old overlay. */
+let onMissionEnd = r => {
+  el('ov-title').textContent = r.won ? 'Contract fulfilled' : 'Contract failed';
+  el('ov-title').className = r.won ? 'won' : 'lost';
+  el('ov-text').textContent = r.reason;
+  el('ov-teaches').textContent = '';
+  el('ov-obj').textContent = '';
+  el('ov-btn').textContent = 'Retry';
+  el('ov-btn').onclick = () => startMission(r.index);
   el('overlay').classList.remove('hidden');
+};
+
+/* What the shell needs to know about how a mission ended. "lost" is
+   the men the player had taken, straight from the captured list. */
+function missionResult() {
+  return {
+    index: mapIndex,
+    name: map.name,
+    won: state.over === 'won',
+    reason: state.reason,
+    lost: state.taken.filter(p => p.side === PLAYER).length,
+    turns: Math.min(state.turnNumber, map.turnLimit)
+  };
 }
 
 /* The line the map was built around. For design work, not for the player. */
@@ -156,18 +193,12 @@ function showSolution() {
   el('hint').textContent = el('hint').textContent ? '' : (map.solution || '');
 }
 
+/* render() calls this on every draw once the game is over; only the
+   first one counts. */
 function showResult() {
-  el('ov-title').textContent = state.over === 'won' ? 'Contract fulfilled' : 'Contract failed';
-  el('ov-title').className = state.over === 'won' ? 'won' : 'lost';
-  el('ov-text').textContent = state.reason;
-  el('ov-teaches').textContent = '';
-  el('ov-obj').textContent = '';
-  el('ov-btn').textContent = state.over === 'won' && mapIndex < MAPS.length - 1 ? 'Next engagement' : 'Retry';
-  el('ov-btn').onclick = () => {
-    if (state.over === 'won' && mapIndex < MAPS.length - 1) loadMap(mapIndex + 1);
-    else loadMap(mapIndex);
-  };
-  el('overlay').classList.remove('hidden');
+  if (missionEnded) return;
+  missionEnded = true;
+  onMissionEnd(missionResult());
 }
 
 /* ============================================================
@@ -175,7 +206,7 @@ function showResult() {
    ============================================================ */
 
 function onTileClick(x, y) {
-  if (busy || state.over || state.turn !== PLAYER) return;
+  if (busy || state.over || state.turn !== PLAYER || !boardActive()) return;
 
   if (selected) {
     const shot = shots(selected).find(s => s.x === x && s.y === y);
@@ -201,7 +232,7 @@ el('undo').addEventListener('click', () => {
   render();
 });
 
-el('restart').addEventListener('click', () => loadMap(mapIndex));
+el('restart').addEventListener('click', () => startMission(mapIndex));
 el('hintbtn').addEventListener('click', showSolution);
 document.querySelectorAll('.texrow button').forEach(b => b.addEventListener('click', () => {
   document.documentElement.style.setProperty('--tex', b.dataset.tex);
@@ -212,7 +243,7 @@ el('threat').addEventListener('change', render);
 el('faces').addEventListener('change', render);
 
 document.addEventListener('keydown', e => {
-  if (busy) return;
+  if (busy || !boardActive()) return;
   if (e.key === 'u') el('undo').click();
   if (e.key === 'r') el('restart').click();
   if (e.key === 'e') el('endturn').click();
@@ -413,8 +444,9 @@ MAPS.forEach((m, i) => {
   const b = document.createElement('button');
   b.textContent = i + 1;
   b.title = m.name;
-  b.onclick = () => loadMap(i);
+  b.onclick = () => startMission(i);
   el('missions').appendChild(b);
 });
 
-loadMap(0);
+/* No mission is loaded here: the shell starts one from its Briefing
+   screen. See screens.part.js, bundled after this file. */
