@@ -11,7 +11,7 @@
     "run_worker_first": ["/api/*", "/auth/*"]
   },
   "d1_databases": [
-    { "binding": "DB", "database_name": "condottieri", "migrations_dir": "migrations" }
+    { "binding": "DB", "database_name": "condottieri", "database_id": "63bd6509-2a3f-469a-8a88-dd6fd16093ef", "migrations_dir": "migrations" }
   ],
   "vars": {
     // The Google OAuth client id is public. The secret is never here:
