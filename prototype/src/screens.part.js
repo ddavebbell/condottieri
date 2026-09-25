@@ -16,7 +16,7 @@
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '0.2.1';
+const VERSION = '0.3.0';
 
 /* ============================================================
    SAVING
@@ -146,7 +146,11 @@ async function signOut() {
 const hasSave = () => !!save.profile.name || Object.keys(save.progress).length > 0;
 
 const wonCount = () => Object.values(save.progress).filter(p => p.won).length;
-const isUnlocked = i => i === 0 || !!(save.progress[i - 1] && save.progress[i - 1].won);
+
+/* Missions open one at a time. debugUnlock (five taps on the campaign
+   title) opens them all for this session only; it is never saved. */
+let debugUnlock = false;
+const isUnlocked = i => debugUnlock || i === 0 || !!(save.progress[i - 1] && save.progress[i - 1].won);
 
 /* Fold a finished mission into progress. Flawless means no man of ours
    was taken, straight from the captured list; nothing is re-derived. */
@@ -251,18 +255,7 @@ const ENTER = {
   campaign() {
     el('c-header').textContent =
       (save.profile.name || 'Captain') + ' · Contracts fulfilled: ' + wonCount() + ' / ' + MAPS.length;
-    const box = el('c-stops');
-    box.innerHTML = '';
-    MAPS.forEach((m, i) => {
-      const b = document.createElement('button');
-      const p = save.progress[i];
-      b.className = 'plaque';
-      b.disabled = !isUnlocked(i);
-      b.innerHTML = '<span class="n">' + (i + 1) + '</span>' + m.name
-        + (p && p.won ? ' <span class="n">' + (p.flawless ? '✦ flawless' : '✓') + '</span>' : '');
-      b.onclick = () => go('briefing', i);
-      box.appendChild(b);
-    });
+    drawCampaign();
   },
   briefing(i) {
     if (i !== undefined) briefingIndex = i;
@@ -288,6 +281,87 @@ const ENTER = {
     el('st-signout').hidden = !account;
   }
 };
+
+/* ============================================================
+   THE CAMPAIGN MAP
+
+   The parchment, coast, rivers and compass are static SVG in
+   shell.head.html. Here: the thirteen stops, the dotted road through
+   them, and a wax seal on each. Coordinates are in the map's 360x480
+   viewBox and follow the towns of the Po valley, west to east.
+   ============================================================ */
+
+const STOPS = [
+  [58, 262], [96, 290], [138, 262], [150, 206], [196, 168], [232, 190], [212, 240],
+  [252, 262], [264, 208], [292, 176], [302, 222], [314, 266], [338, 208]
+];
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svg(tag, attrs, text) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+/* locked | open | won | flawless */
+function stopState(i) {
+  const p = save.progress[i];
+  if (p && p.won) return p.flawless ? 'flawless' : 'won';
+  return isUnlocked(i) ? 'open' : 'locked';
+}
+
+function drawCampaign() {
+  const n = Math.min(STOPS.length, MAPS.length);
+  el('c-route').innerHTML = '';
+  el('c-route').appendChild(svg('path', {
+    class: 'route',
+    d: STOPS.slice(0, n).map(([x, y], i) => (i ? 'L' : 'M') + x + ' ' + y).join(' ')
+  }));
+
+  const seals = el('c-seals');
+  seals.innerHTML = '';
+  let next = null;
+  for (let i = 0; i < n; i++) {
+    const [x, y] = STOPS[i], state = stopState(i);
+    if (next === null && state === 'open') next = i;
+    const g = svg('g', { class: 'seal ' + state, transform: 'translate(' + x + ' ' + y + ')' });
+    g.appendChild(svg('title', {}, (i + 1) + '. ' + MAPS[i].name));
+    g.appendChild(svg('ellipse', { class: 'sh', cx: 1.5, cy: 2.5, rx: 14, ry: 13 }));
+    const body = svg('g', { class: 'pulse' });
+    body.appendChild(svg('path', { class: 'wax',
+      d: 'M0 -14 c8 0 14 6 14 13 c0 8 -6 14 -14 15 c-8 -1 -14 -6 -15 -14 c0 -8 7 -14 15 -14z' }));
+    body.appendChild(svg('circle', { class: 'stamp', r: 8.5 }));
+    body.appendChild(svg('text', { y: 3.6 }, i + 1));
+    g.appendChild(body);
+    if (state === 'flawless') {
+      g.appendChild(svg('path', { class: 'laurel', d: 'M-17 6 c-5 -9 -2 -18 5 -23' }));
+      g.appendChild(svg('path', { class: 'laurel', d: 'M17 6 c5 -9 2 -18 -5 -23' }));
+    }
+    const hit = svg('circle', { class: 'hit', r: 22 });   // a thumb-sized target
+    hit.addEventListener('click', () => pickStop(i));
+    g.appendChild(hit);
+    seals.appendChild(g);
+  }
+  el('c-next').textContent = next === null
+    ? (wonCount() >= n ? 'Every contract fulfilled.' : '')
+    : 'Next: ' + MAPS[next].name;
+}
+
+function pickStop(i) {
+  if (!isUnlocked(i)) return;
+  go('briefing', i);
+}
+
+/* Five taps on the title open every contract, for testing. */
+let titleTaps = 0;
+el('c-title').addEventListener('click', () => {
+  if (debugUnlock) return;
+  if (++titleTaps < 5) return;
+  debugUnlock = true;
+  el('c-header').textContent = 'Every contract unlocked (debug)';
+  drawCampaign();
+});
 
 /* ---------- into and out of the board ---------- */
 

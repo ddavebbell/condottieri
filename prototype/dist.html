@@ -471,10 +471,49 @@
   }
   .pause h2 { font-family: 'BlackCastle', Georgia, serif; font-weight: normal; font-size: 26px; margin: 0 0 6px; text-align: center; }
 
-  /* campaign placeholder list; the parchment map arrives in milestone 3 */
-  .stops { display: flex; flex-direction: column; gap: 8px; }
-  .stops button { text-align: left; }
-  .stops .n { color: var(--gold); margin-right: 8px; }
+
+  /* ---------- campaign map ----------
+     Parchment, ink and wax, all vector. The seals are drawn by
+     drawCampaign() in screens.part.js; everything else is static. */
+  .c-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .c-head h2 { margin: 0; cursor: default; user-select: none; -webkit-user-select: none; }
+  .c-head p { margin: 0; text-align: right; }
+  .map-frame {
+    border: 7px solid var(--wood-dark); border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(233,220,192,.25), 0 6px 18px rgba(0,0,0,.6);
+    background: var(--parchment);
+  }
+  #c-map { display: block; width: 100%; height: auto; font-family: Georgia, "Times New Roman", serif; }
+  #c-map .paper { fill: var(--parchment); }
+  #c-map .sea { fill: #d6c49e; }
+  #c-map .coast { fill: none; stroke: var(--ink-brown); stroke-width: 1.5; stroke-linejoin: round; }
+  #c-map .river { fill: none; stroke: #5b4a35; stroke-width: 1.1; opacity: .85; stroke-linecap: round; }
+  #c-map .lake { fill: #cdb98f; stroke: var(--ink-brown); stroke-width: 1; }
+  #c-map .alps { fill: none; stroke: var(--ink-brown); stroke-width: .9; opacity: .75; stroke-linejoin: round; }
+  #c-map .label { fill: var(--ink-brown); font-style: italic; font-size: 11px; opacity: .8; }
+  #c-map .label.big { font-size: 13px; letter-spacing: .12em; font-style: normal; opacity: .6; }
+  #c-map .compass { fill: var(--ink-brown); stroke: var(--ink-brown); opacity: .8; }
+  #c-map .compass .n { font-size: 10px; font-weight: bold; stroke: none; text-anchor: middle; }
+  #c-map .route { fill: none; stroke: var(--ink-brown); stroke-width: 2.6; stroke-dasharray: .1 6.5; stroke-linecap: round; opacity: .9; }
+  #c-map .grain, #c-map .vignette { pointer-events: none; }
+  #c-map .seal .sh { fill: rgba(40,20,5,.28); }
+  #c-map .seal .wax { fill: #b53a30; stroke: #5c1712; stroke-width: 1; }
+  #c-map .seal .stamp { fill: none; stroke: rgba(30,8,4,.4); stroke-width: 1; }
+  #c-map .seal text { font-size: 10.5px; font-weight: bold; text-anchor: middle; fill: rgba(40,12,6,.9); pointer-events: none; }
+  #c-map .seal .hit { fill: transparent; cursor: pointer; }
+  #c-map .seal.locked { opacity: .75; }
+  #c-map .seal.locked .wax { fill: #9d968a; stroke: #4f4a42; }
+  #c-map .seal.locked text { fill: rgba(30,30,30,.8); }
+  #c-map .seal.locked .hit { cursor: default; }
+  #c-map .seal.won .wax, #c-map .seal.flawless .wax { fill: #d9a83a; stroke: #7a5410; }
+  #c-map .seal .laurel { fill: none; stroke: #4f7028; stroke-width: 1.8; stroke-linecap: round; stroke-dasharray: 2.6 1.6; }
+  #c-map .seal.open .pulse {
+    animation: seal-pulse 1.5s ease-in-out infinite;
+    transform-box: fill-box; transform-origin: center;
+  }
+  @keyframes seal-pulse { 50% { transform: scale(1.14); } }
+  @media (prefers-reduced-motion: reduce) { #c-map .seal.open .pulse { animation: none; } }
+  #c-next { margin: 10px 0 0; text-align: center; }
 </style>
 </head>
 <body>
@@ -517,9 +556,75 @@
 </section>
 
 <section class="screen shell" id="scr-campaign">
-  <h2>Campaign</h2>
-  <p class="dim" id="c-header"></p>
-  <div class="stops" id="c-stops"></div>
+  <div class="c-head">
+    <h2 id="c-title">Campaign</h2>
+    <p class="dim" id="c-header"></p>
+  </div>
+  <div class="map-frame">
+  <svg id="c-map" viewBox="0 0 360 480" aria-label="Map of northern Italy with the thirteen contracts">
+    <defs>
+      <pattern id="waves" width="16" height="7" patternUnits="userSpaceOnUse">
+        <path d="M0 3.5 q4 -3 8 0 t8 0" fill="none" stroke="#3b2a1a" stroke-opacity=".3" stroke-width=".8"/>
+      </pattern>
+      <filter id="paper" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" seed="7"/>
+        <feColorMatrix values="0 0 0 0 .45  0 0 0 0 .32  0 0 0 0 .16  0 0 0 .15 0"/>
+      </filter>
+      <radialGradient id="vig" cx="50%" cy="50%" r="70%">
+        <stop offset="60%" stop-color="#3b2a1a" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#3b2a1a" stop-opacity=".3"/>
+      </radialGradient>
+    </defs>
+    <rect class="paper" width="360" height="480"/>
+
+    <!-- the seas: Ligurian to the south-west, Adriatic to the east -->
+    <path class="sea" d="M0 318 C40 330 70 338 100 352 C130 366 150 385 165 410 C178 432 185 455 190 480 L0 480 Z"/>
+    <path fill="url(#waves)" d="M0 318 C40 330 70 338 100 352 C130 366 150 385 165 410 C178 432 185 455 190 480 L0 480 Z"/>
+    <path class="sea" d="M360 130 C350 150 338 165 332 185 C326 205 322 225 328 245 C336 262 340 275 330 292 C318 312 302 335 294 360 C286 390 280 430 276 480 L360 480 Z"/>
+    <path fill="url(#waves)" d="M360 130 C350 150 338 165 332 185 C326 205 322 225 328 245 C336 262 340 275 330 292 C318 312 302 335 294 360 C286 390 280 430 276 480 L360 480 Z"/>
+    <path class="coast" d="M0 318 C40 330 70 338 100 352 C130 366 150 385 165 410 C178 432 185 455 190 480"/>
+    <path class="coast" d="M360 130 C350 150 338 165 332 185 C326 205 322 225 328 245 C336 262 340 275 330 292 C318 312 302 335 294 360 C286 390 280 430 276 480"/>
+
+    <!-- mountains -->
+    <path class="alps" d="M4 45 l9 -11 l9 11 M28 48 l9 -13 l9 13 M52 51 l9 -15 l9 15 M76 47 l9 -12 l9 12 M100 50 l9 -14 l9 14 M124 46 l9 -11 l9 11 M148 49 l9 -13 l9 13 M172 45 l9 -15 l9 15 M196 48 l9 -12 l9 12 M220 51 l9 -14 l9 14 M244 47 l9 -11 l9 11 M268 50 l9 -13 l9 13 M292 46 l9 -15 l9 15 M316 49 l9 -12 l9 12 M340 45 l9 -14 l9 14 M14 71 l7 -7 l7 7 M40 74 l7 -9 l7 9 M66 77 l7 -11 l7 11 M92 73 l7 -8 l7 8 M118 76 l7 -10 l7 10 M144 72 l7 -7 l7 7 M170 75 l7 -9 l7 9 M196 71 l7 -11 l7 11 M222 74 l7 -8 l7 8 M248 77 l7 -10 l7 10 M274 73 l7 -7 l7 7 M300 76 l7 -9 l7 9 M326 72 l7 -11 l7 11"/>
+    <path class="alps" d="M150 340 l7 -9 l7 9 M168 358 l7 -9 l7 9 M186 376 l7 -9 l7 9 M204 394 l7 -9 l7 9 M222 412 l7 -9 l7 9 M240 430 l7 -9 l7 9 M258 448 l7 -9 l7 9"/>
+
+    <!-- lakes and rivers -->
+    <path class="lake" d="M114 80 c-8 12 -4 30 4 40 c8 -8 10 -30 -4 -40z"/>
+    <path class="lake" d="M160 78 c-6 14 -1 26 6 36 c6 -10 10 -22 2 -36z"/>
+    <path class="lake" d="M236 128 c-10 14 -6 32 6 44 c10 -10 12 -30 -6 -44z"/>
+    <path class="river" d="M22 262 C60 252 90 270 130 262 S190 278 230 268 S290 262 328 250"/>
+    <path class="river" d="M118 118 C125 160 132 210 138 258"/>
+    <path class="river" d="M166 112 C176 160 196 215 212 266"/>
+    <path class="river" d="M215 165 C222 200 235 240 246 262"/>
+    <path class="river" d="M243 172 C246 200 248 230 252 258"/>
+    <path class="river" d="M232 40 C250 90 262 150 262 190 C262 230 290 262 318 292"/>
+    <path class="river" d="M300 50 C305 100 322 150 334 186"/>
+
+    <!-- names -->
+    <text class="label big" x="46" y="104">ALPI</text>
+    <text class="label" x="72" y="240">Po</text>
+    <text class="label" transform="translate(58 412) rotate(38)">Mar Ligure</text>
+    <text class="label" transform="translate(322 350) rotate(-72)">Mare Adriatico</text>
+    <text class="label" x="150" y="452" text-anchor="middle" font-size="9">Appennini</text>
+
+    <g id="c-route"></g>
+    <g id="c-seals"></g>
+
+    <!-- compass rose -->
+    <g class="compass" transform="translate(318 438)">
+      <circle r="17" fill="none" stroke-width="1"/>
+      <circle r="13" fill="none" stroke-width=".5"/>
+      <path d="M0 -16 L3 -3 L16 0 L3 3 L0 16 L-3 3 L-16 0 L-3 -3 Z" stroke-width=".6"/>
+      <path d="M0 -9 L2 -2 L9 0 L2 2 L0 9 L-2 2 L-9 0 L-2 -2 Z" fill="#e9dcc0" stroke-width=".5" transform="rotate(45)"/>
+      <text class="n" y="-20">N</text>
+    </g>
+
+    <rect class="grain" width="360" height="480" filter="url(#paper)"/>
+    <rect class="vignette" width="360" height="480" fill="url(#vig)"/>
+  </svg>
+  </div>
+  <p class="dim" id="c-next"></p>
   <div class="grow"></div>
   <div class="stack"><button class="plaque" id="c-back">Title</button></div>
 </section>
@@ -2604,7 +2709,7 @@ MAPS.forEach((m, i) => {
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '0.2.1';
+const VERSION = '0.3.0';
 
 /* ============================================================
    SAVING
@@ -2734,7 +2839,11 @@ async function signOut() {
 const hasSave = () => !!save.profile.name || Object.keys(save.progress).length > 0;
 
 const wonCount = () => Object.values(save.progress).filter(p => p.won).length;
-const isUnlocked = i => i === 0 || !!(save.progress[i - 1] && save.progress[i - 1].won);
+
+/* Missions open one at a time. debugUnlock (five taps on the campaign
+   title) opens them all for this session only; it is never saved. */
+let debugUnlock = false;
+const isUnlocked = i => debugUnlock || i === 0 || !!(save.progress[i - 1] && save.progress[i - 1].won);
 
 /* Fold a finished mission into progress. Flawless means no man of ours
    was taken, straight from the captured list; nothing is re-derived. */
@@ -2839,18 +2948,7 @@ const ENTER = {
   campaign() {
     el('c-header').textContent =
       (save.profile.name || 'Captain') + ' · Contracts fulfilled: ' + wonCount() + ' / ' + MAPS.length;
-    const box = el('c-stops');
-    box.innerHTML = '';
-    MAPS.forEach((m, i) => {
-      const b = document.createElement('button');
-      const p = save.progress[i];
-      b.className = 'plaque';
-      b.disabled = !isUnlocked(i);
-      b.innerHTML = '<span class="n">' + (i + 1) + '</span>' + m.name
-        + (p && p.won ? ' <span class="n">' + (p.flawless ? '✦ flawless' : '✓') + '</span>' : '');
-      b.onclick = () => go('briefing', i);
-      box.appendChild(b);
-    });
+    drawCampaign();
   },
   briefing(i) {
     if (i !== undefined) briefingIndex = i;
@@ -2876,6 +2974,87 @@ const ENTER = {
     el('st-signout').hidden = !account;
   }
 };
+
+/* ============================================================
+   THE CAMPAIGN MAP
+
+   The parchment, coast, rivers and compass are static SVG in
+   shell.head.html. Here: the thirteen stops, the dotted road through
+   them, and a wax seal on each. Coordinates are in the map's 360x480
+   viewBox and follow the towns of the Po valley, west to east.
+   ============================================================ */
+
+const STOPS = [
+  [58, 262], [96, 290], [138, 262], [150, 206], [196, 168], [232, 190], [212, 240],
+  [252, 262], [264, 208], [292, 176], [302, 222], [314, 266], [338, 208]
+];
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+function svg(tag, attrs, text) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+/* locked | open | won | flawless */
+function stopState(i) {
+  const p = save.progress[i];
+  if (p && p.won) return p.flawless ? 'flawless' : 'won';
+  return isUnlocked(i) ? 'open' : 'locked';
+}
+
+function drawCampaign() {
+  const n = Math.min(STOPS.length, MAPS.length);
+  el('c-route').innerHTML = '';
+  el('c-route').appendChild(svg('path', {
+    class: 'route',
+    d: STOPS.slice(0, n).map(([x, y], i) => (i ? 'L' : 'M') + x + ' ' + y).join(' ')
+  }));
+
+  const seals = el('c-seals');
+  seals.innerHTML = '';
+  let next = null;
+  for (let i = 0; i < n; i++) {
+    const [x, y] = STOPS[i], state = stopState(i);
+    if (next === null && state === 'open') next = i;
+    const g = svg('g', { class: 'seal ' + state, transform: 'translate(' + x + ' ' + y + ')' });
+    g.appendChild(svg('title', {}, (i + 1) + '. ' + MAPS[i].name));
+    g.appendChild(svg('ellipse', { class: 'sh', cx: 1.5, cy: 2.5, rx: 14, ry: 13 }));
+    const body = svg('g', { class: 'pulse' });
+    body.appendChild(svg('path', { class: 'wax',
+      d: 'M0 -14 c8 0 14 6 14 13 c0 8 -6 14 -14 15 c-8 -1 -14 -6 -15 -14 c0 -8 7 -14 15 -14z' }));
+    body.appendChild(svg('circle', { class: 'stamp', r: 8.5 }));
+    body.appendChild(svg('text', { y: 3.6 }, i + 1));
+    g.appendChild(body);
+    if (state === 'flawless') {
+      g.appendChild(svg('path', { class: 'laurel', d: 'M-17 6 c-5 -9 -2 -18 5 -23' }));
+      g.appendChild(svg('path', { class: 'laurel', d: 'M17 6 c5 -9 2 -18 -5 -23' }));
+    }
+    const hit = svg('circle', { class: 'hit', r: 22 });   // a thumb-sized target
+    hit.addEventListener('click', () => pickStop(i));
+    g.appendChild(hit);
+    seals.appendChild(g);
+  }
+  el('c-next').textContent = next === null
+    ? (wonCount() >= n ? 'Every contract fulfilled.' : '')
+    : 'Next: ' + MAPS[next].name;
+}
+
+function pickStop(i) {
+  if (!isUnlocked(i)) return;
+  go('briefing', i);
+}
+
+/* Five taps on the title open every contract, for testing. */
+let titleTaps = 0;
+el('c-title').addEventListener('click', () => {
+  if (debugUnlock) return;
+  if (++titleTaps < 5) return;
+  debugUnlock = true;
+  el('c-header').textContent = 'Every contract unlocked (debug)';
+  drawCampaign();
+});
 
 /* ---------- into and out of the board ---------- */
 
