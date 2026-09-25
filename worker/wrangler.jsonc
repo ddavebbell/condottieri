@@ -16,7 +16,7 @@
   "vars": {
     // The Google OAuth client id is public. The secret is never here:
     //   wrangler secret put GOOGLE_CLIENT_SECRET
-    "GOOGLE_CLIENT_ID": ""
+    "GOOGLE_CLIENT_ID": "957662312016-etetaf6cvv5a828a284meum9s28v11sd.apps.googleusercontent.com"
   },
   "observability": { "enabled": true }
 }
