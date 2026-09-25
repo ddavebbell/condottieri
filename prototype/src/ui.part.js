@@ -1,3 +1,17 @@
+/* ---------- art ----------
+   Pieces with a drawing show it on a coloured base; the rest keep their glyph
+   until their art arrives. Marble picks one of nine slabs, fixed per square. */
+const ART = new Set(['fante', 'cavaliere', 'lanciere', 'balestriere', 'condottiero', 'carro']);
+function pieceClass(type, side) {
+  return 'piece p-' + side + (ART.has(type) ? ' art k-' + type : '');
+}
+function slab(x, y) {
+  let h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  const n = ((h ^ (h >>> 16)) >>> 0) % 9 + 1;
+  return n === 1 ? '' : ' v' + n;
+}
+
 /* ============================================================
    RENDER
    ============================================================ */
@@ -56,6 +70,7 @@ function render() {
       const terrain = tileAt(x, y);
       let cls = 'tile ' + terrain.css;
       if (terrain.css === 't-open' && (x + y) % 2 === 1) cls += ' alt';
+      if (terrain.css === 't-marble') cls += slab(x, y);
 
       const piece = pieceAt(x, y);
       const move = moves.find(m => m.x === x && m.y === y);
@@ -80,7 +95,7 @@ function render() {
       if (piece && inMire(piece)) inner += '<span class="wading"></span>';
       if (piece) {
         const dim = (canAct(piece) || piece.side === FOE) ? '' : ' spent';
-        inner += `<span class="piece p-${piece.side}${dim}${untouchable ? ' guarded' : ''}">${PIECES[piece.type].glyph}</span>`;
+        inner += `<span class="${pieceClass(piece.type, piece.side)}${dim}${untouchable ? ' guarded' : ''}">${PIECES[piece.type].glyph}</span>`;
       }
       for (const [dx, dy, k] of [[0,-1,'n'],[0,1,'s'],[-1,0,'w'],[1,0,'e']]) {
         if (walled(x, y, x + dx, y + dy)) inner += `<span class="wall w-${k}"></span>`;
@@ -110,7 +125,7 @@ function render() {
   el('log').textContent = state.message;
 
   el('taken').innerHTML = state.taken.length
-    ? state.taken.map(p => `<span class="piece p-${p.side}" style="font-size:20px">${PIECES[p.type].glyph}</span>`).join(' ')
+    ? state.taken.map(p => `<span class="${pieceClass(p.type, p.side)} small" style="font-size:20px">${PIECES[p.type].glyph}</span>`).join(' ')
     : '<span class="none">Nothing yet</span>';
 
   el('undo').disabled = busy || !!state.over || history.length === 0;
@@ -271,7 +286,7 @@ function drawCase(c) {
     [...row].forEach((ch, x) => {
       const g = (c.ground ? c.ground[y][x] : '.');
       const t = TERRAIN[g] || TERRAIN['.'];
-      let cls = 'cell ' + t.css + ((x + y) % 2 && t.css === 't-open' ? ' alt' : '');
+      let cls = 'cell ' + t.css + ((x + y) % 2 && t.css === 't-open' ? ' alt' : '') + (t.css === 't-marble' ? slab(x, y) : '');
       if (c.mark && c.mark[0] === x && c.mark[1] === y)
         cls += data.verdict === 'free' ? ' hit' : ' deny';
       html += `<div class="${cls}">`;
@@ -280,7 +295,7 @@ function drawCase(c) {
       if (data.glow.includes(x + ',' + y)) html += '<span class="g"></span>';
       if (data.dots.includes(x + ',' + y)) html += '<span class="cov"></span>';
       const pc = MINI[ch.toLowerCase()];
-      if (pc) html += `<span class="pc p-${ch === ch.toUpperCase() ? 'rosso' : 'azzurro'}">${pc}</span>`;
+      if (pc) html += `<span class="pc p-${ch === ch.toUpperCase() ? 'rosso' : 'azzurro'}${ART.has(MTYPE[ch.toLowerCase()]) ? ' art k-' + MTYPE[ch.toLowerCase()] : ''}">${pc}</span>`;
       html += '</div>';
     });
   });

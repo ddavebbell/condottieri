@@ -20,6 +20,8 @@ const TERRAIN = {
          effect:{ foot:'blocked', mounted:'blocked', wheeled:'blocked' } },
   'm': { name:'Marble', css:'t-marble', leap:true,
          effect:{ foot:'open',    mounted:'open',    wheeled:'open'    } },
+  'c': { name:'Cobbles', css:'t-cobble', leap:true,
+         effect:{ foot:'open',    mounted:'open',    wheeled:'open'    } },
   ' ': { name:'',       css:'t-void',   leap:false, blocksShot:true, void:true,
          effect:{ foot:'blocked', mounted:'blocked', wheeled:'blocked' } }
 };
