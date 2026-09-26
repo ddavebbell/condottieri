@@ -16,7 +16,7 @@
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 
 /* ============================================================
    SAVING
@@ -261,19 +261,30 @@ const ENTER = {
     if (i !== undefined) briefingIndex = i;
     const m = MAPS[briefingIndex];
     el('b-name').textContent = m.name;
-    el('b-brief').textContent = m.problem || m.brief;
-    el('b-teaches').textContent = 'This contract teaches: ' + m.teaches;
+    el('b-brief').textContent = m.brief;
+    el('b-problem').textContent = m.problem || '';
+    el('b-obj').textContent = objectiveFor(briefingIndex);
+    el('b-teaches').textContent = m.teaches;
+    drawPreview(briefingIndex);
   },
   battle() {
     setPause(false);
   },
   result(r) {
     lastResult = r;
+    const flawless = r.won && r.lost === 0;
     el('r-title').textContent = r.won ? 'Contract fulfilled' : 'Contract failed';
+    el('r-title').className = r.won ? 'won' : 'lost';
     el('r-reason').textContent = r.reason;
-    el('r-detail').textContent = r.won
-      ? 'Men lost: ' + r.lost + ' · Turns: ' + r.turns + (r.lost === 0 ? ' · Flawless' : '')
+    const box = el('r-seal');
+    box.innerHTML = '';
+    const s = svg('svg', { viewBox: '-32 -32 64 64' });
+    s.appendChild(sealNode(r.won ? (flawless ? 'flawless' : 'won') : 'lost', r.index + 1));
+    box.appendChild(s);
+    el('r-stats').innerHTML = r.won
+      ? '<div><b>' + r.lost + '</b>men lost</div><div><b>' + r.turns + ' / ' + MAPS[r.index].turnLimit + '</b>turns used</div>'
       : '';
+    el('r-flawless').textContent = flawless ? 'Not a man lost. The laurel is yours.' : '';
     el('r-next').hidden = !(r.won && r.index < MAPS.length - 1);
     el('r-retry').hidden = r.won;
   },
@@ -304,6 +315,59 @@ function svg(tag, attrs, text) {
   return e;
 }
 
+/* The objective line for a map that is not loaded. objectiveText() reads
+   the engine's current map, so lend it this one for a moment. */
+function objectiveFor(i) {
+  const was = map;
+  map = MAPS[i];
+  try { return objectiveText(); } finally { map = was; }
+}
+
+/* A small copy of the board before the battle: terrain, walls, the
+   objective region and the starting pieces, all straight from the map. */
+function drawPreview(i) {
+  const m = MAPS[i];
+  const cell = Math.min(30, Math.floor(320 / m.width));
+  const goal = m.objective.tiles || [];
+  const walls = new Set((m.walls || []).map(w => wallKey(w[0][0], w[0][1], w[1][0], w[1][1])));
+  const at = (x, y) => m.pieces.find(p => p.x === x && p.y === y);
+  let html = '<div class="mini" style="grid-template-columns:repeat(' + m.width + ',' + cell + 'px);--cell:' + cell + 'px">';
+  for (let y = 0; y < m.height; y++) for (let x = 0; x < m.width; x++) {
+    const t = TERRAIN[m.terrain[y][x]] || TERRAIN['.'];
+    let cls = 'cell ' + t.css;
+    if (t.css === 't-open' && (x + y) % 2 === 1) cls += ' alt';
+    if (t.css === 't-marble') cls += slab(x, y);
+    if (inRegion(goal, x, y)) cls += ' goal';
+    html += '<div class="' + cls + '">' + (t.void ? '' : '<span class="ground"></span>');
+    for (const [dx, dy, k] of [[0,-1,'n'],[0,1,'s'],[-1,0,'w'],[1,0,'e']])
+      if (walls.has(wallKey(x, y, x + dx, y + dy))) html += '<span class="wall w-' + k + '"></span>';
+    const p = at(x, y);
+    if (p) html += '<span class="pc p-' + p.side + '">' + glyphOf(p.type) + '</span>';
+    html += '</div>';
+  }
+  html += '</div><p class="cap">' + m.turnLimit + ' turns · ' + m.commands.rosso + ' commands a turn</p>';
+  el('b-preview').innerHTML = html;
+}
+
+/* A wax seal: locked | open | won | flawless | lost. Shared by the map
+   and the result screen. Radius about 15 units around (0,0). */
+function sealNode(state, label) {
+  const g = svg('g', { class: 'seal ' + state });
+  g.appendChild(svg('ellipse', { class: 'sh', cx: 1.5, cy: 2.5, rx: 14, ry: 13 }));
+  const body = svg('g', { class: 'pulse' });
+  body.appendChild(svg('path', { class: 'wax',
+    d: 'M0 -14 c8 0 14 6 14 13 c0 8 -6 14 -14 15 c-8 -1 -14 -6 -15 -14 c0 -8 7 -14 15 -14z' }));
+  body.appendChild(svg('circle', { class: 'stamp', r: 8.5 }));
+  body.appendChild(svg('text', { y: 3.6 }, label));
+  if (state === 'lost') body.appendChild(svg('path', { class: 'crack', d: 'M-9 -11 l4 5 l-3 4 l5 5 l-2 6 l4 3' }));
+  g.appendChild(body);
+  if (state === 'flawless') {
+    g.appendChild(svg('path', { class: 'laurel', d: 'M-17 6 c-5 -9 -2 -18 5 -23' }));
+    g.appendChild(svg('path', { class: 'laurel', d: 'M17 6 c5 -9 2 -18 -5 -23' }));
+  }
+  return g;
+}
+
 /* locked | open | won | flawless */
 function stopState(i) {
   const p = save.progress[i];
@@ -325,19 +389,9 @@ function drawCampaign() {
   for (let i = 0; i < n; i++) {
     const [x, y] = STOPS[i], state = stopState(i);
     if (next === null && state === 'open') next = i;
-    const g = svg('g', { class: 'seal ' + state, transform: 'translate(' + x + ' ' + y + ')' });
-    g.appendChild(svg('title', {}, (i + 1) + '. ' + MAPS[i].name));
-    g.appendChild(svg('ellipse', { class: 'sh', cx: 1.5, cy: 2.5, rx: 14, ry: 13 }));
-    const body = svg('g', { class: 'pulse' });
-    body.appendChild(svg('path', { class: 'wax',
-      d: 'M0 -14 c8 0 14 6 14 13 c0 8 -6 14 -14 15 c-8 -1 -14 -6 -15 -14 c0 -8 7 -14 15 -14z' }));
-    body.appendChild(svg('circle', { class: 'stamp', r: 8.5 }));
-    body.appendChild(svg('text', { y: 3.6 }, i + 1));
-    g.appendChild(body);
-    if (state === 'flawless') {
-      g.appendChild(svg('path', { class: 'laurel', d: 'M-17 6 c-5 -9 -2 -18 5 -23' }));
-      g.appendChild(svg('path', { class: 'laurel', d: 'M17 6 c5 -9 2 -18 -5 -23' }));
-    }
+    const g = sealNode(state, i + 1);
+    g.setAttribute('transform', 'translate(' + x + ' ' + y + ')');
+    g.insertBefore(svg('title', {}, (i + 1) + '. ' + MAPS[i].name), g.firstChild);
     const hit = svg('circle', { class: 'hit', r: 22 });   // a thumb-sized target
     hit.addEventListener('click', () => pickStop(i));
     g.appendChild(hit);

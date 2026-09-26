@@ -159,11 +159,11 @@ function startMission(index) {
 }
 
 /* The engine calls this from loadMap() at the top of every mission, so
-   it is where a mission is armed. The old pre-mission overlay is gone. */
+   it is where a mission is armed. The briefing itself is the shell's
+   Briefing screen, shown before the board. */
 let missionEnded = false;
 function showBriefing() {
   missionEnded = false;
-  el('overlay').classList.add('hidden');
 }
 
 /* Whether the board should answer keys and taps. The shell narrows this
@@ -171,17 +171,8 @@ function showBriefing() {
 let boardActive = () => true;
 
 /* Called exactly once when a mission ends. The shell replaces this with
-   its Result screen; on its own it falls back to the old overlay. */
-let onMissionEnd = r => {
-  el('ov-title').textContent = r.won ? 'Contract fulfilled' : 'Contract failed';
-  el('ov-title').className = r.won ? 'won' : 'lost';
-  el('ov-text').textContent = r.reason;
-  el('ov-teaches').textContent = '';
-  el('ov-obj').textContent = '';
-  el('ov-btn').textContent = 'Retry';
-  el('ov-btn').onclick = () => startMission(r.index);
-  el('overlay').classList.remove('hidden');
-};
+   its Result screen. */
+let onMissionEnd = r => {};
 
 /* What the shell needs to know about how a mission ended. "lost" is
    the men the player had taken, straight from the captured list. */
