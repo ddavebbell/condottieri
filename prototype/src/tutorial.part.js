@@ -3,8 +3,9 @@
 
    The first contract, played with a guide. A scrim darkens the battle
    screen except for one spotlit thing (a group of tiles, the command
-   pips, a button) and a card explains it. Some steps wait for the
-   player to do the thing; the rest have a Next button.
+   pips, a button) and a card explains it. Every card has a Next button
+   and the board is held still until the guide is done; where a step
+   needs something on the board to point at, it sets that up itself.
 
    Lives entirely on top of ui.part.js and screens.part.js: it wraps
    startMission() to begin, render() to notice the board changing, and
@@ -16,8 +17,9 @@
 const TUTORIAL_MAP = 0;
 
 /* Each step: what to spotlight (a function returning one element or a
-   list of them), what to say, and either `until` (advance when true)
-   or a button. `skip` drops a step that has nothing to show. */
+   list of them), what to say, and the button's label. `enter` and
+   `leave` set up and clear anything the step needs on the board.
+   `skip` drops a step that has nothing to show. */
 const TUTORIAL = [
   {
     target: () => ownTiles(),
@@ -38,22 +40,18 @@ const TUTORIAL = [
     button: 'Next'
   },
   {
-    target: () => tileEl(6, 7),
-    title: 'Pick a man',
-    text: 'Tap the footman on the right to see where he can go.',
-    until: () => selected && selected.x === 6 && selected.y === 7
+    enter: () => { selected = pieceAt(6, 7); render(); },
+    leave: () => { selected = null; render(); },
+    target: () => [tileEl(6, 7), ...document.querySelectorAll('#board .tile.move, #board .tile.capture')],
+    title: 'How a man moves',
+    text: 'Tap a man and the pale dots show where he can step. A green ring would be a kill. A red mark means they could kill him there. Footmen step one square and strike diagonally forward.',
+    button: 'Next'
   },
   {
-    target: () => [...document.querySelectorAll('#board .tile.move, #board .tile.capture')],
-    title: 'Where he can step',
-    text: 'The pale dots are his moves. A green ring would be a kill. A red mark means they could kill him there. Step him one square up.',
-    until: () => history.length > 0
-  },
-  {
-    target: () => document.querySelector('#board .tile .ring') && document.querySelector('#board .tile .ring').parentElement,
+    target: () => [...document.querySelectorAll('#board .tile .ring')].map(r => r.parentElement),
     skip: () => !document.querySelector('#board .tile .ring'),
     title: 'The discipline',
-    text: 'The gold ring. A man on a corner of your Lanciere, or anywhere beside your Condottiero, cannot be taken by their footmen at all. Everything in this game is built on that.',
+    text: 'The gold rings. A man beside your Condottiero, or on a corner of your Lanciere, cannot be taken by their footmen at all. Everything in this game is built on that.',
     button: 'Next'
   },
   {
@@ -66,8 +64,8 @@ const TUTORIAL = [
   {
     target: () => el('endturn'),
     title: 'End turn',
-    text: 'Spend your commands, then end the turn. They move, and the board is yours again.',
-    until: () => state.turnNumber >= 2 && state.turn === PLAYER
+    text: 'When your commands are spent, or you are done, tap End turn. They move, and the board is yours again.',
+    button: 'Next'
   },
   {
     target: () => [el('undo'), el('hintbtn')],
@@ -99,15 +97,18 @@ function tutorialStart(index) {
 }
 
 function tutorialEnd(done) {
+  if (tutorialRunning() && TUTORIAL[tutStep].leave) TUTORIAL[tutStep].leave();
   tutStep = -1;
   el('tut').classList.add('hidden');
   if (done && !save.tutorialDone) { save.tutorialDone = true; saveProfile(); }
 }
 
 function tutorialNext() {
+  if (TUTORIAL[tutStep].leave) TUTORIAL[tutStep].leave();
   tutStep++;
   while (tutorialRunning() && TUTORIAL[tutStep].skip && TUTORIAL[tutStep].skip()) tutStep++;
   if (!tutorialRunning()) { tutorialEnd(true); return; }
+  if (TUTORIAL[tutStep].enter) TUTORIAL[tutStep].enter();
   tutorialShow();
 }
 
@@ -119,9 +120,7 @@ function tutorialShow() {
   box.classList.toggle('hidden', activeScreen !== 'battle');
   el('tut-title').textContent = step.title;
   el('tut-text').textContent = step.text;
-  el('tut-next').textContent = step.button || '';
-  el('tut-next').hidden = !step.button;
-  el('tut-wait').hidden = !!step.button;
+  el('tut-next').textContent = step.button;
   el('tut-count').textContent = (tutStep + 1) + ' / ' + TUTORIAL.length;
 
   let targets = step.target();
@@ -152,12 +151,10 @@ function tutorialShow() {
   }
 }
 
-/* After every draw: advance a waiting step, or re-place the spotlight. */
+/* After every draw, re-place the spotlight: the board may have resized. */
 function tutorialTick() {
   if (!tutorialRunning()) return;
   if (state.over || activeScreen !== 'battle') { el('tut').classList.add('hidden'); return; }
-  const step = TUTORIAL[tutStep];
-  if (step.until && step.until()) { tutorialNext(); return; }
   tutorialShow();
 }
 
@@ -175,9 +172,9 @@ render = function () {
   tutorialTick();
 };
 
-/* On the Next steps the board holds still; on the waiting steps it is live. */
+/* The board holds still while the guide is up. */
 const baseBoardActive = boardActive;
-boardActive = () => baseBoardActive() && !(tutorialRunning() && TUTORIAL[tutStep].button);
+boardActive = () => baseBoardActive() && !tutorialRunning();
 
 window.addEventListener('resize', () => tutorialRunning() && tutorialShow());
 

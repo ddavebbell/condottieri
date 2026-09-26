@@ -64,10 +64,11 @@ client id is in `worker/wrangler.jsonc`; the secret is a Worker secret.
 `tutorial.part.js` runs on mission 0 until finished or skipped
 (`save.tutorialDone`; Settings has "Replay the tutorial"). It wraps
 `startMission`, `render` and `boardActive` rather than editing them. Each
-step names a target (elements to spotlight), text, and either a button or an
-`until()` that advances when the player has done the thing. The scrim is the
-spotlight box's enormous box-shadow, so it needs no cut-outs and taps pass
-straight through to the board on the waiting steps.
+step names a target (elements to spotlight), text and a button label; every
+card has a Next button and the board is held still throughout (David's call
+on 2026-09-26: never force a move). A step that needs something on the board,
+such as the move dots, sets it up in `enter()` and clears it in `leave()`.
+The scrim is the spotlight box's enormous box-shadow, so it needs no cut-outs.
 
 ## Adding a screen
 
