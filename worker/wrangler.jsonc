@@ -2,7 +2,7 @@
   // Condottieri on Cloudflare: one Worker serves the game (a static asset)
   // and answers /api/* and /auth/* for player profiles. See README.md.
   "$schema": "https://unpkg.com/wrangler/config-schema.json",
-  "name": "condottieri",
+  "name": "socii",
   "main": "src/index.js",
   "compatibility_date": "2026-08-18",
   "assets": {

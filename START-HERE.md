@@ -1,8 +1,8 @@
-# Condottieri
+# Socii
 
 ## Play it
 
-- https://condottieri.daverichardbell.workers.dev — on your phone, with Google sign-in
+- https://socii.daverichardbell.workers.dev — on your phone, with Google sign-in
 - `prototype/dist.html` — the same build, opened from disk (guest only)
 
 Deploying: `cd worker && node tools/stage.js && wrangler deploy` (see `worker/README.md`).

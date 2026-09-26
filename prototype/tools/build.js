@@ -6,11 +6,12 @@ const engine = S('src/engine.js');
 const maps   = S('src/maps.part.js');
 const ui     = S('src/ui.part.js');
 const screens = S('src/screens.part.js');   // the shell around the board, after the board
+const tutorial = S('src/tutorial.part.js');  // the guided first contract, on top of both
 
 const bundle = engine.replace('/* MAPS are injected by the build */', maps);
 fs.writeFileSync(path.join(__dirname,'..','src/engine.bundle.js'), bundle);
 
-const page = S('src/shell.head.html') + '<script>\n' + bundle + '\n' + ui + '\n' + screens + '\n</scr'+'ipt>' + S('src/shell.tail.html');
+const page = S('src/shell.head.html') + '<script>\n' + bundle + '\n' + ui + '\n' + screens + '\n' + tutorial + '\n</scr'+'ipt>' + S('src/shell.tail.html');
 fs.writeFileSync(path.join(__dirname,'..','dist.html'), page);
 
 console.log('built  engine.bundle.js  %d KB', (bundle.length/1024).toFixed(0));

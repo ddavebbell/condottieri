@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>Condottieri</title>
+<title>Socii</title>
 <meta name="theme-color" content="#15181a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Condottieri">
+<meta name="apple-mobile-web-app-title" content="Socii">
 <style>
   :root {
     --tile: 44px;
@@ -320,6 +320,33 @@
   }
   .bottombar .plaque { min-height: 52px; font-size: 16px; padding: 10px 8px; }
 
+  /* ---------- tutorial ----------
+     A spotlight (one box whose huge shadow is the scrim) and a card. */
+  #tut { position: fixed; inset: 0; z-index: 25; pointer-events: none; }
+  #tut.hidden { display: none; }
+  #tut-spot {
+    position: fixed; border: 2px solid var(--gold); border-radius: 8px;
+    box-shadow: 0 0 0 200vmax rgba(8,10,11,.74), 0 0 18px rgba(232,176,74,.55);
+    transition: left .25s, top .25s, width .25s, height .25s;
+  }
+  @media (prefers-reduced-motion: reduce) { #tut-spot { transition: none; } }
+  #tut-card {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 420px;
+    background: var(--parchment); color: var(--ink-brown);
+    border: 1px solid var(--wood-dark); border-radius: 3px;
+    box-shadow: inset 0 0 30px rgba(59,42,26,.16), 0 8px 24px rgba(0,0,0,.6);
+    padding: 14px 16px 12px; pointer-events: auto;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+  #tut-card h3 { font-family: 'BlackCastle', Georgia, serif; font-weight: normal; font-size: 22px; margin: 0 0 6px; }
+  #tut-card p { margin: 0 0 12px; font-size: 15px; line-height: 1.45; }
+  .tut-row { display: flex; align-items: center; gap: 12px; }
+  .tut-row .plaque { flex: 1; min-height: 44px; }
+  .tut-row .dim { flex: 1; font-style: italic; }
+  #tut-skip { background: none; border: 0; padding: 8px 4px; color: #5a4633; font-size: 13px; text-decoration: underline; cursor: pointer; }
+  #tut-count { font-size: 12px; color: #5a4633; }
+
   /* the pause menu over the board */
   .pause-obj { margin: 0 0 8px; font-size: 14px; color: var(--text); }
   .pause-obj .k { display: block; color: var(--gold); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
@@ -449,8 +476,8 @@
       var(--landscape) center / cover no-repeat;
   }
   #scr-title .inner { width: 100%; max-width: 480px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; flex: 1; }
-  #scr-title h1 { font-size: 46px; color: var(--mark); text-shadow: 0 2px 6px rgba(0,0,0,.8); margin-top: 18vh; }
-  #scr-title .tag { text-align: center; color: var(--parchment-dark); font-style: italic; margin-bottom: 0; }
+  #scr-title h1 { font-size: 56px; letter-spacing: .08em; color: var(--mark); text-shadow: 0 2px 6px rgba(0,0,0,.8); margin-top: 18vh; }
+  #scr-title .tag { text-align: center; color: var(--parchment-dark); font-style: italic; font-size: 17px; letter-spacing: .04em; margin-bottom: 0; }
 
   /* battle keeps the old two-column wrap; the pause menu sits over it */
   #scr-battle.on { display: block; }
@@ -577,8 +604,8 @@
 
 <section class="screen shell" id="scr-title">
   <div class="inner">
-    <h1>Condottieri</h1>
-    <p class="tag">Five men against the north of Italy</p>
+    <h1>Socii</h1>
+    <p class="tag">A company of five</p>
     <div class="grow"></div>
     <div class="stack">
       <button class="plaque primary" id="t-continue" hidden>Continue</button>
@@ -724,6 +751,20 @@
   </div>
 </div>
 
+<div id="tut" class="hidden">
+  <div id="tut-spot"></div>
+  <div id="tut-card">
+    <h3 id="tut-title"></h3>
+    <p id="tut-text"></p>
+    <div class="tut-row">
+      <button class="plaque primary" id="tut-next">Next</button>
+      <span class="dim" id="tut-wait" hidden>Go on, the board is yours.</span>
+      <span id="tut-count"></span>
+      <button id="tut-skip">Skip</button>
+    </div>
+  </div>
+</div>
+
 <div class="pause hidden" id="pause">
   <div class="card">
     <h2>Paused</h2>
@@ -773,6 +814,7 @@
     <button class="plaque" id="st-signin">Sign in</button>
     <button class="plaque" id="st-signout" hidden>Sign out</button>
     <button class="plaque" id="st-rules">Rules guide</button>
+    <button class="plaque" id="st-tutorial">Replay the tutorial</button>
     <button class="plaque" id="st-reset">Reset progress</button>
   </div>
   <div class="grow"></div>

@@ -1,4 +1,4 @@
-# Condottieri on Cloudflare
+# Socii on Cloudflare
 
 One Worker. It serves the game as a static asset and keeps one profile per
 Google account in D1. The page stays fully playable as a guest, offline or
@@ -36,7 +36,8 @@ Every release:
     wrangler deploy
 
 Google Cloud console, the OAuth client's authorised redirect URI must be
-exactly `https://<worker url>/auth/callback`.
+exactly `https://<worker url>/auth/callback`. The Worker is named `socii`
+(the game's name); the D1 database kept its original name, `condottieri`.
 
 ## Sessions and safety
 

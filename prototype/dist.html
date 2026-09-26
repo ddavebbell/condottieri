@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>Condottieri</title>
+<title>Socii</title>
 <meta name="theme-color" content="#15181a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Condottieri">
+<meta name="apple-mobile-web-app-title" content="Socii">
 <style>
   :root {
     --tile: 44px;
@@ -320,6 +320,33 @@
   }
   .bottombar .plaque { min-height: 52px; font-size: 16px; padding: 10px 8px; }
 
+  /* ---------- tutorial ----------
+     A spotlight (one box whose huge shadow is the scrim) and a card. */
+  #tut { position: fixed; inset: 0; z-index: 25; pointer-events: none; }
+  #tut.hidden { display: none; }
+  #tut-spot {
+    position: fixed; border: 2px solid var(--gold); border-radius: 8px;
+    box-shadow: 0 0 0 200vmax rgba(8,10,11,.74), 0 0 18px rgba(232,176,74,.55);
+    transition: left .25s, top .25s, width .25s, height .25s;
+  }
+  @media (prefers-reduced-motion: reduce) { #tut-spot { transition: none; } }
+  #tut-card {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 420px;
+    background: var(--parchment); color: var(--ink-brown);
+    border: 1px solid var(--wood-dark); border-radius: 3px;
+    box-shadow: inset 0 0 30px rgba(59,42,26,.16), 0 8px 24px rgba(0,0,0,.6);
+    padding: 14px 16px 12px; pointer-events: auto;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+  #tut-card h3 { font-family: 'BlackCastle', Georgia, serif; font-weight: normal; font-size: 22px; margin: 0 0 6px; }
+  #tut-card p { margin: 0 0 12px; font-size: 15px; line-height: 1.45; }
+  .tut-row { display: flex; align-items: center; gap: 12px; }
+  .tut-row .plaque { flex: 1; min-height: 44px; }
+  .tut-row .dim { flex: 1; font-style: italic; }
+  #tut-skip { background: none; border: 0; padding: 8px 4px; color: #5a4633; font-size: 13px; text-decoration: underline; cursor: pointer; }
+  #tut-count { font-size: 12px; color: #5a4633; }
+
   /* the pause menu over the board */
   .pause-obj { margin: 0 0 8px; font-size: 14px; color: var(--text); }
   .pause-obj .k { display: block; color: var(--gold); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
@@ -449,8 +476,8 @@
       var(--landscape) center / cover no-repeat;
   }
   #scr-title .inner { width: 100%; max-width: 480px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; flex: 1; }
-  #scr-title h1 { font-size: 46px; color: var(--mark); text-shadow: 0 2px 6px rgba(0,0,0,.8); margin-top: 18vh; }
-  #scr-title .tag { text-align: center; color: var(--parchment-dark); font-style: italic; margin-bottom: 0; }
+  #scr-title h1 { font-size: 56px; letter-spacing: .08em; color: var(--mark); text-shadow: 0 2px 6px rgba(0,0,0,.8); margin-top: 18vh; }
+  #scr-title .tag { text-align: center; color: var(--parchment-dark); font-style: italic; font-size: 17px; letter-spacing: .04em; margin-bottom: 0; }
 
   /* battle keeps the old two-column wrap; the pause menu sits over it */
   #scr-battle.on { display: block; }
@@ -577,8 +604,8 @@
 
 <section class="screen shell" id="scr-title">
   <div class="inner">
-    <h1>Condottieri</h1>
-    <p class="tag">Five men against the north of Italy</p>
+    <h1>Socii</h1>
+    <p class="tag">A company of five</p>
     <div class="grow"></div>
     <div class="stack">
       <button class="plaque primary" id="t-continue" hidden>Continue</button>
@@ -724,6 +751,20 @@
   </div>
 </div>
 
+<div id="tut" class="hidden">
+  <div id="tut-spot"></div>
+  <div id="tut-card">
+    <h3 id="tut-title"></h3>
+    <p id="tut-text"></p>
+    <div class="tut-row">
+      <button class="plaque primary" id="tut-next">Next</button>
+      <span class="dim" id="tut-wait" hidden>Go on, the board is yours.</span>
+      <span id="tut-count"></span>
+      <button id="tut-skip">Skip</button>
+    </div>
+  </div>
+</div>
+
 <div class="pause hidden" id="pause">
   <div class="card">
     <h2>Paused</h2>
@@ -773,6 +814,7 @@
     <button class="plaque" id="st-signin">Sign in</button>
     <button class="plaque" id="st-signout" hidden>Sign out</button>
     <button class="plaque" id="st-rules">Rules guide</button>
+    <button class="plaque" id="st-tutorial">Replay the tutorial</button>
     <button class="plaque" id="st-reset">Reset progress</button>
   </div>
   <div class="grow"></div>
@@ -2696,7 +2738,7 @@ document.querySelectorAll('[data-rules]').forEach(a =>
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 /* ============================================================
    SAVING
@@ -2734,6 +2776,7 @@ function loadProfile() {
       if (got.profile && typeof got.profile.name === 'string') save.profile.name = got.profile.name;
       if (got.settings && typeof got.settings === 'object') Object.assign(save.settings, got.settings);
       if (got.progress && typeof got.progress === 'object') save.progress = got.progress;
+      if (got.tutorialDone) save.tutorialDone = true;
       if (got.company) save.company = got.company;
     }
   } catch (e) { /* no storage, or a broken save: fresh player */ }
@@ -2773,6 +2816,7 @@ function mergeRemote(remote) {
       };
     }
   }
+  if (remote.tutorialDone) save.tutorialDone = true;
   if (remote.company) save.company = remote.company;
 }
 
@@ -3192,6 +3236,197 @@ el('version').textContent = 'v' + VERSION;
 try { window.history.replaceState({ screen: 'title' }, ''); } catch (e) {}
 go('title');
 fetchAccount();
+
+/* ============================================================
+   THE TUTORIAL
+
+   The first contract, played with a guide. A scrim darkens the battle
+   screen except for one spotlit thing (a group of tiles, the command
+   pips, a button) and a card explains it. Some steps wait for the
+   player to do the thing; the rest have a Next button.
+
+   Lives entirely on top of ui.part.js and screens.part.js: it wraps
+   startMission() to begin, render() to notice the board changing, and
+   boardActive() to hold the board still on the Next steps. It runs
+   only on mission 0 and only until it has been finished or skipped
+   (save.tutorialDone). Settings can bring it back.
+   ============================================================ */
+
+const TUTORIAL_MAP = 0;
+
+/* Each step: what to spotlight (a function returning one element or a
+   list of them), what to say, and either `until` (advance when true)
+   or a button. `skip` drops a step that has nothing to show. */
+const TUTORIAL = [
+  {
+    target: () => ownTiles(),
+    title: 'Your company',
+    text: 'Five men. Two footmen, a horseman, your Condottiero in the middle and a Lanciere beside him. Lose the Condottiero and the contract is lost.',
+    button: 'Next'
+  },
+  {
+    target: () => foeTiles(),
+    title: 'Theirs',
+    text: 'Eight men on the road. This contract is simple: clear the field. Progress sits in the top bar.',
+    button: 'Next'
+  },
+  {
+    target: () => el('pips'),
+    title: 'Three commands',
+    text: 'You give three commands a turn, one dot each. Every move or shot spends one.',
+    button: 'Next'
+  },
+  {
+    target: () => tileEl(6, 7),
+    title: 'Pick a man',
+    text: 'Tap the footman on the right to see where he can go.',
+    until: () => selected && selected.x === 6 && selected.y === 7
+  },
+  {
+    target: () => [...document.querySelectorAll('#board .tile.move, #board .tile.capture')],
+    title: 'Where he can step',
+    text: 'The pale dots are his moves. A green ring would be a kill. A red mark means they could kill him there. Step him one square up.',
+    until: () => history.length > 0
+  },
+  {
+    target: () => document.querySelector('#board .tile .ring') && document.querySelector('#board .tile .ring').parentElement,
+    skip: () => !document.querySelector('#board .tile .ring'),
+    title: 'The discipline',
+    text: 'The gold ring. A man on a corner of your Lanciere, or anywhere beside your Condottiero, cannot be taken by their footmen at all. Everything in this game is built on that.',
+    button: 'Next'
+  },
+  {
+    target: () => document.querySelector('#board .tile.threat'),
+    skip: () => !document.querySelector('#board .tile.threat'),
+    title: 'The red corner',
+    text: 'This man of yours can be killed on their next turn. Move him, or bring an anchor to him.',
+    button: 'Next'
+  },
+  {
+    target: () => el('endturn'),
+    title: 'End turn',
+    text: 'Spend your commands, then end the turn. They move, and the board is yours again.',
+    until: () => state.turnNumber >= 2 && state.turn === PLAYER
+  },
+  {
+    target: () => [el('undo'), el('hintbtn')],
+    title: 'Undo and Hint',
+    text: 'Undo takes back your last move. Hint shows the line this contract was built around. The full rules, with worked examples, are under the menu.',
+    button: 'Next'
+  },
+  {
+    target: () => null,
+    title: 'Clear the road',
+    text: 'Keep your men on the corners of the Lanciere and beside the Condottiero, and nothing of theirs can answer. Good luck, Captain.',
+    button: 'Begin'
+  }
+];
+
+function ownTiles() { return state.pieces.filter(p => p.side === PLAYER).map(p => tileEl(p.x, p.y)); }
+function foeTiles() { return state.pieces.filter(p => p.side === FOE).map(p => tileEl(p.x, p.y)); }
+
+let tutStep = -1;          // -1: not running
+let tutMap = -1;
+
+function tutorialRunning() { return tutStep >= 0 && tutStep < TUTORIAL.length; }
+
+function tutorialStart(index) {
+  tutMap = index;
+  if (index !== TUTORIAL_MAP || save.tutorialDone) { tutorialEnd(false); return; }
+  tutStep = 0;
+  tutorialShow();
+}
+
+function tutorialEnd(done) {
+  tutStep = -1;
+  el('tut').classList.add('hidden');
+  if (done && !save.tutorialDone) { save.tutorialDone = true; saveProfile(); }
+}
+
+function tutorialNext() {
+  tutStep++;
+  while (tutorialRunning() && TUTORIAL[tutStep].skip && TUTORIAL[tutStep].skip()) tutStep++;
+  if (!tutorialRunning()) { tutorialEnd(true); return; }
+  tutorialShow();
+}
+
+/* Place the spotlight over the step's target and the card near it. */
+function tutorialShow() {
+  if (!tutorialRunning()) return;
+  const step = TUTORIAL[tutStep];
+  const box = el('tut');
+  box.classList.toggle('hidden', activeScreen !== 'battle');
+  el('tut-title').textContent = step.title;
+  el('tut-text').textContent = step.text;
+  el('tut-next').textContent = step.button || '';
+  el('tut-next').hidden = !step.button;
+  el('tut-wait').hidden = !!step.button;
+  el('tut-count').textContent = (tutStep + 1) + ' / ' + TUTORIAL.length;
+
+  let targets = step.target();
+  if (targets && !Array.isArray(targets)) targets = [targets];
+  targets = (targets || []).filter(Boolean);
+  const spot = el('tut-spot');
+  const card = el('tut-card');
+  const vw = window.innerWidth, vh = window.innerHeight;
+  if (targets.length) {
+    let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+    for (const e of targets) {
+      const q = e.getBoundingClientRect();
+      l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom);
+    }
+    const pad = 6;
+    spot.style.left = (l - pad) + 'px'; spot.style.top = (t - pad) + 'px';
+    spot.style.width = (r - l + 2 * pad) + 'px'; spot.style.height = (b - t + 2 * pad) + 'px';
+    spot.style.opacity = 1;
+    /* the card goes under the target if there is room, else above it */
+    const below = vh - b - pad;
+    card.style.top = below > 220 ? (b + pad + 12) + 'px' : '';
+    card.style.bottom = below > 220 ? '' : (vh - t + pad + 12) + 'px';
+  } else {
+    spot.style.left = (vw / 2) + 'px'; spot.style.top = (vh / 2) + 'px';
+    spot.style.width = '0px'; spot.style.height = '0px';
+    spot.style.opacity = 1;
+    card.style.top = ''; card.style.bottom = '18%';
+  }
+}
+
+/* After every draw: advance a waiting step, or re-place the spotlight. */
+function tutorialTick() {
+  if (!tutorialRunning()) return;
+  if (state.over || activeScreen !== 'battle') { el('tut').classList.add('hidden'); return; }
+  const step = TUTORIAL[tutStep];
+  if (step.until && step.until()) { tutorialNext(); return; }
+  tutorialShow();
+}
+
+/* ---------- hooks into the board and the shell ---------- */
+
+const baseStartMission = startMission;
+startMission = function (index) {
+  baseStartMission(index);
+  tutorialStart(index);
+};
+
+const baseRender = render;
+render = function () {
+  baseRender();
+  tutorialTick();
+};
+
+/* On the Next steps the board holds still; on the waiting steps it is live. */
+const baseBoardActive = boardActive;
+boardActive = () => baseBoardActive() && !(tutorialRunning() && TUTORIAL[tutStep].button);
+
+window.addEventListener('resize', () => tutorialRunning() && tutorialShow());
+
+el('tut-next').onclick = tutorialNext;
+el('tut-skip').onclick = () => tutorialEnd(true);
+el('st-tutorial').onclick = () => {
+  save.tutorialDone = false;
+  saveProfile();
+  el('st-account').textContent = 'The tutorial will run on the first contract.';
+};
 
 </script>
 </body>

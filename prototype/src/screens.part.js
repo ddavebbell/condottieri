@@ -16,7 +16,7 @@
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 /* ============================================================
    SAVING
@@ -54,6 +54,7 @@ function loadProfile() {
       if (got.profile && typeof got.profile.name === 'string') save.profile.name = got.profile.name;
       if (got.settings && typeof got.settings === 'object') Object.assign(save.settings, got.settings);
       if (got.progress && typeof got.progress === 'object') save.progress = got.progress;
+      if (got.tutorialDone) save.tutorialDone = true;
       if (got.company) save.company = got.company;
     }
   } catch (e) { /* no storage, or a broken save: fresh player */ }
@@ -93,6 +94,7 @@ function mergeRemote(remote) {
       };
     }
   }
+  if (remote.tutorialDone) save.tutorialDone = true;
   if (remote.company) save.company = remote.company;
 }
 

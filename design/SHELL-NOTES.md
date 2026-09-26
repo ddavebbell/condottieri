@@ -39,7 +39,8 @@ The format:
     { "profile":  { "name": "Dave" },
       "settings": { "tex": 0.5, "threat": true, "faces": true, "sound": true },
       "progress": { "0": { "name": "Skirmish on the Road", "won": true,
-                           "flawless": true, "bestTurns": 7 } } }
+                           "flawless": true, "bestTurns": 7 } },
+      "tutorialDone": true }
 
 `progress` is keyed by map index and records the map's name so a reorder can
 be migrated. `flawless` comes from the captured list (`missionResult()` in
@@ -57,6 +58,16 @@ best turns only improve, a server name or setting wins over a blank one) and
 pushes the result back. Sign out clears the device copy but keeps settings.
 Opened from a file, `ONLINE` is false and none of this runs. The Google
 client id is in `worker/wrangler.jsonc`; the secret is a Worker secret.
+
+## The tutorial
+
+`tutorial.part.js` runs on mission 0 until finished or skipped
+(`save.tutorialDone`; Settings has "Replay the tutorial"). It wraps
+`startMission`, `render` and `boardActive` rather than editing them. Each
+step names a target (elements to spotlight), text, and either a button or an
+`until()` that advances when the player has done the thing. The scrim is the
+spotlight box's enormous box-shadow, so it needs no cut-outs and taps pass
+straight through to the board on the waiting steps.
 
 ## Adding a screen
 
@@ -76,6 +87,9 @@ not in the repo. Each milestone's walk is easy to redo by hand: title, guest
 sign-in, tap a seal, accept, play, pause, settings, win, next contract.
 
 ## Rough edges and things I was unsure about
+
+- The game was renamed Socii on 2026-09-25; code, save key, repo and the D1
+  database still say condottieri on purpose, players never see them.
 
 - Confirmations (new campaign, abandon, reset) use `window.confirm`. Fine on a
   phone, but not styled.
