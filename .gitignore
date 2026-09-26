@@ -6,3 +6,4 @@
 worker/public/
 worker/.wrangler/
 worker/node_modules/
+.wrangler/
