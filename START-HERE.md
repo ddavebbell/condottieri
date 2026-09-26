@@ -2,8 +2,10 @@
 
 ## Play it
 
-- https://claude.ai/artifact/9cPj1TVikKUJdEamtAjCif — on your phone
-- `prototype/dist.html` — the same build, locally
+- https://condottieri.daverichardbell.workers.dev — on your phone, with Google sign-in
+- `prototype/dist.html` — the same build, opened from disk (guest only)
+
+Deploying: `cd worker && node tools/stage.js && wrangler deploy` (see `worker/README.md`).
 
 One build, generated from `src/`. Two copies of a game is how they drift apart.
 
@@ -22,6 +24,9 @@ One build, generated from `src/`. Two copies of a game is how they drift apart.
 
 Five men against seven or eight, thirteen maps, all solvable and all winnable
 without losing anybody. 4 easy, 6 medium, 3 hard.
+
+The full-game shell (title, campaign map, briefing, battle, result, settings,
+saving, accounts) is built; notes in `design/SHELL-NOTES.md`.
 
 Next: play them. Then persist the company between missions — see
 `design/condottieri-company.md`.
