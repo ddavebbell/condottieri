@@ -16,7 +16,7 @@
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '1.1.1';
+const VERSION = '1.2.0';
 
 /* ============================================================
    SAVING
@@ -95,7 +95,9 @@ function mergeRemote(remote) {
     }
   }
   if (remote.tutorialDone) save.tutorialDone = true;
-  if (remote.company) save.company = remote.company;
+  /* the company is one thing, not a union: the newer copy wins */
+  if (remote.company && typeof remote.company === 'object' &&
+      (!save.company || (remote.company.updated || 0) > (save.company.updated || 0))) save.company = remote.company;
 }
 
 async function fetchAccount() {
@@ -168,6 +170,133 @@ function recordResult(r) {
   saveProfile();
 }
 
+/* ============================================================
+   THE COMPANY  (design/condottieri-company.md)
+
+   Four named men and you. Losses are permanent, but only once you
+   accept a result and move on: nothing is written during a mission,
+   so a retry always starts with the men you had walking in. Recruits
+   come at fixed contracts, and the company caps at seven in the field
+   counting the Condottiero, who is not a member: he is you.
+   ============================================================ */
+
+const NAMES = ['Bartolomeo', 'Niccolò', 'Erasmo', 'Braccio', 'Micheletto', 'Facino', 'Muzio', 'Jacopo',
+  'Sigismondo', 'Taddeo', 'Guido', 'Ottaviano', 'Astorre', 'Gentile', 'Ambrogio', 'Baldassare',
+  'Ercole', 'Galeazzo', 'Prospero', 'Ranuccio', 'Tiberto', 'Zanobi', 'Cola', 'Piero'];
+const ROSTER_CAP = 6;
+const ROLE = { fante: 'footman', cavaliere: 'horseman', lanciere: 'lanciere', balestriere: 'crossbowman', carro: 'carro', condottiero: 'condottiero' };
+
+function pickName(c) {
+  const used = new Set(c.men.concat(c.fallen).map(m => m.name));
+  const free = NAMES.filter(n => !used.has(n));
+  return free.length ? free[Math.floor(Math.random() * free.length)] : 'Nameless';
+}
+
+function enlist(c, type, joined, name) {
+  const man = { id: c.nextId++, name: name || pickName(c), type, joined };
+  c.men.push(man);
+  return man;
+}
+
+function freshCompany() {
+  const c = { men: [], fallen: [], nextId: 1, updated: Date.now() };
+  for (const type of ['fante', 'cavaliere', 'lanciere', 'fante']) enlist(c, type, -1);
+  return c;
+}
+
+/* The roster, made on first use so an old save gets one too. */
+function roster() {
+  if (!save.company || !Array.isArray(save.company.men)) save.company = freshCompany();
+  return save.company;
+}
+
+/* What the engine deploys: you, then the men, each carrying a key so
+   the engine's slain list can tell us who fell. */
+missionCompany = () => [{ type: 'condottiero' }]
+  .concat(roster().men.map(m => ({ type: m.type, key: 'man:' + m.id, name: m.name })));
+
+const manLabel = m => m.name + ' the ' + (ROLE[m.type] || m.type);
+
+/* Recruits at fixed contracts (indices 3, 6, 10 = the 4th, 7th, 11th).
+   Offered only on a win and only while there is room. */
+const RECRUITS = {
+  3:  { pick: false, men: [{ type: 'fante',
+          text: (n, lost) => lost ? 'Your employer makes good the loss. ' + n + ', a footman, joins the company.'
+                                  : n + ', a footman out of work since the last war, asks to join. He is taken on.' }] },
+  6:  { pick: true, men: [
+        { type: 'balestriere', text: n => n + ', a crossbowman. The one answer to a position you cannot approach.' },
+        { type: 'lanciere',    text: n => n + ', one of theirs, taken alive at the crossing. He asks to serve, and a second lanciere doubles the shelter you can give.' }] },
+  10: { pick: false, men: [{ type: 'fante',
+          text: n => n + ', one of theirs, laid down his arms rather than die in the hills. He marches with you now.' }] }
+};
+
+/* The outcome of the mission on the Result screen, not yet written. */
+let pending = null;
+
+function offerFor(r) {
+  const spec = RECRUITS[r.index];
+  if (!r.won || !spec) return null;
+  const c = roster();
+  const standing = c.men.filter(m => !r.fallen.includes(m.id)).length;
+  if (standing >= ROSTER_CAP) return { full: true };
+  const names = [];
+  const offer = spec.men.map(m => {
+    let n; do { n = pickName({ men: c.men.concat(names.map(x => ({ name: x }))), fallen: c.fallen }); } while (names.includes(n));
+    names.push(n);
+    return { type: m.type, name: n, text: m.text(n, r.lost > 0) };
+  });
+  return { pick: spec.pick, men: offer, chosen: spec.pick ? -1 : 0 };
+}
+
+/* Write the outcome: the fallen leave the roster, the recruit joins. */
+function acceptResult() {
+  if (!pending || !pending.won) { pending = null; return; }
+  const c = roster();
+  for (const id of pending.fallen) {
+    const i = c.men.findIndex(m => m.id === id);
+    if (i >= 0) c.fallen.push({ ...c.men.splice(i, 1)[0], fellAt: pending.index });
+  }
+  const o = pending.offer;
+  if (o && !o.full && o.chosen >= 0 && c.men.length < ROSTER_CAP) {
+    const m = o.men[o.chosen];
+    enlist(c, m.type, pending.index, m.name);
+  }
+  c.updated = Date.now();
+  pending = null;
+  saveProfile();
+}
+
+function drawRollCall(r) {
+  const c = roster();
+  let html = '<p class="k">Roll call</p>';
+  for (const m of c.men) {
+    const fell = r.fallen.includes(m.id);
+    html += '<div class="man' + (fell ? ' fell' : '') + '"><span class="name">' + m.name + '</span>'
+      + '<span class="role">' + (fell ? 'fell' : ROLE[m.type]) + '</span></div>';
+  }
+  if (c.fallen.length) html += '<p class="earlier">Fell before this: ' + c.fallen.map(m => m.name).join(', ') + '.</p>';
+  el('r-roll').innerHTML = html;
+}
+
+function drawRecruit(o) {
+  const box = el('r-recruit');
+  if (!o) { box.innerHTML = ''; return; }
+  if (o.full) { box.innerHTML = '<p>A man asks to join, but the company is full. Seven is as many as you will lead.</p>'; return; }
+  if (!o.pick) { box.innerHTML = '<p>' + o.men[0].text + '</p>'; return; }
+  box.innerHTML = '<p>Two men ask to join, and you may take one.</p>'
+    + '<p>' + o.men[0].text + '</p><p>' + o.men[1].text + '</p>'
+    + '<div class="row"><button class="plaque" id="r-pick-0">Take ' + o.men[0].name + '</button>'
+    + '<button class="plaque" id="r-pick-1">Take ' + o.men[1].name + '</button></div>';
+  const settle = () => {
+    el('r-pick-0').classList.toggle('chosen', o.chosen === 0);
+    el('r-pick-1').classList.toggle('chosen', o.chosen === 1);
+    el('r-next').disabled = el('r-campaign').disabled = o.chosen < 0;
+  };
+  el('r-pick-0').onclick = () => { o.chosen = 0; settle(); };
+  el('r-pick-1').onclick = () => { o.chosen = 1; settle(); };
+  settle();
+}
+
 /* ---------- settings, applied to the board's own controls ----------
    The controls still live on the battle panel until milestone 6; here
    they are set from the save on load and written back when touched. */
@@ -235,6 +364,7 @@ function back() {
   if (activeScreen === 'battle') { setPause(!pauseOpen); return; }
   if (activeScreen === 'settings') { go(settingsFrom); return; }
   if (activeScreen === 'signin') { go(signinFrom); return; }
+  if (activeScreen === 'result') { if (pending && pending.offer && pending.offer.chosen < 0 && !pending.offer.full) return; acceptResult(); go('campaign'); return; }
   const to = BACK_TO[activeScreen];
   if (to) go(to);
 }
@@ -271,6 +401,7 @@ const ENTER = {
     el('b-problem').textContent = m.problem || '';
     el('b-obj').textContent = objectiveFor(briefingIndex);
     el('b-teaches').textContent = m.teaches;
+    el('b-company').innerHTML = 'You, and ' + roster().men.map(x => '<b>' + x.name + '</b> the ' + ROLE[x.type]).join(', ') + '.';
     drawPreview(briefingIndex);
   },
   battle() {
@@ -291,8 +422,12 @@ const ENTER = {
       ? '<div><b>' + r.lost + '</b>men lost</div><div><b>' + r.turns + ' / ' + MAPS[r.index].turnLimit + '</b>turns used</div>'
       : '';
     el('r-flawless').textContent = flawless ? 'Not a man lost. The laurel is yours.' : '';
+    pending = { won: r.won, index: r.index, fallen: r.fallen || [], offer: offerFor(r) };
     el('r-next').hidden = !(r.won && r.index < MAPS.length - 1);
-    el('r-retry').hidden = r.won;
+    el('r-retry').hidden = r.won && r.lost === 0;
+    el('r-next').disabled = el('r-campaign').disabled = false;
+    drawRollCall(r);
+    drawRecruit(pending.offer);   // may lock Next and Campaign until a choice is made
   },
   settings() {
     el('st-name').value = save.profile.name;
@@ -342,7 +477,8 @@ function drawPreview(i) {
   const cell = Math.min(30, Math.floor(320 / m.width));
   const goal = m.objective.tiles || [];
   const walls = new Set((m.walls || []).map(w => wallKey(w[0][0], w[0][1], w[1][0], w[1][1])));
-  const at = (x, y) => m.pieces.find(p => p.x === x && p.y === y);
+  const listed = m.pieces.filter(p => p.side !== PLAYER).concat(deployCompany(missionCompany(), m));
+  const at = (x, y) => listed.find(p => p.x === x && p.y === y);
   let html = '<div class="mini" style="grid-template-columns:repeat(' + m.width + ',' + cell + 'px);--cell:' + cell + 'px">';
   for (let y = 0; y < m.height; y++) for (let x = 0; x < m.width; x++) {
     const t = TERRAIN[m.terrain[y][x]] || TERRAIN['.'];
@@ -354,7 +490,7 @@ function drawPreview(i) {
     for (const [dx, dy, k] of [[0,-1,'n'],[0,1,'s'],[-1,0,'w'],[1,0,'e']])
       if (walls.has(wallKey(x, y, x + dx, y + dy))) html += '<span class="wall w-' + k + '"></span>';
     const p = at(x, y);
-    if (p) html += '<span class="pc p-' + p.side + '">' + glyphOf(p.type) + '</span>';
+    if (p) html += '<span class="pc p-' + p.side + ' t-' + p.type + '">' + glyphOf(p.type) + '</span>';
     html += '</div>';
   }
   html += '</div><p class="cap">' + m.turnLimit + ' turns · ' + m.commands.rosso + ' commands a turn</p>';
@@ -489,9 +625,9 @@ el('p-abandon').onclick = () => {
   }
 };
 
-el('r-next').onclick = () => go('briefing', lastResult.index + 1);
-el('r-retry').onclick = () => startBattle(lastResult.index);
-el('r-campaign').onclick = () => go('campaign');
+el('r-next').onclick = () => { acceptResult(); go('briefing', lastResult.index + 1); };
+el('r-retry').onclick = () => { pending = null; startBattle(lastResult.index); };   // the men you walked in with
+el('r-campaign').onclick = () => { acceptResult(); go('campaign'); };
 
 /* The name is kept as it is typed. */
 el('st-name').addEventListener('input', () => { save.profile.name = el('st-name').value.trim(); saveProfile(); });
@@ -499,10 +635,11 @@ el('st-signin').onclick = () => { signinFrom = 'settings'; go('signin'); };
 el('st-signout').onclick = async () => { await signOut(); go('title'); };
 el('st-rules').onclick = () => openRules();
 el('st-reset').onclick = () => {
-  if (!confirm('Reset progress? Every contract goes back to unfulfilled. Your name and settings stay.')) return;
+  if (!confirm('Reset the campaign? Every contract goes back to unfulfilled and the company is formed anew. Your name and settings stay.')) return;
   save.progress = {};
+  save.company = freshCompany();
   saveProfile();
-  el('st-account').textContent = 'Progress reset.';
+  el('st-account').textContent = 'Campaign reset.';
 };
 el('st-back').onclick = () => go(settingsFrom);
 

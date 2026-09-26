@@ -40,7 +40,10 @@ The format:
       "settings": { "tex": 0.5, "threat": true, "faces": true, "sound": true },
       "progress": { "0": { "name": "Skirmish on the Road", "won": true,
                            "flawless": true, "bestTurns": 7 } },
-      "tutorialDone": true }
+      "tutorialDone": true,
+      "company": { "men": [ { "id": 1, "name": "Bartolomeo", "type": "fante", "joined": -1 } ],
+                   "fallen": [ { "id": 2, "name": "Erasmo", "type": "cavaliere", "joined": -1, "fellAt": 3 } ],
+                   "nextId": 6, "updated": 1790000000000 } }
 
 `progress` is keyed by map index and records the map's name so a reorder can
 be migrated. `flawless` comes from the captured list (`missionResult()` in
@@ -58,6 +61,20 @@ best turns only improve, a server name or setting wins over a blank one) and
 pushes the result back. Sign out clears the device copy but keeps settings.
 Opened from a file, `ONLINE` is false and none of this runs. The Google
 client id is in `worker/wrangler.jsonc`; the secret is a Worker secret.
+
+## The company
+
+The roster (`save.company`) is made on first use by `freshCompany()`: four named
+men; the Condottiero is you and is not listed. `missionCompany()` hands the
+engine you plus the men, each with a key `man:<id>`, and the engine's
+`deployCompany()` forms them up in the map's deployment region from the centre
+outward (right before left), which puts a full company exactly where the maps'
+own lists did. The engine's `slain` list reports which keys fell;
+`missionResult()` turns those into `fallen` ids. Nothing is written during a
+mission: the Result screen holds a `pending` outcome and `acceptResult()`
+commits it (fallen out, recruit in, `updated` stamped) only on Next contract,
+Campaign map, or Back. Try again discards it. The server merge takes whichever
+company copy has the newer `updated`.
 
 ## The tutorial
 

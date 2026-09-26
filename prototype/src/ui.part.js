@@ -11,7 +11,7 @@ const ART = new Set([]);
    text form. The other chess glyphs are not emoji. */
 const glyphOf = type => PIECES[type].glyph + (PIECES[type].glyph === '\u265f' ? '\ufe0e' : '');
 function pieceClass(type, side) {
-  return 'piece p-' + side + (ART.has(type) ? ' art k-' + type : '');
+  return 'piece p-' + side + ' t-' + type + (ART.has(type) ? ' art k-' + type : '');
 }
 function slab(x, y) {
   let h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
@@ -157,9 +157,13 @@ function render() {
    on the shell's Briefing screen before the board, not here.
    ============================================================ */
 
+/* The men who take the field, as the engine wants them: the shell
+   replaces this with the player's roster. null means the map's own. */
+let missionCompany = () => null;
+
 /* The shell's way in. */
 function startMission(index) {
-  loadMap(index);
+  loadMap(index, missionCompany());
 }
 
 /* The engine calls this from loadMap() at the top of every mission, so
@@ -187,6 +191,8 @@ function missionResult() {
     won: state.over === 'won',
     reason: state.reason,
     lost: state.taken.filter(p => p.side === PLAYER).length,
+    /* named men of the roster who fell: their keys are man:<id> */
+    fallen: state.slain.filter(k => String(k).startsWith('man:')).map(k => Number(k.slice(4))),
     turns: Math.min(state.turnNumber, map.turnLimit)
   };
 }
@@ -328,7 +334,7 @@ function drawCase(c) {
       if (data.glow.includes(x + ',' + y)) html += '<span class="g"></span>';
       if (data.dots.includes(x + ',' + y)) html += '<span class="cov"></span>';
       const pc = MINI[ch.toLowerCase()];
-      if (pc) html += `<span class="pc p-${ch === ch.toUpperCase() ? 'rosso' : 'azzurro'}${ART.has(MTYPE[ch.toLowerCase()]) ? ' art k-' + MTYPE[ch.toLowerCase()] : ''}">${pc}</span>`;
+      if (pc) html += `<span class="pc p-${ch === ch.toUpperCase() ? 'rosso' : 'azzurro'} t-${MTYPE[ch.toLowerCase()]}${ART.has(MTYPE[ch.toLowerCase()]) ? ' art k-' + MTYPE[ch.toLowerCase()] : ''}">${pc}</span>`;
       html += '</div>';
     });
   });

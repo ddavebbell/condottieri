@@ -160,6 +160,8 @@
   .p-azzurro { color: #7fb4e8;
     text-shadow: 0 0 3px #04101c, 0 0 6px #04101c, 0 1px 0 #04101c, 0 -1px 0 #04101c,
                  1px 0 0 #04101c, -1px 0 0 #04101c; }
+  /* the captain is you: gold on red, so he reads apart from his men */
+  .p-rosso.t-condottiero { color: #f2c75c; }
   .piece.spent { opacity: .42; }
   /* standing in water — one square at a time until he is out */
   .wading {
@@ -554,6 +556,26 @@
     font-family: "DejaVu Sans", "Segoe UI Symbol", sans-serif;
   }
   .preview .cap { text-align: center; color: var(--text-dim); font-size: 12px; margin: 0 0 8px; }
+  .company-line { color: var(--text-dim); font-size: 14px; margin: 0 0 4px; }
+  .company-line .k { color: var(--gold); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; display: block; }
+  .company-line b { color: var(--text); font-weight: normal; }
+
+  /* the roll call */
+  .roll { width: 100%; max-width: 320px; margin: 14px auto 0; text-align: left; }
+  .roll .man { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 7px 2px; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .roll .man .role { color: var(--text-dim); font-size: 13px; }
+  .roll .man.fell { color: var(--text-dim); }
+  .roll .man.fell .name { text-decoration: line-through; text-decoration-color: rgba(196,69,60,.8); }
+  .roll .man.fell .role { color: var(--rosso); }
+  .roll .earlier { font-size: 12.5px; color: var(--text-dim); margin: 8px 2px 0; font-style: italic; }
+  .roll .k { color: var(--gold); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 4px; }
+
+  /* a recruit, or the choice of two */
+  .recruit { width: 100%; max-width: 320px; margin: 16px auto 0; text-align: left; }
+  .recruit p { margin: 0 0 8px; font-size: 14.5px; }
+  .recruit .row { display: flex; gap: 8px; }
+  .recruit .row .plaque { flex: 1; min-height: 56px; font-size: 15px; line-height: 1.2; }
+  .recruit .plaque.chosen { background: #6b4a1e; border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
 
   /* ---------- result ---------- */
   .result-top { text-align: center; padding-top: 4vh; }
@@ -713,6 +735,7 @@
   </div>
   <div class="objective-line"><span class="k">Objective</span><span id="b-obj"></span></div>
   <p class="teaches"><span class="k">This contract teaches</span><span id="b-teaches"></span></p>
+  <p class="company-line"><span class="k">Taking the field</span><span id="b-company"></span></p>
   <div class="preview" id="b-preview"></div>
   <div class="grow"></div>
   <div class="stack">
@@ -784,6 +807,8 @@
     <p id="r-reason"></p>
     <div class="result-stats" id="r-stats"></div>
     <p class="result-flawless" id="r-flawless"></p>
+    <div class="roll" id="r-roll"></div>
+    <div class="recruit" id="r-recruit"></div>
   </div>
   <div class="grow"></div>
   <div class="stack">
@@ -814,7 +839,7 @@
     <button class="plaque" id="st-signout" hidden>Sign out</button>
     <button class="plaque" id="st-rules">Rules guide</button>
     <button class="plaque" id="st-tutorial">Replay the tutorial</button>
-    <button class="plaque" id="st-reset">Reset progress</button>
+    <button class="plaque" id="st-reset">Reset campaign</button>
   </div>
   <div class="grow"></div>
   <div class="stack" style="margin-top:16px">

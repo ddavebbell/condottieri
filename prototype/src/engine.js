@@ -97,6 +97,40 @@ function rect(x1, y1, x2, y2) {
 
 /* MAPS are injected by the build */
 
+/* ============================================================
+   THE COMPANY  (design/condottieri-company.md)
+
+   The page may hand loadMap() a roster: the men the player actually
+   has. They replace the map's fixed player pieces and form up in the
+   map's deployment region from the centre outward, the Condottiero
+   first, right before left, so a full company stands exactly where
+   the map's own list puts it. With no roster (the solver, the tests,
+   the grader) none of this runs and nothing changes.
+   ============================================================ */
+
+let COMPANY = null;
+
+const FORM_ORDER = { condottiero:0, lanciere:1, cavaliere:2, balestriere:3, carro:4, fante:5 };
+
+function deployCompany(men, m) {
+  const region = (m.deployment && m.deployment.region) || [];
+  if (!region.length) return [];
+  const cx = region.reduce((s, t) => s + t[0], 0) / region.length;
+  const cy = region.reduce((s, t) => s + t[1], 0) / region.length;
+  const dist = t => Math.abs(t[0] - cx) + Math.abs(t[1] - cy);
+  const tiles = region.slice().sort((a, b) => dist(a) - dist(b) || b[0] - a[0] || a[1] - b[1]);
+  const rank = t => FORM_ORDER[t] === undefined ? 9 : FORM_ORDER[t];
+  const order = men.slice().sort((a, b) => rank(a.type) - rank(b.type));
+  const out = [];
+  for (const man of order) {
+    const i = tiles.findIndex(t => TERRAIN[m.terrain[t[1]][t[0]]].effect[PIECES[man.type].move] !== 'blocked');
+    if (i < 0) continue;   // nowhere he can stand: he sits this one out
+    const [x, y] = tiles.splice(i, 1)[0];
+    out.push({ ...man, side: PLAYER, x, y });
+  }
+  return out;
+}
+
 
 /* ============================================================
    STATE
@@ -105,8 +139,11 @@ function rect(x1, y1, x2, y2) {
 let map, state, history, selected, lastMove, busy = false;
 
 function newState() {
+  const listed = COMPANY
+    ? map.pieces.filter(p => p.side !== PLAYER).concat(deployCompany(COMPANY, map))
+    : map.pieces;
   return {
-    pieces: map.pieces.map((p, i) => ({ id:i, routeStep:0, awake:false, ...p })),
+    pieces: listed.map((p, i) => ({ id:i, routeStep:0, awake:false, ...p })),
     turn: PLAYER,
     turnNumber: 1,
     commands: map.commands[PLAYER],
@@ -122,7 +159,8 @@ function newState() {
   };
 }
 
-function loadMap(index) {
+function loadMap(index, company) {
+  COMPANY = company || null;
   map = MAPS[index];
   mapIndex = index;
   loadWalls(map.walls);

@@ -106,6 +106,16 @@ whole layer rests on.
 
 ---
 
+## Status (2026-09-26)
+
+All five steps below are built: the roster lives in the save under `company`
+(see `design/SHELL-NOTES.md`), the Result screen is the roll call, every map
+deploys the roster into its deployment region from the centre outward (an
+additive path in the engine that the solver never takes), and recruits come
+after the 4th, 7th (a choice of two) and 11th contracts while there is room.
+Losses are written only when a result is accepted; Try again is offered on any
+win that cost a man.
+
 ## What to build, in order
 
 1. **Persist the roster between missions** — a list of surviving men, snapshotted on entry.
