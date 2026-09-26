@@ -50,31 +50,10 @@
     line-height: 1.5;
   }
 
-  .wrap {
-    display: flex; gap: 22px; padding: 16px 12px 28px;
-    align-items: flex-start; justify-content: center; flex-wrap: wrap;
-  }
-  .panel { width: 296px; }
-
-  /* ---------- one column on a phone ---------- */
   @media (max-width: 760px) {
-    .wrap { flex-direction: column; align-items: center; gap: 12px; padding: 8px 8px 24px; }
-    .panel { width: 100%; max-width: 480px; }
-    .ref-block { display: none; }          /* it all lives in the Rules card */
-    .turn { margin-bottom: 8px; }
-    #log { min-height: 34px; margin-bottom: 8px; font-size: 13px; }
-    .buttons { gap: 6px; margin-bottom: 8px; }
-    button { padding: 11px 14px; font-size: 15px; }     /* thumbs, not cursors */
-    .missions button { padding: 10px 0; }
-    label.toggle { margin-bottom: 8px; padding: 4px 0; }
-    .objective { margin-bottom: 8px; }
-    h1 { font-size: 17px; }
-    .sub { display: none; }
     #rules { padding: 20px 14px 60px; }
     .case { width: 100%; max-width: 330px; }
   }
-
-  .stage { position: relative; }
 
   #board {
     display: grid;
@@ -261,34 +240,7 @@
   .w-e { right: -1px;  top: -1px;  bottom: -1px; width: 4px; }
 
 
-  /* ---------- panel ---------- */
-
-  h1 { font-family: 'BlackCastle', Georgia, serif; font-size: 26px; font-weight: normal;
-       letter-spacing: .03em; margin: 0 0 2px; }
-  .sub { color: var(--text-dim); font-size: 13px; margin: 0 0 16px; }
-
-  .missions { display: flex; gap: 6px; margin-bottom: 16px; }
-  .missions button { flex: 1; padding: 6px 0; font-size: 13px; }
-  .missions button.on { background: #38424a; border-color: #55636b; }
-
-  .objective {
-    border-left: 3px solid var(--gold);
-    padding-left: 12px; margin-bottom: 14px;
-  }
-  .objective .what { font-size: 15px; }
-  .objective .prog { color: var(--gold); font-size: 13px; }
-
-  .turn { border-left: 3px solid var(--line); padding-left: 12px; margin-bottom: 12px; }
-  .turn .side { font-size: 18px; }
-  .turn .side.rosso { color: var(--rosso); }
-  .turn .side.azzurro { color: var(--azzurro); }
-  .turn .count { color: var(--text-dim); font-size: 13px; }
-  .pips { font-size: 16px; letter-spacing: 3px; margin-top: 2px; }
-  .pips .used { color: var(--line); }
-
-  #log { min-height: 40px; color: var(--text-dim); font-size: 13px; margin-bottom: 12px; }
-
-  .buttons { display: flex; gap: 7px; margin-bottom: 14px; flex-wrap: wrap; }
+  /* ---------- plain buttons (rules card, settings rows) ---------- */
   button {
     font-family: inherit; font-size: 14px; color: var(--text);
     background: var(--panel); border: 1px solid var(--line);
@@ -298,31 +250,91 @@
   button:disabled { opacity: .35; cursor: default; }
   button:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 
-  .texrow { display: flex; align-items: center; gap: 5px; margin-bottom: 14px;
-            font-size: 12.5px; color: var(--text-dim); }
-  .texrow span { margin-right: 3px; }
-  .texrow button { padding: 5px 9px; font-size: 12.5px; }
-  .texrow button.on { background: #38424a; border-color: #55636b; color: var(--text); }
-  label.toggle { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-dim); margin-bottom: 16px; cursor: pointer; }
-
-  .block { margin-bottom: 16px; }
-  .block h2 { font-size: 13px; font-weight: normal; color: var(--text-dim); margin: 0 0 6px;
-               display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  button.seelink {
-    background: none; border: 0; padding: 0; cursor: pointer;
-    color: var(--gold); font-size: 12px; font-family: inherit; text-decoration: underline;
+  /* ---------- battle ----------
+     One phone-width column: top bar, a strip of their men we have
+     taken, the board on its table, a strip of ours they have taken,
+     the log, and the three buttons in the thumb zone. */
+  .battle {
+    display: flex; flex-direction: column;
+    min-height: 100vh; min-height: 100dvh;
+    width: 100%; max-width: 480px; margin: 0 auto;
+    padding: calc(6px + env(safe-area-inset-top, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px));
+    font-family: Georgia, "Times New Roman", serif;
   }
-  button.seelink:hover { background: none; color: #f3cd8a; }
+  .topbar {
+    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto;
+    column-gap: 10px; align-items: center; margin-bottom: 4px;
+  }
+  .tb-name {
+    grid-column: 1; grid-row: 1;
+    font-family: 'BlackCastle', Georgia, serif; font-size: 21px; line-height: 1.15;
+    letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tb-status {
+    grid-column: 1; grid-row: 2;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px;
+    font-size: 13px; color: var(--text-dim);
+  }
+  .tb-status .side { font-size: 15px; color: var(--text); }
+  .tb-status .side.rosso { color: #e8564b; }
+  .tb-status .side.azzurro { color: #7fb4e8; }
+  .pips { font-size: 13px; letter-spacing: 2px; color: var(--text); }
+  .pips .used { color: var(--line); }
+  #obj-prog { color: var(--gold); }
+  .menu-btn {
+    grid-column: 2; grid-row: 1 / span 2;
+    width: 48px; height: 48px; padding: 0; font-size: 22px; line-height: 1;
+    color: var(--parchment); background: var(--wood); border: 1px solid var(--wood-dark); border-radius: 4px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.14), inset 0 -3px 0 rgba(0,0,0,.35);
+  }
+  .menu-btn:hover:not(:disabled) { background: #5a3d28; }
+  .menu-btn:active { transform: translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,.55); }
 
-  table.ref { border-collapse: collapse; font-size: 12.5px; width: 100%; }
-  table.ref td { padding: 2px 0; vertical-align: top; }
-  table.ref td.k { color: var(--text); width: 88px; }
-  table.ref td.v { color: var(--text-dim); }
+  .table { display: flex; justify-content: center; margin: 2px 0; }
+  .frame {
+    padding: 9px; border-radius: 5px;
+    background: linear-gradient(135deg, #5c3d24 0%, #3a2414 55%, #4b301c 100%);
+    border: 2px solid #1a0f08;
+    box-shadow: inset 0 0 0 1px rgba(233,220,192,.16), inset 0 0 18px rgba(0,0,0,.5), 0 8px 22px rgba(0,0,0,.6);
+  }
+  .taken-strip {
+    min-height: 28px; display: flex; align-items: center; flex-wrap: wrap; gap: 2px 4px;
+    padding: 0 4px; font-size: 19px; line-height: 1;
+    font-family: "DejaVu Sans", "Segoe UI Symbol", sans-serif;
+  }
+  .taken-strip .lbl {
+    font-family: Georgia, "Times New Roman", serif; font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text-dim); margin-right: 6px;
+  }
+  .taken-strip .none { font-family: Georgia, "Times New Roman", serif; font-size: 12px; color: var(--text-dim); opacity: .7; }
+  #log { min-height: 22px; font-size: 13px; color: var(--text-dim); text-align: center; margin: 4px 0 0; }
+  #hint { font-size: 12.5px; color: var(--gold); text-align: center; }
+  #issues { color: #e08b60; font-size: 12px; text-align: center; }
+  .field { margin: auto 0; }   /* the board floats between the bars */
+  .bottombar {
+    padding-top: 8px;
+    display: grid; grid-template-columns: 1fr 1.7fr 1fr; gap: 8px;
+  }
+  .bottombar .plaque { min-height: 52px; font-size: 16px; padding: 10px 8px; }
 
-  .taken { min-height: 26px; font-size: 20px; font-family: "DejaVu Sans", "Segoe UI Symbol", sans-serif; }
-  .taken .none { font-family: inherit; font-size: 13px; color: var(--text-dim); }
+  /* the pause menu over the board */
+  .pause-obj { margin: 0 0 8px; font-size: 14px; color: var(--text); }
+  .pause-obj .k { display: block; color: var(--gold); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 
-  #issues { color: #e08b60; font-size: 12px; }
+  /* ---------- settings rows ---------- */
+  .set-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); margin: 14px 0 6px; }
+  .texrow { display: flex; gap: 6px; margin-bottom: 8px; }
+  .texrow button {
+    flex: 1; min-height: 44px; font-family: Georgia, "Times New Roman", serif; font-size: 15px;
+    color: var(--parchment-dark); background: var(--wood-dark); border: 1px solid var(--wood-dark); border-radius: 3px;
+  }
+  .texrow button.on { background: var(--wood); color: var(--parchment); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); }
+  label.toggle {
+    display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 0;
+    font-size: 15px; color: var(--text); cursor: pointer; border-bottom: 1px solid var(--line);
+  }
+  label.toggle input { width: 22px; height: 22px; accent-color: #9b352e; flex-shrink: 0; }
+  label.toggle small { display: block; color: var(--text-dim); font-size: 12.5px; }
 
   /* ---------- rules card ---------- */
   #rules {
@@ -678,9 +690,39 @@
 </section>
 
 <section class="screen" id="scr-battle">
+<div class="battle">
+  <div class="topbar">
+    <div class="tb-name" id="bt-name"></div>
+    <div class="tb-status">
+      <span class="side" id="side"></span>
+      <span class="pips" id="pips"></span>
+      <span id="count"></span>
+      <span id="obj-prog"></span>
+    </div>
+    <button class="menu-btn" id="menubtn" aria-label="Menu">&#9776;</button>
+  </div>
+
+  <div class="field">
+  <div class="taken-strip"><span class="lbl">Taken</span><span id="taken-foe"></span></div>
+  <div class="table"><div class="frame"><div id="board" aria-label="Game board"></div></div></div>
+  <div class="taken-strip"><span class="lbl">Lost</span><span id="taken-own"></span></div>
+
+  <div id="log"></div>
+  <div id="hint"></div>
+  <div id="issues-block" style="display:none"><div id="issues"></div></div>
+  </div>
+
+  <div class="bottombar">
+    <button class="plaque" id="undo">Undo</button>
+    <button class="plaque primary" id="endturn">End turn</button>
+    <button class="plaque" id="hintbtn">Hint</button>
+  </div>
+</div>
+
 <div class="pause hidden" id="pause">
   <div class="card">
     <h2>Paused</h2>
+    <p class="pause-obj"><span class="k">Objective</span><span id="obj-what"></span></p>
     <button class="plaque primary" id="p-resume">Resume</button>
     <button class="plaque" id="p-restart">Restart</button>
     <button class="plaque" id="p-rules">Rules guide</button>
@@ -688,108 +730,6 @@
     <button class="plaque" id="p-abandon">Abandon contract</button>
   </div>
 </div>
-<div class="wrap">
-  <div class="stage">
-    <div id="board" aria-label="Game board"></div>
-  </div>
-
-  <div class="panel">
-    <h1>Condottieri</h1>
-    <p class="sub">Prototype v3 — single player</p>
-
-    <div class="missions" id="missions"></div>
-
-    <div class="objective">
-      <div class="what" id="obj-what"></div>
-      <div class="prog" id="obj-prog"></div>
-    </div>
-
-    <div class="turn">
-      <div class="side" id="side"></div>
-      <div class="count" id="count"></div>
-      <div class="pips" id="pips"></div>
-    </div>
-
-    <div id="log"></div>
-
-    <div class="buttons">
-      <button id="endturn">End turn</button>
-      <button id="undo">Undo</button>
-      <button id="restart">Retry</button>
-      <button id="hintbtn">Hint</button>
-      <button id="rulesbtn">Rules</button>
-    </div>
-    <div id="hint" style="font-size:12.5px;color:var(--gold);margin-bottom:14px"></div>
-
-    <label class="toggle">
-      <input type="checkbox" id="threat" checked> Mark your men they can kill
-    </label>
-    <label class="toggle">
-      <input type="checkbox" id="faces" checked> Show who is untouchable
-    </label>
-    <div class="texrow">
-      <span>Ground</span>
-      <button data-tex="0">Full</button>
-      <button data-tex="0.5" class="on">Muted</button>
-      <button data-tex="0.78">Faint</button>
-      <button data-tex="1">Flat</button>
-    </div>
-
-    <div class="block ref-block">
-      <h2>Reading your line <button class="seelink" data-rules="formations">see examples</button></h2>
-      <table class="ref">
-        <tr><td class="k">Red corner</td><td class="v">this man of yours can be killed on their next turn</td></tr>
-        <tr><td class="k">Gold ring</td><td class="v">one of yours, standing beside a Lanciere or your Condottiero. Their infantry cannot touch him.</td></tr>
-        <tr><td class="k">No ring</td><td class="v">he can be killed. Move an anchor to him, or him to an anchor.</td></tr>
-        <tr><td class="k">Green ring</td><td class="v">a kill you can make, and he will be safe standing there</td></tr>
-        <tr><td class="k">Red ring or dot</td><td class="v">you may go there, but they can kill him on their turn. The corner flag warns you before you commit.</td></tr>
-        <tr><td class="k">Watch</td><td class="v">move a man into a lanciere's diagonal and the glow it was giving goes out</td></tr>
-      </table>
-    </div>
-
-    <div class="block ref-block">
-      <h2>Defended men &amp; formations <button class="seelink" data-rules="discipline">see examples</button></h2>
-      <table class="ref">
-        <tr><td class="k">The rule</td><td class="v">your man standing beside a Lanciere, Balestriere or Condottiero cannot be taken at all</td></tr>
-        <tr><td class="k">Yours alone</td><td class="v">their men shelter nobody. Nothing on their side is ever protected.</td></tr>
-        <tr><td class="k">Killing</td><td class="v">costs you nothing, ever. Take what you can reach.</td></tr>
-        <tr><td class="k">Anchors hold</td><td class="v">Lanciere the four corners beside him; Condottiero all eight</td></tr>
-        <tr><td class="k">Not an anchor</td><td class="v">the Balestriere. He breaks formations — he does not hold one together.</td></tr>
-        <tr><td class="k">Through it</td><td class="v">their horse, and their bolt. Those two are the whole danger on the board.</td></tr>
-      </table>
-    </div>
-
-    <div class="block ref-block">
-      <h2>Crossbows <button class="seelink" data-rules="breaking">see examples</button></h2>
-      <table class="ref">
-        <tr><td class="k">Reach</td><td class="v">one — the eight tiles beside him</td></tr>
-        <tr><td class="k">His bolt</td><td class="v">goes through protection. Approach him cornerwise, where he has no answer.</td></tr>
-        <tr><td class="k">Awkward</td><td class="v">dashed ring — a bad angle. Only finds a man caught on his own.</td></tr>
-      </table>
-    </div>
-
-    <div class="block ref-block">
-      <h2>Their orders <button class="seelink" data-rules="orders">see examples</button></h2>
-      <table class="ref">
-        <tr><td class="k">Guard</td><td class="v">holds its tile, strikes what comes in reach</td></tr>
-        <tr><td class="k">Patrol</td><td class="v">walks a fixed route — shown as blue dots</td></tr>
-        <tr><td class="k">Charge</td><td class="v">comes at you once you are within three tiles — not before</td></tr>
-        <tr><td class="k">Waiting</td><td class="v">still until you come close, then charges</td></tr>
-      </table>
-    </div>
-
-    <div class="block">
-      <h2>Taken</h2>
-      <div class="taken" id="taken"></div>
-    </div>
-
-    <div class="block" id="issues-block" style="display:none">
-      <h2>Map problems</h2>
-      <div id="issues"></div>
-    </div>
-  </div>
-</div>
-
 </section>
 
 <section class="screen shell" id="scr-result">
@@ -810,7 +750,16 @@
 
 <section class="screen shell" id="scr-settings">
   <h2>Settings</h2>
-  <p class="dim">Texture, threats, protection glow, sound and your name move here in milestone 6. For now they stay on the battle panel.</p>
+  <div class="set-label">Ground texture</div>
+  <div class="texrow">
+    <button data-tex="0">Full</button>
+    <button data-tex="0.5" class="on">Muted</button>
+    <button data-tex="0.78">Faint</button>
+    <button data-tex="1">Flat</button>
+  </div>
+  <label class="toggle"><input type="checkbox" id="threat" checked><span>Show threats<small>Mark your men they can kill next turn</small></span></label>
+  <label class="toggle"><input type="checkbox" id="faces" checked><span>Show protection glow<small>Mark who is untouchable</small></span></label>
+  <p class="dim" style="margin-top:14px">Sound, your name and reset progress arrive in milestone 6.</p>
   <div class="grow"></div>
   <div class="stack">
     <button class="plaque" id="st-signout" hidden>Sign out</button>

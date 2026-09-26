@@ -31,10 +31,11 @@ const tiles = [];
     no pinching. Leaves room for the panel underneath on a phone.        */
 function fitBoard() {
   if (!map) return;
-  const narrow = window.innerWidth <= 760;
-  const availW = Math.min(window.innerWidth - (narrow ? 18 : 40), 560);
-  const availH = window.innerHeight - (narrow ? 290 : 90);
-  const t = Math.max(26, Math.min(48, Math.floor(Math.min(availW / map.width, availH / map.height))));
+  /* the column is at most 480 wide with 10px gutters and a 9px frame */
+  const availW = Math.min(window.innerWidth, 480) - 40;
+  /* top bar, two strips, log and the bottom bar: about 250px of the height */
+  const availH = window.innerHeight - 250;
+  const t = Math.max(26, Math.min(52, Math.floor(Math.min(availW / map.width, availH / map.height))));
   document.documentElement.style.setProperty('--tile', t + 'px');
   boardEl.style.gridTemplateColumns = `repeat(${map.width}, ${t}px)`;
 }
@@ -129,17 +130,20 @@ function render() {
     el('pips').innerHTML = '●'.repeat(Math.max(0, state.commands))
       + `<span class="used">${'●'.repeat(Math.max(0, map.commands[state.turn] - state.commands))}</span>`;
   }
-  el('count').textContent = `Turn ${Math.min(state.turnNumber, map.turnLimit)} of ${map.turnLimit}`;
+  el('bt-name').textContent = map.name;
+  el('count').textContent = `Turn ${Math.min(state.turnNumber, map.turnLimit)} / ${map.turnLimit}`;
   el('log').textContent = state.message;
 
-  el('taken').innerHTML = state.taken.length
-    ? state.taken.map(p => `<span class="${pieceClass(p.type, p.side)} small" style="font-size:20px">${glyphOf(p.type)}</span>`).join(' ')
-    : '<span class="none">Nothing yet</span>';
+  /* two strips: their men we have taken, and ours they have */
+  for (const [id, side] of [['taken-foe', FOE], ['taken-own', PLAYER]]) {
+    const men = state.taken.filter(p => p.side === side);
+    el(id).innerHTML = men.length
+      ? men.map(p => `<span class="${pieceClass(p.type, p.side)} small">${glyphOf(p.type)}</span>`).join('')
+      : '<span class="none">none</span>';
+  }
 
   el('undo').disabled = busy || !!state.over || history.length === 0;
   el('endturn').disabled = busy || !!state.over || state.turn !== PLAYER;
-
-  [...el('missions').children].forEach((b, i) => b.className = i === mapIndex ? 'on' : '');
 
   if (state.over) showResult();
 }
@@ -231,7 +235,6 @@ el('undo').addEventListener('click', () => {
   render();
 });
 
-el('restart').addEventListener('click', () => startMission(mapIndex));
 el('hintbtn').addEventListener('click', showSolution);
 document.querySelectorAll('.texrow button').forEach(b => b.addEventListener('click', () => {
   document.documentElement.style.setProperty('--tex', b.dataset.tex);
@@ -244,7 +247,7 @@ el('faces').addEventListener('change', render);
 document.addEventListener('keydown', e => {
   if (busy || !boardActive()) return;
   if (e.key === 'u') el('undo').click();
-  if (e.key === 'r') el('restart').click();
+  if (e.key === 'r') startMission(mapIndex);
   if (e.key === 'e') el('endturn').click();
   if (e.key === 'Escape') { selected = null; render(); }
 });
@@ -434,18 +437,9 @@ function openRules(anchor) {
   if (target) target.scrollIntoView({ block: 'start' });
 }
 
-el('rulesbtn').addEventListener('click', () => openRules());
 el('rules-close').addEventListener('click', () => el('rules').classList.add('hidden'));
 document.querySelectorAll('[data-rules]').forEach(a =>
   a.addEventListener('click', () => openRules(a.getAttribute('data-rules'))));
-
-MAPS.forEach((m, i) => {
-  const b = document.createElement('button');
-  b.textContent = i + 1;
-  b.title = m.name;
-  b.onclick = () => startMission(i);
-  el('missions').appendChild(b);
-});
 
 /* No mission is loaded here: the shell starts one from its Briefing
    screen. See screens.part.js, bundled after this file. */

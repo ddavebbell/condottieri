@@ -16,7 +16,7 @@
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 
 /* ============================================================
    SAVING
@@ -464,6 +464,7 @@ el('c-back').onclick = () => go('title');
 el('b-accept').onclick = () => startBattle(briefingIndex);
 el('b-back').onclick = () => go('campaign');
 
+el('menubtn').onclick = () => setPause(true);
 el('p-resume').onclick = () => setPause(false);
 el('p-restart').onclick = () => { setPause(false); startMission(mapIndex); };
 el('p-rules').onclick = () => openRules();
