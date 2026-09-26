@@ -759,10 +759,19 @@
   </div>
   <label class="toggle"><input type="checkbox" id="threat" checked><span>Show threats<small>Mark your men they can kill next turn</small></span></label>
   <label class="toggle"><input type="checkbox" id="faces" checked><span>Show protection glow<small>Mark who is untouchable</small></span></label>
-  <p class="dim" style="margin-top:14px">Sound, your name and reset progress arrive in milestone 6.</p>
-  <div class="grow"></div>
+  <label class="toggle"><input type="checkbox" id="sound" checked><span>Sound<small>There is no sound yet; the choice is kept for when there is</small></span></label>
+
+  <div class="set-label">Captain</div>
+  <input class="field" id="st-name" type="text" maxlength="24" autocomplete="nickname" placeholder="Your name">
+  <p class="dim" id="st-account" style="margin:8px 0 12px"></p>
   <div class="stack">
+    <button class="plaque" id="st-signin">Sign in</button>
     <button class="plaque" id="st-signout" hidden>Sign out</button>
+    <button class="plaque" id="st-rules">Rules guide</button>
+    <button class="plaque" id="st-reset">Reset progress</button>
+  </div>
+  <div class="grow"></div>
+  <div class="stack" style="margin-top:16px">
     <button class="plaque" id="st-back">Back</button>
   </div>
 </section>

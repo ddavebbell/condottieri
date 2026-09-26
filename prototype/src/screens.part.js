@@ -16,7 +16,7 @@
    the battle it opens the pause menu instead.
    ============================================================ */
 
-const VERSION = '0.5.0';
+const VERSION = '0.6.0';
 
 /* ============================================================
    SAVING
@@ -177,6 +177,7 @@ function applySettings() {
     b.className = Number(b.dataset.tex) === Number(s.tex) ? 'on' : '');
   el('threat').checked = !!s.threat;
   el('faces').checked = !!s.faces;
+  el('sound').checked = s.sound !== false;
 }
 
 document.querySelectorAll('.texrow button').forEach(b => b.addEventListener('click', () => {
@@ -185,6 +186,7 @@ document.querySelectorAll('.texrow button').forEach(b => b.addEventListener('cli
 }));
 el('threat').addEventListener('change', () => { save.settings.threat = el('threat').checked; saveProfile(); });
 el('faces').addEventListener('change', () => { save.settings.faces = el('faces').checked; saveProfile(); });
+el('sound').addEventListener('change', () => { save.settings.sound = el('sound').checked; saveProfile(); });
 
 /* ============================================================
    ROUTER
@@ -199,6 +201,7 @@ const BACK_TO = {
 
 let activeScreen = null;
 let settingsFrom = 'title';   // the screen Settings returns to
+let signinFrom = 'title';     // the screen Sign in returns to
 let briefingIndex = 0;        // the mission Briefing is showing
 let lastResult = null;        // what Result is showing
 let pauseOpen = false;
@@ -229,6 +232,7 @@ function back() {
   if (!el('rules').classList.contains('hidden')) { el('rules').classList.add('hidden'); return; }
   if (activeScreen === 'battle') { setPause(!pauseOpen); return; }
   if (activeScreen === 'settings') { go(settingsFrom); return; }
+  if (activeScreen === 'signin') { go(signinFrom); return; }
   const to = BACK_TO[activeScreen];
   if (to) go(to);
 }
@@ -289,6 +293,12 @@ const ENTER = {
     el('r-retry').hidden = r.won;
   },
   settings() {
+    el('st-name').value = save.profile.name;
+    el('st-account').textContent = account
+      ? 'Signed in with Google as ' + account.name + '. Your campaign is kept on the server.'
+      : ONLINE ? 'Not signed in. Your campaign is kept on this device only.'
+      : 'Opened from a file: your campaign is kept on this device only.';
+    el('st-signin').hidden = !!account || !ONLINE;
     el('st-signout').hidden = !account;
   }
 };
@@ -439,6 +449,7 @@ boardActive = () => activeScreen === 'battle' && !pauseOpen;
 el('t-continue').onclick = () => go('campaign');
 el('t-new').onclick = () => {
   if (hasSave() && !confirm('Start a new campaign? Your progress will be wiped.')) return;
+  signinFrom = 'title';
   const settings = save.settings;   // a new campaign keeps the player's settings
   save = freshSave();
   save.settings = settings;
@@ -457,7 +468,7 @@ el('s-google').onclick = () => {
   saveProfile();
   location.href = '/auth/google';
 };
-el('s-back').onclick = () => go('title');
+el('s-back').onclick = () => go(signinFrom);
 
 el('c-back').onclick = () => go('title');
 
@@ -480,7 +491,17 @@ el('r-next').onclick = () => go('briefing', lastResult.index + 1);
 el('r-retry').onclick = () => startBattle(lastResult.index);
 el('r-campaign').onclick = () => go('campaign');
 
+/* The name is kept as it is typed. */
+el('st-name').addEventListener('input', () => { save.profile.name = el('st-name').value.trim(); saveProfile(); });
+el('st-signin').onclick = () => { signinFrom = 'settings'; go('signin'); };
 el('st-signout').onclick = async () => { await signOut(); go('title'); };
+el('st-rules').onclick = () => openRules();
+el('st-reset').onclick = () => {
+  if (!confirm('Reset progress? Every contract goes back to unfulfilled. Your name and settings stay.')) return;
+  save.progress = {};
+  saveProfile();
+  el('st-account').textContent = 'Progress reset.';
+};
 el('st-back').onclick = () => go(settingsFrom);
 
 /* ---------- boot ---------- */
