@@ -18,7 +18,9 @@ One build, generated from `src/`. Two copies of a game is how they drift apart.
     node tools/trace3.js 0 32 12   solve one map, with a trace
     node tools/uses.js 0 6         which mechanics a winning line really uses
 
-**Edit `src/`, never `dist.html`.**
+**Edit `src/`, never `dist.html`.** Sounds and the typeface live in
+`prototype/assets/` and are embedded by the build; `assets/ATTRIBUTION.md`
+lists where each came from and the one credit the game owes.
 
 ## Where it stands
 

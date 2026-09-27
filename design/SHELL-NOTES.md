@@ -104,6 +104,37 @@ Playwright on the machine); those scripts lived in a scratch folder and are
 not in the repo. Each milestone's walk is easy to redo by hand: title, guest
 sign-in, tap a seal, accept, play, pause, settings, win, next contract.
 
+## Sound and type (2026-09-27)
+
+`src/sound.part.js` is the whole of the audio. The build embeds every
+`assets/sfx/*.wav` as base64 in an `SFX_DATA` table, and the page decodes
+them all on the first tap (browsers allow no sound before one). `SFX.play(name,
+{delay, gain, rate})` is the only call. Where the cues hang:
+
+- The engine announces `move`, `shot`, `arrive` and `turn` through
+  `onGameEvent(kind, detail)`, a no-op until the page replaces it; the solver
+  and the tests never hear it. This is the engine's one concession to the page.
+- The board (`ui.part.js`) plays `select`, `deselect` and `deny` from taps,
+  `objective` when the objective text changes after a command, and `anchor`
+  (very quiet) when a man's move ends sheltered.
+- The shell plays `victory`, `victory_clean` (not a man lost) or `defeat`
+  from `onMissionEnd`, `recruit` on taking a man, and `ui` on every other
+  button through one delegated click listener.
+- A plain step is one of three takes at a slightly random rate, so twelve
+  moves a turn do not sound mechanical. `kill` is ours, `kill_them` theirs,
+  and the same for `arrive`.
+
+The Sound toggle in Settings is honoured through `SFX.enabled`. Three cues
+were marked provisional by whoever sourced them (`move_water`, `charge`,
+`arrive`); `assets/SOUND-NOTES.md` says what to search for. `charge.wav`
+is CC-BY and is credited at the foot of Settings.
+
+Type: Cardo (Aldine, 1495) replaced the system serif stack for text and the
+BlackCastle blackletter for every heading, including the title. The three
+WOFF2 faces are embedded by the build from `assets/font/`; the marker in
+`shell.head.html` is where they land. Only `DejaVu Sans` remains, for the
+chess glyphs.
+
 ## Rough edges and things I was unsure about
 
 - The game was renamed Socii on 2026-09-25; code, save key, repo and the D1

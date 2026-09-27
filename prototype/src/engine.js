@@ -138,6 +138,11 @@ function deployCompany(men, m) {
 
 let map, state, history, selected, lastMove, busy = false;
 
+/* The engine tells whoever is listening what just happened — a move, a
+   shot, a wave arriving, the turn changing hands. The page hangs the
+   sound on this; the solver leaves it silent. */
+let onGameEvent = () => {};
+
 function newState() {
   const listed = COMPANY
     ? map.pieces.filter(p => p.side !== PLAYER).concat(deployCompany(COMPANY, map))
@@ -656,10 +661,12 @@ function doMove(piece, move) {
   else text += ' moves';
 
   mover.x = move.x; mover.y = move.y;
-  if (effectFor(mover, move.x, move.y) === 'rough') text += ' — and is held there';
+  const effect = effectFor(mover, move.x, move.y);
+  if (effect === 'rough') text += ' — and is held there';
 
   lastMove = { from, to:{ x:move.x, y:move.y } };
   state.message = text;
+  onGameEvent('move', { piece: mover, victim, from, effect, mire: inMire(mover) });
 }
 
 function doShot(piece, target) {
@@ -669,6 +676,7 @@ function doShot(piece, target) {
   lastMove = { from:{ x:shooter.x, y:shooter.y }, to:target };
   // he never steps onto the square, so there is nobody there to fall with
   state.message = `${SIDE_NAME[shooter.side]} Balestriere shoots ${PIECES[victim.type].label}`;
+  onGameEvent('shot', { piece: shooter, victim });
 }
 
 
@@ -717,6 +725,7 @@ function arrivals() {
     }
     state.arrived.push(i);
     if (names.length) {
+      onGameEvent('arrive', { side: r.pieces[0].side, count: names.length });
       state.message = r.text
         || (names.join(' and ') + (r.pieces[0].side === PLAYER
               ? ' rides up at the rear' : ' comes up on their side'));
@@ -733,6 +742,7 @@ function endPlayerTurn() {
   state.commands = map.commands[FOE];
   state.acted = [];
   selected = null;
+  onGameEvent('turn', { side: FOE });
   render();
   busy = true;
   setTimeout(enemyStep, 420);

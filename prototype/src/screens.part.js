@@ -317,7 +317,12 @@ document.querySelectorAll('.texrow button').forEach(b => b.addEventListener('cli
 }));
 el('threat').addEventListener('change', () => { save.settings.threat = el('threat').checked; saveProfile(); });
 el('faces').addEventListener('change', () => { save.settings.faces = el('faces').checked; saveProfile(); });
-el('sound').addEventListener('change', () => { save.settings.sound = el('sound').checked; saveProfile(); });
+el('sound').addEventListener('change', () => {
+  save.settings.sound = el('sound').checked;
+  saveProfile();
+  if (save.settings.sound) SFX.play('select');
+});
+SFX.enabled = () => save.settings.sound !== false;
 
 /* ============================================================
    ROUTER
@@ -551,7 +556,8 @@ function drawCampaign() {
 }
 
 function pickStop(i) {
-  if (!isUnlocked(i)) return;
+  if (!isUnlocked(i)) { SFX.play('deny'); return; }
+  SFX.play('ui');
   go('briefing', i);
 }
 
@@ -579,7 +585,13 @@ function setPause(on) {
 }
 
 /* Progress is saved before the Result screen is shown. */
-onMissionEnd = r => { recordResult(r); setPause(false); go('result', r); };
+onMissionEnd = r => {
+  recordResult(r);
+  setPause(false);
+  /* after the blow that ended it has landed */
+  SFX.play(r.won ? (r.lost === 0 ? 'victory_clean' : 'victory') : 'defeat', { delay: 450 });
+  go('result', r);
+};
 boardActive = () => activeScreen === 'battle' && !pauseOpen;
 
 /* ---------- buttons ---------- */

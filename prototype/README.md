@@ -9,9 +9,13 @@ Built overnight against the plan in `condottieri-solver-plan.md`.
     src/ui.part.js      the board: rendering and input
     src/screens.part.js the shell around it: title, campaign, briefing, result, settings, router
     src/tutorial.part.js the guided first contract: scrim, spotlight, cards
+    src/sound.part.js   the cues: Web Audio, hung on the engine's onGameEvent()
     src/shell.*.html    the page around them
+    assets/sfx/         the 22 WAV cues, embedded by the build (assets/ATTRIBUTION.md)
+    assets/font/        Cardo regular, italic, bold (WOFF2, OFL)
     src/engine.js       rules + a pure state-passing interface   <- the important one
-    tools/build.js      stitches engine + maps + ui -> dist.html and engine.bundle.js
+    tools/build.js      stitches engine + maps + sound + ui -> dist.html and engine.bundle.js,
+                        embedding the fonts and the cues as base64
     tools/lib.js        search machinery and the heuristic
     tools/measure.js    step 1: how big is the state space
     tools/solve.js      the beam solver

@@ -219,14 +219,32 @@ function onTileClick(x, y) {
 
   if (selected) {
     const shot = shots(selected).find(s => s.x === x && s.y === y);
-    if (shot) { playerAction(selected, { ...shot, kind:'shot' }); selected = null; render(); return; }
+    if (shot) { act(selected, { ...shot, kind:'shot' }); return; }
     const move = legalMoves(selected).find(m => m.x === x && m.y === y);
-    if (move) { playerAction(selected, { ...move, kind:'move' }); selected = null; render(); return; }
+    if (move) { act(selected, { ...move, kind:'move' }); return; }
   }
 
   const piece = pieceAt(x, y);
+  const was = selected;
 
   selected = (piece && canAct(piece)) ? piece : null;
+  if (selected && selected !== was) SFX.play('select');
+  else if (!selected && piece) SFX.play('deny');       // a man who cannot act, or one of theirs
+  else if (!selected && was) SFX.play('deselect');     // put him down
+  render();
+}
+
+/* One command. The engine makes the noise of the move itself; here we
+   listen for the two things only the board can tell: the objective
+   moved on, or the man ended up sheltered. */
+function act(piece, action) {
+  const before = objectiveProgress();
+  playerAction(piece, action);
+  selected = null;
+  /* on a clear-the-field map the kill itself is the progress, so no bell there */
+  if (map.objective.type !== 'clear' && objectiveProgress() !== before && !state.over) SFX.play('objective', { delay: 250 });
+  const man = state.pieces.find(p => p.id === piece.id);
+  if (man && action.kind === 'move' && isImmune(man)) SFX.play('anchor', { delay: 120 });
   render();
 }
 
@@ -238,6 +256,7 @@ el('undo').addEventListener('click', () => {
   state = prev.state;
   lastMove = prev.lastMove;
   selected = null;
+  SFX.play('deselect');
   render();
 });
 
@@ -255,7 +274,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'u') el('undo').click();
   if (e.key === 'r') startMission(mapIndex);
   if (e.key === 'e') el('endturn').click();
-  if (e.key === 'Escape') { selected = null; render(); }
+  if (e.key === 'Escape') { if (selected) SFX.play('deselect'); selected = null; render(); }
 });
 
 /* ============================================================
